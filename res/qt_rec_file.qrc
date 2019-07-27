@@ -1,0 +1,19 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>play.png</file>
+	<file>play_hover.png</file>
+	<file>play_pressed.png</file>
+	<file>next.png</file>
+	<file>next_hover.png</file>
+	<file>next_pressed.png</file>
+	<file>prev.png</file>
+	<file>prev_hover.png</file>
+	<file>prev_pressed.png</file>
+	<file>stop.png</file>
+	<file>stop_hover.png</file>
+	<file>stop_pressed.png</file>
+	<file>pause.png</file>
+	<file>pause_hover.png</file>
+	<file>pause_pressed.png</file>
+</qresource>
+</RCC>
