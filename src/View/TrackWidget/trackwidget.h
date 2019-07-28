@@ -14,21 +14,16 @@ class TrackWidget : public QWidget
 
 signals:
 
-    void signalSetNumber(size_t iNumber);
-
     void signalDoubleClick(size_t trackIndex);
-
     void signalSetPlaying();
-
     void signalDisablePlaying();
-
     void signalSelected(size_t iTrackIndex);
 
 public:
 
     explicit TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime, QWidget *parent = nullptr);
 
-    void setPlaing();
+    void setPlaying();
     void setNumber(size_t iNumber);
     void disablePlaying();
     void disableSelected();
@@ -45,15 +40,11 @@ public:
 protected:
 
     void mouseDoubleClickEvent(QMouseEvent* ev);
-
     void mousePressEvent(QMouseEvent* ev);
 
 private slots:
 
-    void slotSetNumber(size_t iNumber);
-
     void slotSetPlaying();
-
     void slotDisablePlaying();
 
 private:

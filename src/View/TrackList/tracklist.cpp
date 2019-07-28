@@ -36,7 +36,65 @@ void TrackList::addDirectory(QString path)
 
 void TrackList::dragEnterEvent(QDragEnterEvent *event)
 {
-    event->acceptProposedAction();
+    const QMimeData* mimeData = event->mimeData();
+
+    if (mimeData->hasUrls())
+    {
+        QStringList pathList;
+        QList<QUrl> urlList = mimeData->urls();
+
+        for (int i = 0; i < urlList.size(); i++)
+        {
+            pathList.append(urlList.at(i).toLocalFile());
+        }
+
+        QStringList filteredPaths;
+
+        bool bFolderFound = false;
+
+        // Look for extensions
+        for (int i = 0; i < pathList.size(); i++)
+        {
+            // Determine the start position of the extension.
+            int iExtensionPos = -1;
+            for (int j = pathList[i].size() - 1; j >=0; j--)
+            {
+                if (pathList[i][j] == '.')
+                {
+                    iExtensionPos = j + 1;
+                    break;
+                }
+            }
+
+            if (iExtensionPos != -1)
+            {
+                // File
+
+                // Read the extension
+                QString ext = "";
+                for (int j = iExtensionPos; j < pathList[i].size(); j++)
+                {
+                    ext += pathList[i][j];
+                }
+
+                ext = ext.toUpper();
+                if ( (ext == "MP3") || (ext == "FLAC") || (ext == "WAV") || (ext == "OGG") )
+                {
+                    filteredPaths.push_back(pathList[i]);
+                }
+            }
+            else
+            {
+                // Folder (maybe)
+                bFolderFound = true;
+            }
+        }
+
+        if ( (filteredPaths.size() > 0) || bFolderFound)
+        {
+            event->acceptProposedAction();
+        }
+    }
 }
 
 void TrackList::dropEvent(QDropEvent *event)
@@ -67,25 +125,15 @@ void TrackList::dropEvent(QDropEvent *event)
     }
 }
 
-void TrackList::keyPressEvent(QKeyEvent *ev)
-{
-    if (ev->key() == Qt::Key_Delete)
-    {
-        emit signalDeleteTrack();
-    }
-}
-
 QStringList TrackList::filterPaths(QStringList paths)
 {
-    QApplication::processEvents();
-
     QStringList filteredPaths;
 
     // Look for extensions
     for (int i = 0; i < paths.size(); i++)
     {
+        // Determine the start position of the extension.
         int iExtensionPos = -1;
-
         for (int j = paths[i].size() - 1; j >=0; j--)
         {
             if (paths[i][j] == '.')
@@ -97,9 +145,10 @@ QStringList TrackList::filterPaths(QStringList paths)
 
         if (iExtensionPos != -1)
         {
-            QString ext = "";
-
             // File
+
+            // Read the extension
+            QString ext = "";
             for (int j = iExtensionPos; j < paths[i].size(); j++)
             {
                 ext += paths[i][j];

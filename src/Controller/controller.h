@@ -1,10 +1,14 @@
 #pragma once
 
+//STL
 #include <vector>
 #include <string>
 
+
+
 class MainWindow;
 class AudioService;
+
 
 class Controller
 {
@@ -12,21 +16,24 @@ public:
 
     Controller(MainWindow* pMainWindow);
 
-    void addTrack(const wchar_t* pFilePath);
 
-    void addTracks(std::vector<wchar_t*> paths);
 
-    void playTrack(size_t iTrackIndex);
-    void pauseTrack();
-    void stopTrack();
-    void nextTrack();
-    void prevTrack();
+    // Tracklist functions
+    void addTracks    (std::vector<wchar_t*> paths);
+    void playTrack    (size_t iTrackIndex);
+    void pauseTrack   ();
+    void stopTrack    ();
+    void nextTrack    ();
+    void prevTrack    ();
+    void removeTrack  (size_t iTrackIndex);
 
-    void changeVolume(float fNewVolume);
+    // set
+    void changeVolume (float fNewVolume);
 
-    void removeTrack(size_t iTrackIndex);
+    // get
+    size_t getPlaingTrackIndex (bool& bSomeTrackIsPlaying);
 
-    size_t getPlaingTrackIndex(bool& bSomeTrackIsPlaying);
+
 
     ~Controller();
 

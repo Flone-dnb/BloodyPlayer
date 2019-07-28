@@ -3,6 +3,8 @@
 //STL
 #include <string>
 #include <thread>
+#include <iomanip>
+#include <sstream>
 
 // Custom
 #include "../src/View/MainWindow/mainwindow.h"
@@ -12,22 +14,36 @@
 
 #include <windows.h>
 
+
 AudioService::AudioService(MainWindow* pMainWindow)
 {
-    this->pMainWindow = pMainWindow;
-    pSystem           = nullptr;
-    bSystemReady      = false;
-    bTrackIsPaused    = false;
+    this->pMainWindow   = pMainWindow;
+    pSystem             = nullptr;
+
+    bMonitorTracks      = false;
     bIsSomeTrackPlaying = false;
+
     fCurrentVolume = DEFAULT_VOLUME;
     iCurrentlyPlayingTrackIndex = 0;
 
-    // FMOD init
+    FMODinit();
+}
+
+
+
+
+void AudioService::FMODinit()
+{
+    // FMOD initialization
     FMOD_RESULT result;
     result = FMOD::System_Create(&pSystem);
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System_Create() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pMainWindow->showMessageBox( false, "The audio system has not been started and the application will be closed.");
+        // Look main.cpp (isSystemReady() function)
+        // app will be closed.
+        pMainWindow->markAnError();
         return;
     }
 
@@ -35,6 +51,10 @@ AudioService::AudioService(MainWindow* pMainWindow)
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System::init() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pMainWindow->showMessageBox( false, "The audio system has not been started and the application will be closed.");
+        // Look main.cpp (isSystemReady() function)
+        // app will be closed.
+        pMainWindow->markAnError();
         return;
     }
 
@@ -42,12 +62,13 @@ AudioService::AudioService(MainWindow* pMainWindow)
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System::update() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pMainWindow->showMessageBox( false, "The audio system has not been started and the application will be closed.");
+        // Look main.cpp (isSystemReady() function)
+        // app will be closed.
+        pMainWindow->markAnError();
         return;
     }
 }
-
-
-
 
 void AudioService::addTrack(const wchar_t *pFilePath)
 {
@@ -64,7 +85,7 @@ void AudioService::addTrack(const wchar_t *pFilePath)
     size_t iNameStartIndex = 0;
     for (size_t i = wPathStr.size() - 1; i >= 1; i--)
     {
-        if (wPathStr[i] == L'/')
+        if (wPathStr[i] == L'/' || wPathStr[i] == L'\\')
         {
             iNameStartIndex = i + 1;
             break;
@@ -109,6 +130,11 @@ void AudioService::addTrack(const wchar_t *pFilePath)
         trackInfo += std::to_wstring(bits);
         trackInfo += L" bits";
     }
+    trackInfo += L", ";
+    std::wstringstream stream;
+    stream << std::fixed << std::setprecision(2) << pNewTrack->getSize() / 1024.0 / 1024;
+    trackInfo += stream.str();
+    trackInfo += L" MB";
 
     // Get track time
     unsigned int iMS = pNewTrack->getLengthInMS();
@@ -121,7 +147,7 @@ void AudioService::addTrack(const wchar_t *pFilePath)
     if (iSeconds < 10) trackTime += "0";
     trackTime += std::to_string(iSeconds);
 
-    mtxAddTrack.lock();
+    mtxThreadLoadAddTrack.lock();
 
 
     tracks.push_back(pNewTrack);
@@ -130,17 +156,22 @@ void AudioService::addTrack(const wchar_t *pFilePath)
 
     if (tracks.size() == 1)
     {
-        bSystemReady = true;
+        bMonitorTracks = true;
         std::thread monitor(&AudioService::monitorTrack, this);
         monitor.detach();
     }
 
 
-    mtxAddTrack.unlock();
+    mtxThreadLoadAddTrack.unlock();
 }
 
 void AudioService::addTracks(std::vector<wchar_t*> paths)
 {
+    // This function adds tracks by using private 'threadAddTracks()' and 'addTrack()' functions.
+
+    mtxTracksVec.lock();
+
+    // Remove some of the tracks if we exceed MAX_CHANNELS (i.e. max amount of tracks)
     if (paths.size() + tracks.size() > MAX_CHANNELS)
     {
         size_t removeCount = paths.size() + tracks.size() - MAX_CHANNELS;
@@ -150,17 +181,23 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
             delete[] paths.back();
             paths.pop_back();
         }
+
+        pMainWindow->showMessageBox(true, std::to_string(removeCount) + std::string(" tracks were rejected because with them we will exceed maximum"
+                                                                                    " amount of tracks in the tracklist which is " + std::to_string(MAX_CHANNELS)));
     }
 
 
     pMainWindow->showWaitWindow();
 
+    // Get amount of CPU threads
+    // In every CPU thread we will add tracks
     SYSTEM_INFO info;
     GetSystemInfo(&info);
     size_t threads = info.dwNumberOfProcessors;
 
     std::vector<bool*> threadsDoneFlags;
     int* allCount = new int(0);
+
 
     if (paths.size() >= threads*2)
     {
@@ -206,6 +243,8 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         pMainWindow->setFocusOnLastTrack();
+
+        mtxTracksVec.unlock();
         return;
     }
 
@@ -227,6 +266,7 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
 
     }while(bDone == false);
 
+
     delete allCount;
 
     for (size_t i = 0; i < threadsDoneFlags.size(); i++)
@@ -238,41 +278,44 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     pMainWindow->setFocusOnLastTrack();
+
+    mtxTracksVec.unlock();
 }
 
-void AudioService::playTrack(size_t iTrackIndex)
+void AudioService::playTrack(size_t iTrackIndex, bool bCallFromMonitor)
 {
+    // This function starts track playback.
+
+    if (!bCallFromMonitor) mtxTracksVec.lock();
+
     if ( iTrackIndex < tracks.size() )
     {
-        if (bIsSomeTrackPlaying || bTrackIsPaused)
+        if (bIsSomeTrackPlaying && (iCurrentlyPlayingTrackIndex != iTrackIndex))
         {
-            if (iCurrentlyPlayingTrackIndex == iTrackIndex)
+            // Stop currently playing track
+            if ( tracks[iCurrentlyPlayingTrackIndex]->stopTrack() )
             {
-                if (!bTrackIsPaused) tracks[iTrackIndex]->setPositionInMS(0);
-
+                // Start new track
                 if ( tracks[iTrackIndex]->playTrack(fCurrentVolume) )
                 {
-                    bIsSomeTrackPlaying = true;
-                    bTrackIsPaused = false;
+                    pMainWindow->removePlayingOnTrack(iCurrentlyPlayingTrackIndex);
                     iCurrentlyPlayingTrackIndex = iTrackIndex;
+                    bIsSomeTrackPlaying = true;
                 }
-            }
-            else
-            {
-                if ( tracks[iCurrentlyPlayingTrackIndex]->stopTrack() )
+                else
                 {
-                    if ( tracks[iTrackIndex]->playTrack(fCurrentVolume) )
-                    {
-                        pMainWindow->removePlayingOnTrack(iCurrentlyPlayingTrackIndex);
-                        bIsSomeTrackPlaying = true;
-                        bTrackIsPaused = false;
-                        iCurrentlyPlayingTrackIndex = iTrackIndex;
-                    }
+                    bIsSomeTrackPlaying = false;
                 }
             }
         }
         else
         {
+            if (bIsSomeTrackPlaying == false)
+            {
+                // We will get here if some track is paused and we need to play a new one
+                pMainWindow->removePlayingOnTrack(iCurrentlyPlayingTrackIndex);
+            }
+
             if ( tracks[iTrackIndex]->playTrack(fCurrentVolume) )
             {
                 bIsSomeTrackPlaying = true;
@@ -286,10 +329,16 @@ void AudioService::playTrack(size_t iTrackIndex)
     {
         pMainWindow->showMessageBox( false, "Something went wrong. Сan't find this file in the system." );
     }
+
+    if (!bCallFromMonitor) mtxTracksVec.unlock();
 }
 
 void AudioService::pauseTrack()
 {
+    // This function pauses / unpauses the track.
+
+    mtxTracksVec.lock();
+
     if ( tracks.size() > 0 )
     {
         if ( tracks[iCurrentlyPlayingTrackIndex]->pauseTrack() )
@@ -297,105 +346,180 @@ void AudioService::pauseTrack()
             if (bIsSomeTrackPlaying)
             {
                 bIsSomeTrackPlaying = false;
-                bTrackIsPaused = true;
             }
             else
             {
                 bIsSomeTrackPlaying = true;
-                bTrackIsPaused = false;
             }
         }
     }
+
+    mtxTracksVec.unlock();
 }
 
 void AudioService::stopTrack()
 {
+    // This function stops track if one is playing.
+
+    mtxTracksVec.lock();
+
     if ( (tracks.size() > 0) && (bIsSomeTrackPlaying) )
     {
         tracks[iCurrentlyPlayingTrackIndex]->stopTrack();
         bIsSomeTrackPlaying = false;
-        bTrackIsPaused = true;
     }
+
+    mtxTracksVec.unlock();
 }
 
-void AudioService::nextTrack()
+void AudioService::nextTrack(bool bCallFromMonitor)
 {
+    // This function switches to the next track in the 'tracks' vector.
+
+    if (!bCallFromMonitor) mtxTracksVec.lock();
+
     if ( tracks.size() > 0 )
     {
         if (iCurrentlyPlayingTrackIndex == (tracks.size() - 1))
         {
-            playTrack(0);
+            if (bCallFromMonitor)
+            {
+                playTrack(0, true);
+            }
+            else
+            {
+                mtxTracksVec.unlock();
+                playTrack(0);
+            }
         }
         else
         {
-            playTrack(iCurrentlyPlayingTrackIndex + 1);
+            if (bCallFromMonitor)
+            {
+                playTrack(iCurrentlyPlayingTrackIndex + 1, true);
+            }
+            else
+            {
+                mtxTracksVec.unlock();
+                playTrack(iCurrentlyPlayingTrackIndex + 1);
+            }
         }
     }
+    else if (!bCallFromMonitor) mtxTracksVec.unlock();
 }
 
 void AudioService::prevTrack()
 {
+    // This function switches to the previous track in the 'tracks' vector.
+
+    mtxTracksVec.lock();
+
     if ( tracks.size() > 0 )
     {
         if (iCurrentlyPlayingTrackIndex == 0)
         {
+            mtxTracksVec.unlock();
+
             playTrack( tracks.size() - 1 );
         }
         else
         {
+            mtxTracksVec.unlock();
+
             playTrack(iCurrentlyPlayingTrackIndex - 1);
         }
+    }
+    else
+    {
+        mtxTracksVec.unlock();
     }
 }
 
 void AudioService::removeTrack(size_t iTrackIndex)
 {
+    // This function removes the track from the 'tracks' vector.
+
+    mtxTracksVec.lock();
+
     if ( iTrackIndex < tracks.size() )
     {
-        if ( (tracks.size() - 1) == 0)
-        {
-            bSystemReady = false;
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-
         delete tracks[iTrackIndex];
         tracks.erase( tracks.begin() + iTrackIndex );
+
+        if ( (tracks.size() - 1) == 0)
+        {
+            bMonitorTracks      = false;
+            bIsSomeTrackPlaying = false;
+            std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));
+        }
+        else if (bIsSomeTrackPlaying)
+        {
+            if (iTrackIndex == iCurrentlyPlayingTrackIndex)
+            {
+                bIsSomeTrackPlaying = false;
+                iCurrentlyPlayingTrackIndex = 0;
+            }
+            else if (iCurrentlyPlayingTrackIndex != 0)
+            {
+                // Move 'iCurrentlyPlayingTrackIndex' to the left in the 'tracks' vector because of the delete.
+                iCurrentlyPlayingTrackIndex--;
+            }
+        }
     }
     else
     {
         pMainWindow->showMessageBox( false, "Something went wrong. Сan't find this file in the system." );
     }
+
+    mtxTracksVec.unlock();
 }
 
 void AudioService::changeVolume(float fNewVolume)
 {
+    mtxTracksVec.lock();
+
     if (tracks.size() > 0)
     {
         tracks[iCurrentlyPlayingTrackIndex]->setVolume(fNewVolume);
         fCurrentVolume = fNewVolume;
     }
+
+    mtxTracksVec.unlock();
 }
 
 size_t AudioService::getPlayingTrackIndex(bool &bSomeTrackIsPlaying)
 {
+    mtxTracksVec.lock();
+
     bSomeTrackIsPlaying = bIsSomeTrackPlaying;
+
+    mtxTracksVec.unlock();
     return iCurrentlyPlayingTrackIndex;
 }
 
 void AudioService::monitorTrack()
 {
-    while (bSystemReady)
+    while (bMonitorTracks)
     {
+        mtxTracksVec.lock();
+
         if (bIsSomeTrackPlaying)
         {
-            if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() >= (tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() - 100) )
+            if (
+                    (tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() >= (tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() - MAX_TIME_ERROR_MS))
+                    &&
+                    (tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() <= (tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() + MAX_TIME_ERROR_MS))
+                )
             {
-                // Track will end now, play next
-                nextTrack();
+                // The track is ended, play next
+                tracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
+                nextTrack(true);
             }
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(25));
+        mtxTracksVec.unlock();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));
     }
 }
 
@@ -417,9 +541,9 @@ void AudioService::threadAddTracks(std::vector<wchar_t*> paths, bool* done, int*
 
 AudioService::~AudioService()
 {
-    bSystemReady = false;
+    bMonitorTracks = false;
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));
 
     FMOD_RESULT result;
 

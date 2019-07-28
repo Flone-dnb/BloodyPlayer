@@ -10,7 +10,6 @@ TrackWidget::TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime
     ui->setupUi(this);
     setFixedHeight(height());
 
-    connect(this, &TrackWidget::signalSetNumber, this, &TrackWidget::slotSetNumber);
     connect(this, &TrackWidget::signalSetPlaying, this, &TrackWidget::slotSetPlaying);
     connect(this, &TrackWidget::signalDisablePlaying, this, &TrackWidget::slotDisablePlaying);
 
@@ -26,14 +25,16 @@ TrackWidget::TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime
     bSelected = false;
 }
 
-void TrackWidget::setPlaing()
+void TrackWidget::setPlaying()
 {
     emit signalSetPlaying();
 }
 
 void TrackWidget::setNumber(size_t iNumber)
 {
-    emit signalSetNumber(iNumber);
+     ui->label_No->setText( QString::number(iNumber) );
+
+     trackIndex = iNumber - 1;
 }
 
 void TrackWidget::disablePlaying()
@@ -57,50 +58,88 @@ void TrackWidget::disableSelected()
 
 void TrackWidget::mouseDoubleClickEvent(QMouseEvent *ev)
 {
+    if (bSelected)
+    {
+        bSelected = false;
+        emit signalSelected(trackIndex);
+    }
+
     emit signalDoubleClick(trackIndex);
-    ev->ignore();
-    setPlaing();
+    setPlaying();
 }
 
 void TrackWidget::mousePressEvent(QMouseEvent *ev)
 {
-    ui->frame->setStyleSheet("QFrame"
-                             "{"
-                             "  background-color: rgb(77, 38, 38);"
-                             "  border: 1px solid darkred;"
-                                "color: white;"
-                             "}"
-                             ""
-                             "QFrame:hover"
-                             "{"
-                             "  background-color: rgb(78, 78, 78);"
-                             "}");
+    if (bSelected)
+    {
+        if (bPlaying)
+        {
+            ui->frame->setStyleSheet("QFrame"
+                                     "{"
+                                     "  background-color: qlineargradient(spread:pad, x1:0.5, y1:0, x2:0.5, y2:1, stop:0 rgba(58, 18, 18, 255), stop:1 rgba(50, 32, 21, 255));"
+                                     "  border: 1px solid darkred;"
+                                        "color: white;"
+                                     "}"
+                                     ""
+                                     "QFrame:hover"
+                                     "{"
+                                     "  background-color: rgb(78, 78, 78);"
+                                     "}");
+        }
+        else
+        {
+            ui->frame->setStyleSheet("QFrame"
+                                     "{"
+                                     "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(40, 40, 40, 255), stop:1 rgba(44, 44, 44, 255));"
+                                     "  border: 1px solid darkred;"
+                                        "color: white;"
+                                     "}"
+                                     ""
+                                     "QFrame:hover"
+                                     "{"
+                                     "  background-color: rgb(78, 78, 78);"
+                                     "}");
+        }
 
-    emit signalSelected(trackIndex);
-    bSelected = true;
-}
+        emit signalSelected(trackIndex);
+        bSelected = false;
+    }
+    else
+    {
+        ui->frame->setStyleSheet("QFrame"
+                                 "{"
+                                 "  background-color: rgb(77, 38, 38);"
+                                 "  border: 1px solid darkred;"
+                                    "color: white;"
+                                 "}"
+                                 ""
+                                 "QFrame:hover"
+                                 "{"
+                                 "  background-color: rgb(78, 78, 78);"
+                                 "}");
 
-void TrackWidget::slotSetNumber(size_t iNumber)
-{
-    ui->label_No->setText( QString::number(iNumber) );
-
-    trackIndex = iNumber - 1;
+        emit signalSelected(trackIndex);
+        bSelected = true;
+    }
 }
 
 void TrackWidget::slotSetPlaying()
 {
-    ui->frame->setStyleSheet("QFrame"
-                             "{"
-                             "  background-color: qlineargradient(spread:pad, x1:0.5, y1:0, x2:0.5, y2:1, stop:0 rgba(58, 18, 18, 255), stop:1 rgba(50, 32, 21, 255));"
-                             "  border: 1px solid darkred;"
-                                "color: white;"
-                             "}"
-                             ""
-                             "QFrame:hover"
-                             "{"
-                             "  background-color: rgb(78, 78, 78);"
-                             "}");
-    update();
+    if (!bSelected)
+    {
+        ui->frame->setStyleSheet("QFrame"
+                                 "{"
+                                 "  background-color: qlineargradient(spread:pad, x1:0.5, y1:0, x2:0.5, y2:1, stop:0 rgba(58, 18, 18, 255), stop:1 rgba(50, 32, 21, 255));"
+                                 "  border: 1px solid darkred;"
+                                    "color: white;"
+                                 "}"
+                                 ""
+                                 "QFrame:hover"
+                                 "{"
+                                 "  background-color: rgb(78, 78, 78);"
+                                 "}");
+        update();
+    }
 
     bPlaying = true;
 }

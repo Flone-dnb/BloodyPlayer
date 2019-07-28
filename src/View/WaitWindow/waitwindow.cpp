@@ -20,11 +20,6 @@ void WaitWindow::setProgressValue(int value)
     ui->progressBar->setValue(value);
 }
 
-void WaitWindow::setProgressMax(int value)
-{
-    ui->progressBar->setMaximum(value);
-}
-
 
 
 WaitWindow::~WaitWindow()

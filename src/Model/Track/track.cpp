@@ -12,13 +12,15 @@
 
 Track::Track(MainWindow *pMainWindow, FMOD::System* pSystem)
 {
-    pChannel = nullptr;
-    pSound   = nullptr;
+    pChannel          = nullptr;
+    pSound            = nullptr;
+
     this->pMainWindow = pMainWindow;
-    this->pSystem    = pSystem;
-    iTrackPlayedTimes = 0;
-    bPaused = false;
+    this->pSystem     = pSystem;
+
+    bPaused           = false;
 }
+
 
 
 
@@ -26,20 +28,28 @@ Track::Track(MainWindow *pMainWindow, FMOD::System* pSystem)
 
 bool Track::setTrack(const wchar_t* pFilePath)
 {
-    char filePath[MAX_PATH];
-    WideCharToMultiByte(CP_UTF8, 0, pFilePath, -1, filePath, sizeof(filePath), NULL, NULL);
+    // This function creates a track (pSound) in the FMOD system.
+
+    // wchar_t is 16 bits and holds UTF-16 code units
+    // FMOD accepts UTF-8 strings
+    // convert wchar_t* (UTF-16) to char* (UTF-8)
+    char filePathInUTF8[MAX_PATH];
+    WideCharToMultiByte(CP_UTF8, 0, pFilePath, -1, filePathInUTF8, sizeof(filePathInUTF8), nullptr, nullptr);
+
 
     FMOD_RESULT result;
 
-    result = pSystem->createStream(filePath, FMOD_DEFAULT, nullptr, &pSound);
+    result = pSystem->createStream(filePathInUTF8, FMOD_DEFAULT, nullptr, &pSound);
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("Track::setTrack::FMOD::System::createStream() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
         return false;
     }
 
+    // On this point, we are created the sound and can save path to it.
     this->pFilePath = pFilePath;
 
+    // Get audio format (mp3, wav, flac, ogg and etc.)
     FMOD_SOUND_TYPE type;
     result = pSound->getFormat(&type, nullptr, nullptr, nullptr);
     if (result)
@@ -48,17 +58,25 @@ bool Track::setTrack(const wchar_t* pFilePath)
         return false;
     }
 
-    if (type == FMOD_SOUND_TYPE_FLAC) format = "FLAC";
-    else if (type == FMOD_SOUND_TYPE_MPEG) format = "MP3";
-    else if (type == FMOD_SOUND_TYPE_WAV) format = "WAV";
+    // Save format to 'std::string' and not 'FMOD_SOUND_TYPE' because we will use it later
+    // and can't save 'FMOD_SOUND_TYPE' in .h file (it does not include FMOD).
+    if      (type == FMOD_SOUND_TYPE_FLAC)      format = "FLAC";
+    else if (type == FMOD_SOUND_TYPE_MPEG)      format = "MP3";
+    else if (type == FMOD_SOUND_TYPE_WAV)       format = "WAV";
     else if (type == FMOD_SOUND_TYPE_OGGVORBIS) format = "OGG";
 
     return true;
 }
 
-bool Track::isPlaying()
+bool Track::getPlaying()
 {
-    if (pChannel == nullptr) return false;
+    // This function returns 'true' if the track is plaing right now.
+
+    if (pChannel == nullptr)
+    {
+        // If we got here then it means that 'playTrack()' function was not called.
+        return false;
+    }
 
     FMOD_RESULT result;
     bool bPlaying;
@@ -74,71 +92,14 @@ bool Track::isPlaying()
 
 bool Track::playTrack(float fVolume)
 {
-    FMOD_RESULT result;
+    // This function starts track playback under various conditions, for example, no track is created, track is stopped, or ended.
 
-    if (pChannel != nullptr)
+    if (pChannel == nullptr)
     {
-        bool bPaused;
-        result = pChannel->getPaused(&bPaused);
-        if (result)
-        {
-            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::getPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-            return false;
-        }
+        // If we got here then it's our first time calling this function (playTrack()).
 
-        result = pChannel->setVolume(fVolume);
-        if (result)
-        {
-            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setVolume() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-            return false;
-        }
+        FMOD_RESULT result;
 
-        if (bPaused)
-        {
-            result = pChannel->setPaused(false);
-            if (result)
-            {
-                pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                return false;
-            }
-        }
-        else
-        {
-            bool bIsPlaying;
-            result = pChannel->isPlaying(&bIsPlaying);
-            if (result)
-            {
-                pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                return false;
-            }
-
-            if (bIsPlaying == false)
-            {
-                result = pChannel->stop();
-                if (result)
-                {
-                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                    return false;
-                }
-
-                result = pSound->release();
-                if (result)
-                {
-                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                    return false;
-                }
-
-                result = pSystem->playSound(pSound, nullptr, false, &pChannel);
-                if (result)
-                {
-                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::System::playSound() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                    return false;
-                }
-            }
-        }
-    }
-    else
-    {
         result = pSystem->playSound(pSound, nullptr, true, &pChannel);
         if (result)
         {
@@ -159,30 +120,119 @@ bool Track::playTrack(float fVolume)
             pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
             return false;
         }
+
+        bPaused = false;
+
+        return true;
     }
+    else
+    {
+        // If we got here then it's not our first time calling this function (playTrack()).
 
-    iTrackPlayedTimes++;
+        FMOD_RESULT result;
 
-    bPaused = false;
+        result = pChannel->setVolume(fVolume);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setVolume() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            return false;
+        }
 
-    return true;
+        // Is track paused?
+        bool bPausedTrack;
+        result = pChannel->getPaused(&bPausedTrack);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::getPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            return false;
+        }
+
+        if (bPausedTrack)
+        {
+            // Unpause track is it's paused
+            // 'bPaused = false' in the end of this function
+            result = pChannel->setPaused(false);
+            if (result)
+            {
+                pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+                return false;
+            }
+        }
+        else
+        {
+            // The track is not paused, maybe it's stopped?
+
+            bool bIsPlaying;
+            result = pChannel->isPlaying(&bIsPlaying);
+            if (result)
+            {
+                pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+                return false;
+            }
+
+            if (bIsPlaying)
+            {
+                // The track is plaing and user pressed Play so now we just need to start track from the beginning.
+                setPositionInMS(0);
+            }
+            else
+            {
+                // The track is stopped (probably it was playing and ended).
+                // Now every operation with 'pChannel' will return error because sound is ended.
+                // We will recreate the track:
+
+                // Free all resources
+                result = pChannel->stop();
+                if (result)
+                {
+                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+                    return false;
+                }
+
+                result = pSound->release();
+                if (result)
+                {
+                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+                    return false;
+                }
+
+                // And play it again.
+                result = pSystem->playSound(pSound, nullptr, false, &pChannel);
+                if (result)
+                {
+                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::System::playSound() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+                    return false;
+                }
+            }
+        }
+
+        bPaused = false;
+
+        return true;
+    }
 }
 
 bool Track::pauseTrack()
 {
-    FMOD_RESULT result;
+    // This function pauses / unpauses the track.
 
     if (pChannel != nullptr)
     {
-        bool bPaused;
-        result = pChannel->getPaused(&bPaused);
+        // If we got here then it means that 'playTrack()' function was called.
+
+        FMOD_RESULT result;
+
+        bool bPausedTrack;
+        result = pChannel->getPaused(&bPausedTrack);
         if (result)
         {
             pMainWindow->showMessageBox( true, std::string("Track::pauseTrack::FMOD::Channel::getPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
             return false;
         }
 
-        if (bPaused)
+        // Unpause the track is it's paused.
+        // Pause the track is it's unpaused.
+        if (bPausedTrack)
         {
             result = pChannel->setPaused(false);
             if (result)
@@ -190,6 +240,8 @@ bool Track::pauseTrack()
                 pMainWindow->showMessageBox( true, std::string("Track::pauseTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
                 return false;
             }
+
+            bPaused = false;
         }
         else
         {
@@ -199,58 +251,113 @@ bool Track::pauseTrack()
                 pMainWindow->showMessageBox( true, std::string("Track::pauseTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
                 return false;
             }
+
+            bPaused = true;
         }
+
+        return true;
     }
 
-    bPaused = true;
-
-    return true;
+    return false;
 }
 
 bool Track::stopTrack()
 {
-    FMOD_RESULT result;
+    // This function pauses the track and sets its position at the beginning.
 
-    result = pChannel->setPosition(0, FMOD_TIMEUNIT_MS);
-    if (result)
+    if (pChannel != nullptr)
     {
-        pMainWindow->showMessageBox( true, std::string("Track::stopTrack::FMOD::Channel::setPosition() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-        return false;
+        // If we got here then it means that 'playTrack()' function was called.
+
+        FMOD_RESULT result;
+
+        result = pChannel->setPaused(true);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::stopTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            return false;
+        }
+
+        result = pChannel->setPosition(0, FMOD_TIMEUNIT_MS);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::stopTrack::FMOD::Channel::setPosition() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            return false;
+        }
+
+        bPaused = true;
+
+        return true;
     }
 
-    result = pChannel->setPaused(true);
-    if (result)
-    {
-        pMainWindow->showMessageBox( true, std::string("Track::stopTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-        return false;
-    }
-
-    bPaused = true;
-
-    return true;
+    return false;
 }
 
-bool Track::setPositionInMS(unsigned int iPos)
+bool Track::reCreateTrack(float fVolume)
 {
     FMOD_RESULT result;
 
     if (pChannel != nullptr)
     {
+        result = pChannel->stop();
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        }
+
+        result = pSystem->playSound(pSound, nullptr, true, &pChannel);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::System::playSound() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            return false;
+        }
+
+        result = pChannel->setVolume(fVolume);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setVolume() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            return false;
+        }
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool Track::setPositionInMS(unsigned int iPos)
+{
+    // This function sets the track position in milliseconds.
+
+    if (pChannel != nullptr)
+    {
+        // If we got here then it means that 'playTrack()' function was called.
+
+        FMOD_RESULT result;
+
         result = pChannel->setPosition(iPos, FMOD_TIMEUNIT_MS);
         if (result)
         {
             pMainWindow->showMessageBox( true, std::string("Track::setPositionInMS::FMOD::Channel::setPosition() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
             return false;
         }
+
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 bool Track::setVolume(float fNewVolume)
 {
+    // This function sets track volume.
+
     if (pChannel != nullptr)
     {
+        // If we got here then it means that 'playTrack()' function was called.
+
         FMOD_RESULT result;
 
         result = pChannel->setVolume(fNewVolume);
@@ -259,13 +366,17 @@ bool Track::setVolume(float fNewVolume)
             pMainWindow->showMessageBox( true, std::string("Track::setVolume::FMOD::Channel::setVolume() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
             return false;
         }
+
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 unsigned int Track::getLengthInMS()
 {
+    // This function returns the length of the track.
+
     if (pSound != nullptr)
     {
         FMOD_RESULT result;
@@ -288,6 +399,8 @@ unsigned int Track::getLengthInMS()
 
 unsigned int Track::getPositionInMS()
 {
+    // This function returns the current position of the track in milliseconds.
+
     if (pChannel != nullptr)
     {
         FMOD_RESULT result;
@@ -308,48 +421,46 @@ unsigned int Track::getPositionInMS()
 
 std::string Track::getFormat()
 {
+    // This function returns private 'std::string format' variable.
+    // It contains the audio file format like mp3, ogg, wav, flac.
+
     return format;
 }
 
 bool Track::getChannelsAndBits(int* channels, int* bits)
 {
+    // This function returns the amount of channels and quantization bit depth of the track
+
     if (pSound != nullptr)
     {
         FMOD_RESULT result;
 
-        FMOD_SOUND_TYPE type;
-        int tchannels;
-        int tbits;
-        result = pSound->getFormat(&type, nullptr, &tchannels, &tbits);
+        int trackChannels;
+        int trackBits;
+
+        result = pSound->getFormat(nullptr, nullptr, &trackChannels, &trackBits);
         if (result)
         {
             pMainWindow->showMessageBox( true, std::string("Track::getChannelsAndBits::FMOD::Sound::getFormat() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
             return false;
         }
 
-        *channels = tchannels;
-        *bits     = tbits;
-
-        if (type == FMOD_SOUND_TYPE_FLAC) format = "FLAC";
-        else if (type == FMOD_SOUND_TYPE_MPEG) format = "MP3";
-        else if (type == FMOD_SOUND_TYPE_WAV) format = "WAV";
-        else if (type == FMOD_SOUND_TYPE_OGGVORBIS) format = "OGG";
+        *channels = trackChannels;
+        *bits     = trackBits;
 
         return true;
     }
-    else return false;
-}
 
-size_t Track::getTimerPlayed()
-{
-    return iTrackPlayedTimes;
+    return false;
 }
 
 bool Track::getBitRate(int *bitrate)
 {
+    // This function returns tracks bitrate.
+
     std::vector<int> framesBitrates;
 
-    // Code below is from my other program so don't really pay attension to some comments
+    // Some of the code below is from my other program so don't really pay attension to some of the comments
 
 
     int amountOfBytes = 0;
@@ -486,7 +597,6 @@ bool Track::getBitRate(int *bitrate)
                                 {
                                     bFirstMP3FramePassed = true;
                                     // It will probably contain some VBR and LAME stuff which we do not want to change
-                                    // i will think about that later
                                     continue;
                                 }
 
@@ -555,8 +665,14 @@ bool Track::getBitRate(int *bitrate)
 
 
 
+        // On each index this vector will contain:
+        // (on 0 index) bitrate number
+        // (on 1 index) the number of times this bitrate was encountered in the file.
+        // So it will look something like this:
+        // [128, 4034] [224, 549] [256, 533] [320, 325].
         std::vector<std::vector<int>> bitrates;
 
+        // Fill vector
         for (size_t i = 0; i < framesBitrates.size(); i++)
         {
             bool bExists = false;
@@ -582,6 +698,7 @@ bool Track::getBitRate(int *bitrate)
             }
         }
 
+        // Find bitrate that was encountered most of the times.
         size_t iAverageBitrateIndex = 0;
         for (size_t i = 1; i < bitrates.size(); i++)
         {
@@ -604,52 +721,52 @@ bool Track::getBitRate(int *bitrate)
     }
 }
 
+long long Track::getSize()
+{
+    // This function returns tracks file size in bytes.
+
+    // Open selected file in binary mode
+    std::ifstream mp3File (pFilePath, std::ios::binary);
+
+    if (mp3File.is_open())
+    {
+        // Get file size
+        long long endPos = 0;
+        mp3File.seekg(0, std::ios::end);
+        // tellg() returns 'long long' value so we can't put it in endPos (int) yet
+        endPos = mp3File.tellg();
+
+        mp3File.close();
+
+        return endPos;
+    }
+    else
+    {
+        // Can't open file
+        return 0;
+    }
+}
+
 bool Track::getPaused()
 {
+    // This function returns private 'bool bPaused' variable - 'true' if track is paused.
     return bPaused;
 }
 
 float Track::getFrequency()
 {
+    // This function returns the sampling rate of the track.
+
     if (pSound != nullptr)
     {
         float freq = 0.0f;
+
         pSound->getDefaults(&freq, nullptr);
         return freq;
     }
 
     return 0.0f;
 }
-
-
-
-
-
-
-
-Track::~Track()
-{
-    FMOD_RESULT result;
-
-    if (pChannel != nullptr)
-    {
-        result = pChannel->stop();
-        if (result)
-        {
-            pMainWindow->showMessageBox( true, std::string("Track::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-        }
-    }
-
-    result = pSound->release();
-    if (result)
-    {
-        pMainWindow->showMessageBox( true, std::string("Track::FMOD::Sound::release() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-    }
-
-    delete pFilePath;
-}
-
-
 
 int Track::tellBitRate(bool bit1, bool bit2, bool bit3, bool bit4)
 {
@@ -708,4 +825,35 @@ int Track::tellSamplingRate(bool bit1, bool bit2)
     else if (bitString == "10") return 32000;
 
     return -1;
+}
+
+
+
+
+
+
+
+Track::~Track()
+{
+    FMOD_RESULT result;
+
+    if (pChannel != nullptr)
+    {
+        result = pChannel->stop();
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        }
+    }
+
+    if (pSound != nullptr)
+    {
+        result = pSound->release();
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::FMOD::Sound::release() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        }
+    }
+
+    delete pFilePath;
 }

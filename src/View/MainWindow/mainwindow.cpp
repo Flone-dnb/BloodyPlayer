@@ -4,6 +4,7 @@
 // Qt
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QKeyEvent>
 
 // Custom
 #include "../src/Controller/controller.h"
@@ -21,23 +22,23 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
     ui->label_volume->setText("Volume: " + QString::number(DEFAULT_VOLUME*100) + "%");
 
-    iSelectedTrack = -1;
-
-    // This to this
-    connect(this, &MainWindow::signalShowWaitWindow, this, &MainWindow::slotShowWaitWindow);
-    connect(this, &MainWindow::signalHideWaitWindow, this, &MainWindow::slotHideWaitWindow);
-    connect(this, &MainWindow::signalSetProgress, this, &MainWindow::slotSetProgress);
-    connect(this, &MainWindow::signalSetProgressMax, this, &MainWindow::slotSetProgressMax);
-    connect(this, &MainWindow::signalRemoveTrack, this, &MainWindow::slotRemoveTrack);
-    connect(this, &MainWindow::signalSetNumber, this, &MainWindow::slotSetNumber);
+    iSelectedTrackIndex = -1;
+    // Will be 'false' if something will go wrong.
+    bSystemReady = true;
 
     qRegisterMetaType<std::string>("std::string");
     qRegisterMetaType<std::wstring>("std::wstring");
     qRegisterMetaType<size_t>("size_t");
 
+    // This to this
+    connect(this, &MainWindow::signalShowWaitWindow, this, &MainWindow::slotShowWaitWindow);
+    connect(this, &MainWindow::signalHideWaitWindow, this, &MainWindow::slotHideWaitWindow);
+    connect(this, &MainWindow::signalSetProgress, this, &MainWindow::slotSetProgress);
+    connect(this, &MainWindow::signalSetNumber, this, &MainWindow::slotSetNumber);
+    connect(this, &MainWindow::signalShowMessageBox, this, &MainWindow::slotShowMessageBox);
+
     // Tracklist connects
     connect(ui->scrollArea, &TrackList::signalDrop, this, &MainWindow::slotDrop);
-    connect(ui->scrollArea, &TrackList::signalDeleteTrack, this, &MainWindow::slotDeleteSelectedTrack);
 
     connect(this, &MainWindow::signalSetTrack, this, &MainWindow::slotSetTrack);
     connect(this, &MainWindow::signalAddNewTrack, this, &MainWindow::slotAddNewTrack);
@@ -48,16 +49,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
+
+
 void MainWindow::showMessageBox(bool errorBox, std::string text)
 {
-    if (errorBox)
-    {
-        QMessageBox::warning(nullptr, "Error", QString::fromStdString(text));
-    }
-    else
-    {
-        QMessageBox::information(nullptr, "Information", QString::fromStdString(text));
-    }
+    emit signalShowMessageBox(errorBox, text);
 }
 
 void MainWindow::addNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime)
@@ -72,11 +68,9 @@ void MainWindow::removePlayingOnTrack(size_t iTrackIndex)
 
 void MainWindow::setPlayingOnTrack(size_t iTrackIndex)
 {
-    tracks[iTrackIndex]->setPlaing();
+    tracks[iTrackIndex]->setPlaying();
 
     ui->scrollArea->ensureWidgetVisible(tracks[iTrackIndex]);
-
-    if (iSelectedTrack == iTrackIndex) iSelectedTrack = -1;
 
     emit signalSetTrack(iTrackIndex);
 }
@@ -96,11 +90,6 @@ void MainWindow::hideWaitWindow()
     emit signalHideWaitWindow();
 }
 
-void MainWindow::setProgressMax(int value)
-{
-    emit signalSetProgressMax(value);
-}
-
 void MainWindow::setProgress(int value)
 {
     emit signalSetProgress(value);
@@ -109,6 +98,18 @@ void MainWindow::setProgress(int value)
 void MainWindow::removeTrack(size_t iTrackIndex)
 {
     emit signalRemoveTrack(iTrackIndex);
+}
+
+void MainWindow::markAnError()
+{
+    // Look main.cpp
+    // isSystemReady() function will return this value and app will be closed.
+    bSystemReady = false;
+}
+
+bool MainWindow::isSystemReady()
+{
+    return bSystemReady;
 }
 
 
@@ -190,30 +191,29 @@ void MainWindow::slotDrop(QStringList paths)
     pController->addTracks(localPaths);
 }
 
+void MainWindow::keyPressEvent(QKeyEvent *ev)
+{
+    if (ev->key() == Qt::Key_Delete)
+    {
+        deleteSelectedTrack();
+    }
+}
+
+void MainWindow::slotShowMessageBox(bool errorBox, std::string text)
+{
+    if (errorBox)
+    {
+        QMessageBox::warning(nullptr, "Error", QString::fromStdString(text));
+    }
+    else
+    {
+        QMessageBox::information(nullptr, "Information", QString::fromStdString(text));
+    }
+}
+
 void MainWindow::slotSetNumber(size_t iNumber)
 {
     tracks[iNumber]->setNumber(iNumber+1);
-}
-
-void MainWindow::slotRemoveTrack(size_t iTrackIndex)
-{
-    iSelectedTrack = -1;
-
-    delete tracks[iTrackIndex];
-    tracks.erase(tracks.begin() + iTrackIndex);
-
-    pController->removeTrack(iTrackIndex);
-
-    for (size_t i = iTrackIndex; i < tracks.size(); i++)
-    {
-        emit signalSetNumber(i);
-    }
-
-    if (tracks.size() == 0)
-    {
-        ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
-        ui->horizontalSlider->setEnabled(false);
-    }
 }
 
 void MainWindow::slotAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime)
@@ -246,12 +246,6 @@ void MainWindow::slotHideWaitWindow()
     pWaitWindow->close();
     delete pWaitWindow;
 }
-
-void MainWindow::slotSetProgressMax(int value)
-{
-    pWaitWindow->setProgressMax(value);
-}
-
 void MainWindow::slotSetProgress(int value)
 {
     pWaitWindow->setProgressValue(value);
@@ -280,29 +274,46 @@ void MainWindow::on_actionOpen_Directory_triggered()
 
 void MainWindow::slotTrackSelected(size_t iTrackIndex)
 {
-    if (iSelectedTrack != static_cast<int>(iTrackIndex))
+    if (iSelectedTrackIndex != static_cast<int>(iTrackIndex))
     {
-        if (iSelectedTrack != -1)
+        if (iSelectedTrackIndex != -1)
         {
-            tracks[iSelectedTrack]->disableSelected();
+            tracks[iSelectedTrackIndex]->disableSelected();
         }
 
-        iSelectedTrack = static_cast<int>(iTrackIndex);
+        iSelectedTrackIndex = static_cast<int>(iTrackIndex);
     }
     else
     {
-        tracks[iSelectedTrack]->disableSelected();
-        iSelectedTrack = -1;
+        iSelectedTrackIndex = -1;
     }
 }
 
-void MainWindow::slotDeleteSelectedTrack()
+void MainWindow::deleteSelectedTrack()
 {
-    if (iSelectedTrack != -1)
+    if (iSelectedTrackIndex != -1)
     {
-        slotRemoveTrack(iSelectedTrack);
+        delete tracks[iSelectedTrackIndex];
+        tracks.erase(tracks.begin() + iSelectedTrackIndex);
+
+        pController->removeTrack(iSelectedTrackIndex);
+
+        for (size_t i = iSelectedTrackIndex; i < tracks.size(); i++)
+        {
+            emit signalSetNumber(i);
+        }
+
+        if (tracks.size() == 0)
+        {
+            ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
+            ui->horizontalSlider->setEnabled(false);
+        }
+
+        iSelectedTrackIndex = -1;
     }
 }
+
+
 
 
 

@@ -1,5 +1,6 @@
 #include "controller.h"
 
+// STL
 #include <thread>
 
 // Custom
@@ -13,13 +14,12 @@ Controller::Controller(MainWindow* pMainWindow)
 
 
 
-void Controller::addTrack(const wchar_t *pFilePath)
-{
-    pAudioService->addTrack(pFilePath);
-}
 
 void Controller::addTracks(std::vector<wchar_t*> paths)
 {
+    // We run this method (AudioService::addTracks) in another thread, because this call is coming from the main thread and
+    // the interface will stop updating if you do not create a separate thread here.
+    // Of course, we can use QApplication::processEvents(), but I want to create a separate thread.
     std::thread addThread(&AudioService::addTracks, pAudioService, paths);
     addThread.detach();
 }
@@ -63,6 +63,7 @@ size_t Controller::getPlaingTrackIndex(bool& bSomeTrackIsPlaying)
 {
     return pAudioService->getPlayingTrackIndex(bSomeTrackIsPlaying);
 }
+
 
 
 
