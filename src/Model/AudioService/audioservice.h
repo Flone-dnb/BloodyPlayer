@@ -46,6 +46,12 @@ public:
             // Removes the track from the 'tracks' vector.
             void removeTrack(size_t iTrackIndex);
 
+            // Moves the current track on one position to the right in the 'tracks' vector.
+            void moveDown(size_t iTrackIndex);
+
+            // Moves the current track on one position to the left in the 'tracks' vector
+            void moveUp(size_t iTrackIndex);
+
     // set
             void changeVolume(float fNewVolume);
 

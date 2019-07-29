@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QKeyEvent>
+#include <QScrollBar>
 
 // Custom
 #include "../src/Controller/controller.h"
@@ -33,15 +34,15 @@ MainWindow::MainWindow(QWidget *parent) :
     // This to this
     connect(this, &MainWindow::signalShowWaitWindow, this, &MainWindow::slotShowWaitWindow);
     connect(this, &MainWindow::signalHideWaitWindow, this, &MainWindow::slotHideWaitWindow);
-    connect(this, &MainWindow::signalSetProgress, this, &MainWindow::slotSetProgress);
-    connect(this, &MainWindow::signalSetNumber, this, &MainWindow::slotSetNumber);
+    connect(this, &MainWindow::signalSetProgress,    this, &MainWindow::slotSetProgress);
+    connect(this, &MainWindow::signalSetNumber,      this, &MainWindow::slotSetNumber);
     connect(this, &MainWindow::signalShowMessageBox, this, &MainWindow::slotShowMessageBox);
 
     // Tracklist connects
     connect(ui->scrollArea, &TrackList::signalDrop, this, &MainWindow::slotDrop);
 
-    connect(this, &MainWindow::signalSetTrack, this, &MainWindow::slotSetTrack);
-    connect(this, &MainWindow::signalAddNewTrack, this, &MainWindow::slotAddNewTrack);
+    connect(this, &MainWindow::signalSetTrack,      this, &MainWindow::slotSetTrack);
+    connect(this, &MainWindow::signalAddNewTrack,   this, &MainWindow::slotAddNewTrack);
 
     pController = new Controller(this);
 }
@@ -75,9 +76,9 @@ void MainWindow::setPlayingOnTrack(size_t iTrackIndex)
     emit signalSetTrack(iTrackIndex);
 }
 
-void MainWindow::setFocusOnLastTrack()
+void MainWindow::setFocusOnTrack(size_t index)
 {
-    ui->scrollArea->ensureWidgetVisible(tracks.back(), 50, 100);
+    ui->scrollArea->ensureWidgetVisible(tracks[index], 50, 50);
 }
 
 void MainWindow::showWaitWindow()
@@ -136,7 +137,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::information(nullptr, "Magic Player", "Magic Player v1.0");
+    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.0");
 }
 
 void MainWindow::on_pushButton_Play_clicked()
@@ -197,6 +198,14 @@ void MainWindow::keyPressEvent(QKeyEvent *ev)
     {
         deleteSelectedTrack();
     }
+    else if (ev->key() == Qt::Key_S)
+    {
+        slotMoveDown();
+    }
+    else if (ev->key() == Qt::Key_W)
+    {
+        slotMoveUp();
+    }
 }
 
 void MainWindow::slotShowMessageBox(bool errorBox, std::string text)
@@ -220,7 +229,10 @@ void MainWindow::slotAddNewTrack(std::wstring trackName, std::wstring trackInfo,
 {
     TrackWidget* pNewTrack = new TrackWidget( QString::fromStdWString(trackName), QString::fromStdWString(trackInfo), QString::fromStdString(trackTime) );
     connect(pNewTrack, &TrackWidget::signalDoubleClick, this, &MainWindow::slotClickedOnTrack);
-    connect(pNewTrack, &TrackWidget::signalSelected, this, &MainWindow::slotTrackSelected);
+    connect(pNewTrack, &TrackWidget::signalSelected,    this, &MainWindow::slotTrackSelected);
+    connect(pNewTrack, &TrackWidget::signalDelete,      this, &MainWindow::deleteSelectedTrack);
+    connect(pNewTrack, &TrackWidget::signalMoveUp,      this, &MainWindow::slotMoveUp);
+    connect(pNewTrack, &TrackWidget::signalMoveDown,    this, &MainWindow::slotMoveDown);
     ui->verticalLayout_Tracks->addWidget(pNewTrack);
 
     tracks.push_back(pNewTrack);
@@ -293,7 +305,10 @@ void MainWindow::deleteSelectedTrack()
 {
     if (iSelectedTrackIndex != -1)
     {
-        delete tracks[iSelectedTrackIndex];
+        // 'delete' below is causing a crash if the context menu is opened on TrackWidget
+        // so we use 'deleteLater()'
+        //delete tracks[iSelectedTrackIndex];
+        tracks[iSelectedTrackIndex]->deleteLater();
         tracks.erase(tracks.begin() + iSelectedTrackIndex);
 
         pController->removeTrack(iSelectedTrackIndex);
@@ -312,6 +327,105 @@ void MainWindow::deleteSelectedTrack()
         iSelectedTrackIndex = -1;
     }
 }
+
+void MainWindow::slotMoveDown()
+{
+    if (iSelectedTrackIndex != -1)
+    {
+        pController->moveDown(static_cast<size_t>(iSelectedTrackIndex));
+
+        size_t iTrackIndex = static_cast<size_t>(iSelectedTrackIndex);
+
+        tracks[iTrackIndex]->disableSelected();
+
+        if (iSelectedTrackIndex == (static_cast<int>(tracks.size()) - 1) )
+        {
+            TrackWidget* pTemp = tracks[ iTrackIndex ];
+            tracks.pop_back();
+            tracks.insert( tracks.begin() , pTemp);
+
+            // ui
+            QLayoutItem* pItem = ui->verticalLayout_Tracks->takeAt(iSelectedTrackIndex);
+            ui->verticalLayout_Tracks->insertItem(0, pItem);
+
+            for (size_t i = 0; i < tracks.size(); i++)
+            {
+                tracks[i]->setNumber(i + 1);
+            }
+
+            setFocusOnTrack(0);
+        }
+        else
+        {
+            TrackWidget* pTemp = tracks[iTrackIndex + 1];
+            tracks[iTrackIndex + 1] = tracks[iTrackIndex];
+            tracks[iTrackIndex] = pTemp;
+
+            // ui
+            QLayoutItem* pItem = ui->verticalLayout_Tracks->takeAt(iSelectedTrackIndex);
+            ui->verticalLayout_Tracks->insertItem(iSelectedTrackIndex + 1, pItem);
+
+            for (size_t i = iTrackIndex; i < tracks.size(); i++)
+            {
+                tracks[i]->setNumber(i + 1);
+            }
+
+            setFocusOnTrack(iTrackIndex);
+        }
+
+        iSelectedTrackIndex = -1;
+    }
+}
+
+void MainWindow::slotMoveUp()
+{
+    if (iSelectedTrackIndex != -1)
+    {
+        pController->moveUp(static_cast<size_t>(iSelectedTrackIndex));
+
+        size_t iTrackIndex = static_cast<size_t>(iSelectedTrackIndex);
+
+        tracks[iTrackIndex]->disableSelected();
+
+        if (iSelectedTrackIndex == 0 )
+        {
+            TrackWidget* pTemp = tracks[ iTrackIndex ];
+            tracks.erase( tracks.begin() );
+            tracks.push_back(pTemp);
+
+            // ui
+            QLayoutItem* pItem = ui->verticalLayout_Tracks->takeAt(iSelectedTrackIndex);
+            ui->verticalLayout_Tracks->addItem(pItem);
+
+            for (size_t i = 0; i < tracks.size(); i++)
+            {
+                tracks[i]->setNumber(i + 1);
+            }
+
+            setFocusOnTrack( tracks.size() - 1 );
+        }
+        else
+        {
+            TrackWidget* pTemp = tracks[iTrackIndex - 1];
+            tracks[iTrackIndex - 1] = tracks[iTrackIndex];
+            tracks[iTrackIndex] = pTemp;
+
+            // ui
+            QLayoutItem* pItem = ui->verticalLayout_Tracks->takeAt(iSelectedTrackIndex);
+            ui->verticalLayout_Tracks->insertItem(iSelectedTrackIndex - 1, pItem);
+
+            for (size_t i = iTrackIndex - 1; i < tracks.size(); i++)
+            {
+                tracks[i]->setNumber(i + 1);
+            }
+
+            setFocusOnTrack(iTrackIndex);
+        }
+
+        iSelectedTrackIndex = -1;
+    }
+}
+
 
 
 

@@ -59,6 +59,16 @@ void Controller::removeTrack(size_t iTrackIndex)
     pAudioService->removeTrack(iTrackIndex);
 }
 
+void Controller::moveDown(size_t iTrackIndex)
+{
+    pAudioService->moveDown(iTrackIndex);
+}
+
+void Controller::moveUp(size_t iTrackIndex)
+{
+    pAudioService->moveUp(iTrackIndex);
+}
+
 size_t Controller::getPlaingTrackIndex(bool& bSomeTrackIsPlaying)
 {
     return pAudioService->getPlayingTrackIndex(bSomeTrackIsPlaying);

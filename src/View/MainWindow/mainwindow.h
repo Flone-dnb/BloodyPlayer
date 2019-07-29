@@ -30,6 +30,8 @@ signals:
     void signalSetNumber(size_t iNumber);
     void signalRemoveTrack(size_t iTrackIndex);
     void signalAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
+
+    // WaitWindow
     void signalShowWaitWindow();
     void signalHideWaitWindow();
     void signalSetProgress(int value);
@@ -45,7 +47,9 @@ public:
     void addNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
     void removePlayingOnTrack(size_t iTrackIndex);
     void setPlayingOnTrack(size_t iTrackIndex);
-    void setFocusOnLastTrack();
+
+    // Focus
+    void setFocusOnTrack(size_t index);
 
     // WaitWindow
     void showWaitWindow();
@@ -62,6 +66,12 @@ public:
     ~MainWindow();
 
 public slots:
+
+    // Context menu on TrackWidget
+    // This is also called from keyPressEvent().
+    void slotMoveUp();
+    void slotMoveDown();
+    void deleteSelectedTrack();
 
     void slotTrackSelected(size_t iTrackIndex);
     void slotClickedOnTrack(size_t trackIndex);
@@ -99,11 +109,6 @@ private slots:
     void on_actionAbout_triggered();
 
 private:
-
-    // This is called from keyPressEvent().
-    void deleteSelectedTrack();
-
-
 
     Ui::MainWindow *ui;
     Controller* pController;

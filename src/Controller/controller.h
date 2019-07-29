@@ -26,6 +26,8 @@ public:
     void nextTrack    ();
     void prevTrack    ();
     void removeTrack  (size_t iTrackIndex);
+    void moveDown     (size_t iTrackIndex);
+    void moveUp       (size_t iTrackIndex);
 
     // set
     void changeVolume (float fNewVolume);

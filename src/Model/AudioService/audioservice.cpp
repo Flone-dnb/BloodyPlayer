@@ -242,7 +242,7 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
         pMainWindow->hideWaitWindow();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        pMainWindow->setFocusOnLastTrack();
+        pMainWindow->setFocusOnTrack(tracks.size() - 1);
 
         mtxTracksVec.unlock();
         return;
@@ -277,7 +277,7 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
     pMainWindow->hideWaitWindow();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    pMainWindow->setFocusOnLastTrack();
+    pMainWindow->setFocusOnTrack(tracks.size() - 1);
 
     mtxTracksVec.unlock();
 }
@@ -446,7 +446,7 @@ void AudioService::removeTrack(size_t iTrackIndex)
         delete tracks[iTrackIndex];
         tracks.erase( tracks.begin() + iTrackIndex );
 
-        if ( (tracks.size() - 1) == 0)
+        if ( tracks.size() == 0)
         {
             bMonitorTracks      = false;
             bIsSomeTrackPlaying = false;
@@ -469,6 +469,97 @@ void AudioService::removeTrack(size_t iTrackIndex)
     else
     {
         pMainWindow->showMessageBox( false, "Something went wrong. Сan't find this file in the system." );
+    }
+
+    mtxTracksVec.unlock();
+}
+
+void AudioService::moveDown(size_t iTrackIndex)
+{
+    mtxTracksVec.lock();
+
+    if (iTrackIndex == tracks.size() - 1)
+    {
+        Track* pTemp = tracks[iTrackIndex];
+        tracks.pop_back();
+        tracks.insert( tracks.begin(), pTemp );
+
+        if (bIsSomeTrackPlaying)
+        {
+            if (iTrackIndex == iCurrentlyPlayingTrackIndex)
+            {
+                iCurrentlyPlayingTrackIndex = 0;
+            }
+            else
+            {
+                iCurrentlyPlayingTrackIndex++;
+            }
+        }
+    }
+    else
+    {
+        Track* pTemp = tracks[iTrackIndex + 1];
+        tracks[iTrackIndex + 1] = tracks[iTrackIndex];
+        tracks[iTrackIndex] = pTemp;
+
+        if (bIsSomeTrackPlaying)
+        {
+            if (iTrackIndex == iCurrentlyPlayingTrackIndex)
+            {
+                iCurrentlyPlayingTrackIndex++;
+            }
+            else if (iCurrentlyPlayingTrackIndex != 0)
+            {
+                if (iTrackIndex == iCurrentlyPlayingTrackIndex - 1)
+                {
+                    iCurrentlyPlayingTrackIndex--;
+                }
+            }
+        }
+    }
+
+    mtxTracksVec.unlock();
+}
+
+void AudioService::moveUp(size_t iTrackIndex)
+{
+    mtxTracksVec.lock();
+
+    if (iTrackIndex == 0)
+    {
+        Track* pTemp = tracks[iTrackIndex];
+        tracks.erase( tracks.begin() );
+        tracks.push_back( pTemp );
+
+        if (bIsSomeTrackPlaying)
+        {
+            if (iTrackIndex == iCurrentlyPlayingTrackIndex)
+            {
+                iCurrentlyPlayingTrackIndex = tracks.size() - 1;
+            }
+            else
+            {
+                iCurrentlyPlayingTrackIndex--;
+            }
+        }
+    }
+    else
+    {
+        Track* pTemp = tracks[iTrackIndex - 1];
+        tracks[iTrackIndex - 1] = tracks[iTrackIndex];
+        tracks[iTrackIndex] = pTemp;
+
+        if (bIsSomeTrackPlaying)
+        {
+            if (iTrackIndex == iCurrentlyPlayingTrackIndex)
+            {
+                iCurrentlyPlayingTrackIndex--;
+            }
+            else if (iTrackIndex == iCurrentlyPlayingTrackIndex + 1)
+            {
+                iCurrentlyPlayingTrackIndex++;
+            }
+        }
     }
 
     mtxTracksVec.unlock();
