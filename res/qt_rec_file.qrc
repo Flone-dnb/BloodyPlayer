@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+	<file>bloodyLogo2.png</file>
     <file>play.png</file>
 	<file>play_hover.png</file>
 	<file>next.png</file>

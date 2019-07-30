@@ -6,6 +6,8 @@
 #include <QFileDialog>
 #include <QKeyEvent>
 #include <QScrollBar>
+#include <QSystemTrayIcon>
+#include <QHideEvent>
 
 // Custom
 #include "../src/Controller/controller.h"
@@ -22,6 +24,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->verticalLayout_Tracks->setAlignment( Qt::AlignTop );
     ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
     ui->label_volume->setText("Volume: " + QString::number(DEFAULT_VOLUME*100) + "%");
+
+    // Tray icon
+    pTrayIcon = new QSystemTrayIcon(this);
+    pTrayIcon->setIcon( QIcon(":/bloodyLogo2.png") );
+    connect(pTrayIcon, &QSystemTrayIcon::activated, this, &MainWindow::slotShowWindow);
 
     iSelectedTrackIndex = -1;
     // Will be 'false' if something will go wrong.
@@ -209,6 +216,12 @@ void MainWindow::slotDrop(QStringList paths)
     pController->addTracks(localPaths);
 }
 
+void MainWindow::slotShowWindow()
+{
+    pTrayIcon->hide();
+    showNormal();
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *ev)
 {
     if (ev->key() == Qt::Key_Delete)
@@ -223,6 +236,13 @@ void MainWindow::keyPressEvent(QKeyEvent *ev)
     {
         slotMoveUp();
     }
+}
+
+void MainWindow::hideEvent(QHideEvent *ev)
+{
+    hide();
+    pTrayIcon->show();
+    ev->ignore();
 }
 
 void MainWindow::slotShowMessageBox(bool errorBox, std::string text)
@@ -488,6 +508,8 @@ void MainWindow::on_pushButton_Random_clicked()
 
 MainWindow::~MainWindow()
 {
+    delete pTrayIcon;
+
     for (size_t i = 0; i < tracks.size(); i++)
     {
         delete tracks[i];

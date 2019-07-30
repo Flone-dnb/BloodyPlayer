@@ -11,6 +11,8 @@
 class Controller;
 class TrackWidget;
 class WaitWindow;
+class QHideEvent;
+class QSystemTrayIcon;
 
 namespace Ui
 {
@@ -79,9 +81,13 @@ public slots:
     void slotClickedOnTrack(size_t trackIndex);
     void slotDrop(QStringList paths);
 
+    // Tray icon
+    void slotShowWindow();
+
 protected:
 
     void keyPressEvent(QKeyEvent* ev);
+    void hideEvent(QHideEvent* ev);
 
 private slots:
 
@@ -121,6 +127,7 @@ private:
     Ui::MainWindow *ui;
     Controller* pController;
     WaitWindow* pWaitWindow;
+    QSystemTrayIcon* pTrayIcon;
 
     std::vector<TrackWidget*> tracks;
 
