@@ -26,7 +26,7 @@ class MainWindow : public QMainWindow
 signals:
 
     void signalShowMessageBox(bool errorBox, std::string text);
-    void signalSetTrack(size_t iTrackIndex);
+    void signalSetTrack(size_t iTrackIndex, bool bClear = false);
     void signalSetNumber(size_t iNumber);
     void signalRemoveTrack(size_t iTrackIndex);
     void signalAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
@@ -46,7 +46,9 @@ public:
 
     void addNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
     void removePlayingOnTrack(size_t iTrackIndex);
-    void setPlayingOnTrack(size_t iTrackIndex);
+    void setPlayingOnTrack(size_t iTrackIndex, bool bClear = false);
+    void uncheckRandomTrackButton();
+    void uncheckRepeatTrackButton();
 
     // Focus
     void setFocusOnTrack(size_t index);
@@ -86,7 +88,7 @@ private slots:
     void slotShowMessageBox(bool errorBox, std::string text);
     void slotSetNumber(size_t iNumber);
     void slotAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
-    void slotSetTrack(size_t iTrackIndex);
+    void slotSetTrack(size_t iTrackIndex, bool bClear = false);
 
     // WaitWindow
     void slotShowWaitWindow();
@@ -100,6 +102,10 @@ private slots:
     void on_pushButton_next_clicked();
     void on_pushButton_prev_clicked();
 
+    // Buttons under the volume slider
+    void on_pushButton_repeat_clicked();
+    void on_pushButton_clearPlaylist_clicked();
+
     // Volume slider
     void on_horizontalSlider_valueChanged(int value);
 
@@ -107,6 +113,8 @@ private slots:
     void on_actionOpen_triggered();
     void on_actionOpen_Directory_triggered();
     void on_actionAbout_triggered();
+
+    void on_pushButton_Random_clicked();
 
 private:
 

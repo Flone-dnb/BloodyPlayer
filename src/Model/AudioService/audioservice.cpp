@@ -5,6 +5,7 @@
 #include <thread>
 #include <iomanip>
 #include <sstream>
+#include <ctime>
 
 // Custom
 #include "../src/View/MainWindow/mainwindow.h"
@@ -19,9 +20,12 @@ AudioService::AudioService(MainWindow* pMainWindow)
 {
     this->pMainWindow   = pMainWindow;
     pSystem             = nullptr;
+    pRndGen             = new std::mt19937_64(time(nullptr));
 
     bMonitorTracks      = false;
     bIsSomeTrackPlaying = false;
+    bRepeatTrack        = false;
+    bRandomNextTrack    = false;
 
     fCurrentVolume = DEFAULT_VOLUME;
     iCurrentlyPlayingTrackIndex = 0;
@@ -372,7 +376,7 @@ void AudioService::stopTrack()
     mtxTracksVec.unlock();
 }
 
-void AudioService::nextTrack(bool bCallFromMonitor)
+void AudioService::nextTrack(bool bCallFromMonitor, bool bRandomNextTrack)
 {
     // This function switches to the next track in the 'tracks' vector.
 
@@ -380,28 +384,38 @@ void AudioService::nextTrack(bool bCallFromMonitor)
 
     if ( tracks.size() > 0 )
     {
-        if (iCurrentlyPlayingTrackIndex == (tracks.size() - 1))
+        if (bRandomNextTrack)
         {
-            if (bCallFromMonitor)
-            {
-                playTrack(0, true);
-            }
-            else
-            {
-                mtxTracksVec.unlock();
-                playTrack(0);
-            }
+            // This is called only from monitorTrack()
+            std::uniform_int_distribution<> uid(0, static_cast<int>(tracks.size()) - 1);
+
+            playTrack( static_cast<size_t>(uid(*pRndGen)), true );
         }
         else
         {
-            if (bCallFromMonitor)
+            if (iCurrentlyPlayingTrackIndex == (tracks.size() - 1))
             {
-                playTrack(iCurrentlyPlayingTrackIndex + 1, true);
+                if (bCallFromMonitor)
+                {
+                    playTrack(0, true);
+                }
+                else
+                {
+                    mtxTracksVec.unlock();
+                    playTrack(0);
+                }
             }
             else
             {
-                mtxTracksVec.unlock();
-                playTrack(iCurrentlyPlayingTrackIndex + 1);
+                if (bCallFromMonitor)
+                {
+                    playTrack(iCurrentlyPlayingTrackIndex + 1, true);
+                }
+                else
+                {
+                    mtxTracksVec.unlock();
+                    playTrack(iCurrentlyPlayingTrackIndex + 1);
+                }
             }
         }
     }
@@ -458,6 +472,9 @@ void AudioService::removeTrack(size_t iTrackIndex)
             {
                 bIsSomeTrackPlaying = false;
                 iCurrentlyPlayingTrackIndex = 0;
+
+                // Clear Track Name and Track Info
+                pMainWindow->setPlayingOnTrack(0, true);
             }
             else if (iCurrentlyPlayingTrackIndex != 0)
             {
@@ -472,6 +489,24 @@ void AudioService::removeTrack(size_t iTrackIndex)
     }
 
     mtxTracksVec.unlock();
+}
+
+void AudioService::clearPlaylist()
+{
+    bMonitorTracks = false;
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));
+
+    bIsSomeTrackPlaying = false;
+    iCurrentlyPlayingTrackIndex = 0;
+
+    for (size_t i = 0; i < tracks.size(); i++)
+    {
+        delete tracks[i];
+    }
+    tracks.clear();
+
+    fCurrentVolume = DEFAULT_VOLUME;
 }
 
 void AudioService::moveDown(size_t iTrackIndex)
@@ -565,6 +600,28 @@ void AudioService::moveUp(size_t iTrackIndex)
     mtxTracksVec.unlock();
 }
 
+void AudioService::repeatTrack()
+{
+    bRepeatTrack = !bRepeatTrack;
+
+    if (bRepeatTrack && bRandomNextTrack)
+    {
+        bRandomNextTrack = false;
+        pMainWindow->uncheckRandomTrackButton();
+    }
+}
+
+void AudioService::randomNextTrack()
+{
+    bRandomNextTrack = !bRandomNextTrack;
+
+    if (bRandomNextTrack && bRepeatTrack)
+    {
+        bRepeatTrack = false;
+        pMainWindow->uncheckRepeatTrackButton();
+    }
+}
+
 void AudioService::changeVolume(float fNewVolume)
 {
     mtxTracksVec.lock();
@@ -604,7 +661,23 @@ void AudioService::monitorTrack()
             {
                 // The track is ended, play next
                 tracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
-                nextTrack(true);
+
+                if (bRepeatTrack)
+                {
+                    // Or not
+                    playTrack(iCurrentlyPlayingTrackIndex, true);
+                }
+                else
+                {
+                    if (bRandomNextTrack)
+                    {
+                        nextTrack(true, true);
+                    }
+                    else
+                    {
+                        nextTrack(true);
+                    }
+                }
             }
         }
 
@@ -632,6 +705,8 @@ void AudioService::threadAddTracks(std::vector<wchar_t*> paths, bool* done, int*
 
 AudioService::~AudioService()
 {
+    delete pRndGen;
+
     bMonitorTracks = false;
 
     std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));

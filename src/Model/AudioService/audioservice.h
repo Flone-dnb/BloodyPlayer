@@ -3,6 +3,7 @@
 // STL
 #include <vector>
 #include <mutex>
+#include <random>
 
 // FMOD
 #include "../ext/FMOD/inc/fmod.hpp"
@@ -38,7 +39,7 @@ public:
             void stopTrack();
 
             // Switch to the next track in the 'tracks' vector.
-            void nextTrack(bool bCallFromMonitor = false);
+            void nextTrack(bool bCallFromMonitor = false, bool bRandomNextTrack = false);
 
             // Switch to the previous track in the 'tracks' vector.
             void prevTrack();
@@ -51,6 +52,17 @@ public:
 
             // Moves the current track on one position to the left in the 'tracks' vector
             void moveUp(size_t iTrackIndex);
+
+    // Buttons under the volume slider
+
+            // monitorTrack() will repeat current track and not play next.
+            void repeatTrack();
+
+            // monitorTrack() will play random next track.
+            void randomNextTrack();
+
+            // Removes all tracks.
+            void clearPlaylist();
 
     // set
             void changeVolume(float fNewVolume);
@@ -79,10 +91,13 @@ private:
 
     FMOD::System* pSystem;
     MainWindow*   pMainWindow;
+    std::mt19937_64* pRndGen;
 
     std::vector<Track*> tracks;
 
     bool bIsSomeTrackPlaying;
+    bool bRepeatTrack;
+    bool bRandomNextTrack;
     bool bMonitorTracks;
 
     float  fCurrentVolume;

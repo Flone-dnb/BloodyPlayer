@@ -29,6 +29,11 @@ public:
     void moveDown     (size_t iTrackIndex);
     void moveUp       (size_t iTrackIndex);
 
+    // Buttons under the volume slider
+    void repeatTrack  ();
+    void randomNextTrack();
+    void clearPlaylist();
+
     // set
     void changeVolume (float fNewVolume);
 

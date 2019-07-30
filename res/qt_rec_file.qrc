@@ -2,18 +2,23 @@
 <qresource>
     <file>play.png</file>
 	<file>play_hover.png</file>
-	<file>play_pressed.png</file>
 	<file>next.png</file>
 	<file>next_hover.png</file>
-	<file>next_pressed.png</file>
 	<file>prev.png</file>
 	<file>prev_hover.png</file>
-	<file>prev_pressed.png</file>
 	<file>stop.png</file>
 	<file>stop_hover.png</file>
-	<file>stop_pressed.png</file>
 	<file>pause.png</file>
 	<file>pause_hover.png</file>
-	<file>pause_pressed.png</file>
+	<file>clear.png</file>
+	<file>clear_hover.png</file>
+	<file>repeat.png</file>
+	<file>repeat_hover.png</file>
+	<file>repeat_active.png</file>
+	<file>random.png</file>
+	<file>random_hover.png</file>
+	<file>random_active.png</file>
+	<file>fx.png</file>
+	<file>fx_hover.png</file>
 </qresource>
 </RCC>

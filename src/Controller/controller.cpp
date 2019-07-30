@@ -59,6 +59,11 @@ void Controller::removeTrack(size_t iTrackIndex)
     pAudioService->removeTrack(iTrackIndex);
 }
 
+void Controller::clearPlaylist()
+{
+    pAudioService->clearPlaylist();
+}
+
 void Controller::moveDown(size_t iTrackIndex)
 {
     pAudioService->moveDown(iTrackIndex);
@@ -67,6 +72,16 @@ void Controller::moveDown(size_t iTrackIndex)
 void Controller::moveUp(size_t iTrackIndex)
 {
     pAudioService->moveUp(iTrackIndex);
+}
+
+void Controller::repeatTrack()
+{
+    pAudioService->repeatTrack();
+}
+
+void Controller::randomNextTrack()
+{
+    pAudioService->randomNextTrack();
 }
 
 size_t Controller::getPlaingTrackIndex(bool& bSomeTrackIsPlaying)

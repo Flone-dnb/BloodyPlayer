@@ -67,13 +67,30 @@ void MainWindow::removePlayingOnTrack(size_t iTrackIndex)
     tracks[iTrackIndex]->disablePlaying();
 }
 
-void MainWindow::setPlayingOnTrack(size_t iTrackIndex)
+void MainWindow::setPlayingOnTrack(size_t iTrackIndex, bool bClear)
 {
-    tracks[iTrackIndex]->setPlaying();
+    if (bClear)
+    {
+        emit signalSetTrack(iTrackIndex, true);
+    }
+    else
+    {
+        tracks[iTrackIndex]->setPlaying();
 
-    ui->scrollArea->ensureWidgetVisible(tracks[iTrackIndex]);
+        ui->scrollArea->ensureWidgetVisible(tracks[iTrackIndex]);
 
-    emit signalSetTrack(iTrackIndex);
+        emit signalSetTrack(iTrackIndex);
+    }
+}
+
+void MainWindow::uncheckRandomTrackButton()
+{
+    ui->pushButton_Random->setChecked(false);
+}
+
+void MainWindow::uncheckRepeatTrackButton()
+{
+    ui->pushButton_repeat->setChecked(false);
 }
 
 void MainWindow::setFocusOnTrack(size_t index)
@@ -263,10 +280,18 @@ void MainWindow::slotSetProgress(int value)
     pWaitWindow->setProgressValue(value);
 }
 
-void MainWindow::slotSetTrack(size_t iTrackIndex)
+void MainWindow::slotSetTrack(size_t iTrackIndex, bool bClear)
 {
-    ui->label_TrackName->setText( tracks[iTrackIndex]->trackName );
-    ui->label_TrackInfo->setText( tracks[iTrackIndex]->trackInfo );
+    if (bClear)
+    {
+        ui->label_TrackName->setText( "Track Name" );
+        ui->label_TrackInfo->setText( "Track Info" );
+    }
+    else
+    {
+        ui->label_TrackName->setText( tracks[iTrackIndex]->trackName );
+        ui->label_TrackInfo->setText( tracks[iTrackIndex]->trackInfo );
+    }
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
@@ -426,6 +451,35 @@ void MainWindow::slotMoveUp()
     }
 }
 
+void MainWindow::on_pushButton_clearPlaylist_clicked()
+{
+    if (tracks.size() > 0)
+    {
+        pController->clearPlaylist();
+
+        for (size_t i = 0; i < tracks.size(); i++)
+        {
+            delete tracks[i];
+        }
+        tracks.clear();
+
+        ui->label_TrackName->setText( "Track Name" );
+        ui->label_TrackInfo->setText( "Track Info" );
+
+        ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
+        ui->horizontalSlider->setEnabled(false);
+    }
+}
+
+void MainWindow::on_pushButton_repeat_clicked()
+{
+    pController->repeatTrack();
+}
+
+void MainWindow::on_pushButton_Random_clicked()
+{
+    pController->randomNextTrack();
+}
 
 
 

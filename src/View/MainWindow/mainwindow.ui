@@ -6,22 +6,22 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1037</width>
-    <height>670</height>
+    <width>1089</width>
+    <height>715</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Bloody Player</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(23, 23, 23, 255), stop:1 rgba(37, 37, 37, 255));
+   <string notr="true">background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(13, 13, 13, 255), stop:1 rgba(27, 27, 27, 255));
 
 color: white;</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="15,15,70">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="20,10,70">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="45,25,30">
+     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="50,25,25">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="70,30">
         <item>
@@ -281,7 +281,7 @@ QPushButton:hover
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:prev_pressed.png&quot;);
+	border-image: url(&quot;:prev.png&quot;);
 }</string>
           </property>
           <property name="text">
@@ -507,7 +507,7 @@ QPushButton:hover
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:stop_pressed.png&quot;);
+	border-image: url(&quot;:stop.png&quot;);
 }</string>
           </property>
           <property name="text">
@@ -741,7 +741,7 @@ QPushButton:hover
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:play_pressed.png&quot;);
+	border-image: url(&quot;:play.png&quot;);
 }</string>
           </property>
           <property name="text">
@@ -976,7 +976,7 @@ QPushButton:hover
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:pause_pressed.png&quot;);
+	border-image: url(&quot;:pause.png&quot;);
 }</string>
           </property>
           <property name="text">
@@ -1202,7 +1202,7 @@ QPushButton:hover
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:next_pressed.png&quot;);
+	border-image: url(&quot;:next.png&quot;);
 }</string>
           </property>
           <property name="text">
@@ -1213,7 +1213,7 @@ QPushButton:pressed
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="30,70">
+       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="10,40,50">
         <item>
          <widget class="QLabel" name="label_volume">
           <property name="font">
@@ -1276,6 +1276,172 @@ QSlider::sub-page:disabled
           </property>
          </widget>
         </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="10,20,20,20,20,10">
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_repeat">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton
+{
+	border: none;
+	width: 40px;
+	height: 40px;
+	background-color: rgba(255, 255, 255, 0);
+	border-image: url(&quot;:repeat.png&quot;);
+}
+
+QPushButton:hover
+{
+	border-image: url(&quot;:repeat_hover.png&quot;);
+}
+
+QPushButton:pressed
+{
+	border-image: url(&quot;:repeat.png&quot;);
+}
+
+QPushButton:checked
+{
+	border-image: url(&quot;:repeat_active.png&quot;);
+}</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_Random">
+            <property name="styleSheet">
+             <string notr="true">QPushButton
+{
+	border: none;
+	width: 30px;
+	height: 35px;
+	background-color: rgba(255, 255, 255, 0);
+	border-image: url(&quot;:random.png&quot;);
+}
+
+QPushButton:hover
+{
+	border-image: url(&quot;:random_hover.png&quot;);
+}
+
+QPushButton:pressed
+{
+	border-image: url(&quot;:random.png&quot;);
+}
+
+QPushButton:checked
+{
+	border-image: url(&quot;:random_active.png&quot;);
+}</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_FX">
+            <property name="styleSheet">
+             <string notr="true">QPushButton
+{
+	border: none;
+	width: 35px;
+	height: 35px;
+	background-color: rgba(205, 205, 205, 0);
+	border-image: url(&quot;:fx.png&quot;);
+}
+
+QPushButton:hover
+{
+	border-image: url(&quot;:fx_hover.png&quot;);
+}
+
+QPushButton:pressed
+{
+	border-image: url(&quot;:fx.png&quot;);
+}</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_clearPlaylist">
+            <property name="toolTip">
+             <string/>
+            </property>
+            <property name="toolTipDuration">
+             <number>-1</number>
+            </property>
+            <property name="whatsThis">
+             <string/>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton
+{
+	border: none;
+	width: 40px;
+	height: 40px;
+	background-color: rgba(255, 255, 255, 0);
+	border-image: url(&quot;:clear.png&quot;);
+}
+
+QPushButton:hover
+{
+	border-image: url(&quot;:clear_hover.png&quot;);
+}
+
+QPushButton:pressed
+{
+	border-image: url(&quot;:clear.png&quot;);
+}</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
        </layout>
       </item>
      </layout>
@@ -1305,8 +1471,8 @@ border-radius: 25px;</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1009</width>
-         <height>415</height>
+         <width>1061</width>
+         <height>445</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -1346,17 +1512,17 @@ border-radius: 25px;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1037</width>
-     <height>30</height>
+     <width>1089</width>
+     <height>33</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>9</pointsize>
+     <pointsize>10</pointsize>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(34, 34, 34);</string>
+    <string notr="true">background-color: rgb(24, 24, 24);</string>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="styleSheet">

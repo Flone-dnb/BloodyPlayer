@@ -47,7 +47,7 @@ TrackWidget::TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime
 
     styleDefault = "QFrame"
                    "{"
-                   "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(40, 40, 40, 255), stop:1 rgba(44, 44, 44, 255));"
+                   "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(25, 25, 25, 255), stop:1 rgba(38, 38, 38, 255));"
                    "  border-radius: 25px;"
                    "  border: 1px solid darkred;"
                       "color: white;"
