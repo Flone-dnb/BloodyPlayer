@@ -8,6 +8,11 @@
 #include <QScrollBar>
 #include <QSystemTrayIcon>
 #include <QHideEvent>
+#include <QVector>
+#include <QMouseEvent>
+
+// STL
+#include <cmath>
 
 // Custom
 #include "../src/Controller/controller.h"
@@ -44,12 +49,37 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::signalSetProgress,    this, &MainWindow::slotSetProgress);
     connect(this, &MainWindow::signalSetNumber,      this, &MainWindow::slotSetNumber);
     connect(this, &MainWindow::signalShowMessageBox, this, &MainWindow::slotShowMessageBox);
+    connect(this, &MainWindow::signalSetTrack,       this, &MainWindow::slotSetTrack);
+    connect(this, &MainWindow::signalAddNewTrack,    this, &MainWindow::slotAddNewTrack);
+    connect(this, &MainWindow::signalClearGraph,     this, &MainWindow::slotClearGraph);
+    connect(this, &MainWindow::signalSetXMaxToGraph, this, &MainWindow::slotSetXMaxToGraph);
+    connect(this, &MainWindow::signalAddDataToGraph, this, &MainWindow::slotAddDataToGraph);
+    connect(this, &MainWindow::signalSetCurrentPos,  this, &MainWindow::slotSetCurrentPos);
 
     // Tracklist connects
     connect(ui->scrollArea, &TrackList::signalDrop, this, &MainWindow::slotDrop);
 
-    connect(this, &MainWindow::signalSetTrack,      this, &MainWindow::slotSetTrack);
-    connect(this, &MainWindow::signalAddNewTrack,   this, &MainWindow::slotAddNewTrack);
+    // Graph
+    ui->widget_graph->addGraph();
+    ui->widget_graph->setOpenGl(true, 8);
+    if (!ui->widget_graph->openGl()) QMessageBox::warning(nullptr, "Error", "QCustomPlot's OpenGL mode wasn't launched.\n"
+                                                                            "This is not a critical error, but the application will run slower.");
+    ui->widget_graph->yAxis->setRange(0, MAX_AMPLITUDE);
+    QPen pen;
+    pen.setWidth(2);
+    pen.setColor(QColor(Qt::darkRed));
+    ui->widget_graph->graph(0)->setPen(pen);
+    ui->widget_graph->setBackground(QColor(24, 24, 24));
+    ui->widget_graph->xAxis->grid()->setVisible(false);
+    ui->widget_graph->yAxis->grid()->setVisible(false);
+    ui->widget_graph->xAxis->setTicks(false);
+    ui->widget_graph->yAxis->setTicks(false);
+    ui->widget_graph->graph(0)->setLineStyle(QCPGraph::LineStyle::lsImpulse);
+    ui->widget_graph->axisRect()->setAutoMargins(QCP::msNone);
+    ui->widget_graph->axisRect()->setMargins(QMargins(0,0,0,0));
+    connect(ui->widget_graph, &QCustomPlot::mousePress, this, &MainWindow::slotClickOnGraph);
+
+    iCurrentXPosOnGraph = 0;
 
     pController = new Controller(this);
 }
@@ -98,6 +128,26 @@ void MainWindow::uncheckRandomTrackButton()
 void MainWindow::uncheckRepeatTrackButton()
 {
     ui->pushButton_repeat->setChecked(false);
+}
+
+void MainWindow::clearGraph()
+{
+    emit signalClearGraph();
+}
+
+void MainWindow::setXMaxToGraph(unsigned int iMaxX)
+{
+    emit signalSetXMaxToGraph(iMaxX);
+}
+
+void MainWindow::addDataToGraph(char *pData, unsigned int iSizeInBytes)
+{
+    emit signalAddDataToGraph(pData, iSizeInBytes);
+}
+
+void MainWindow::setCurrentPos(int x)
+{
+    emit signalSetCurrentPos(x);
 }
 
 void MainWindow::setFocusOnTrack(size_t index)
@@ -219,6 +269,8 @@ void MainWindow::slotDrop(QStringList paths)
 void MainWindow::slotShowWindow()
 {
     pTrayIcon->hide();
+    raise();
+    activateWindow();
     showNormal();
 }
 
@@ -298,6 +350,81 @@ void MainWindow::slotHideWaitWindow()
 void MainWindow::slotSetProgress(int value)
 {
     pWaitWindow->setProgressValue(value);
+}
+
+void MainWindow::slotClearGraph()
+{
+    ui->widget_graph->graph(0)->data()->clear();
+
+    iCurrentXPosOnGraph = 0;
+}
+
+void MainWindow::slotSetXMaxToGraph(unsigned int iMaxX)
+{
+    ui->widget_graph->xAxis->setRange(0, iMaxX);
+}
+
+void MainWindow::slotAddDataToGraph(char *pData, unsigned int iSizeInBytes)
+{
+    QVector<double> x;
+    QVector<double> y;
+
+    for (unsigned int i = 0; i < iSizeInBytes;)
+    {
+        if (i + 4 >= iSizeInBytes) break;
+
+        x.push_back( static_cast<double>(iCurrentXPosOnGraph) );
+        iCurrentXPosOnGraph++;
+
+        short int iSampleLeft;
+        // Pointers magic
+        // High byte
+        std::memcpy(reinterpret_cast<char*>(&iSampleLeft) + 1, pData + i, sizeof(char));
+        i++;
+        // Low byte
+        std::memcpy(reinterpret_cast<char*>(&iSampleLeft), pData + i, sizeof(char));
+        i++;
+
+        short int iSampleRight;
+        // Pointers magic
+        // High byte
+        std::memcpy(reinterpret_cast<char*>(&iSampleRight) + 1, pData + i, sizeof(char));
+        i++;
+        // Low byte
+        std::memcpy(reinterpret_cast<char*>(&iSampleRight), pData + i, sizeof(char));
+        i++;
+
+        int iSample = (iSampleLeft + iSampleRight) / 2;
+
+        y.push_back( static_cast<double>(iSample) );
+    }
+
+    ui->widget_graph->graph(0)->addData(x, y, true);
+
+    ui->widget_graph->replot();
+
+    delete[] pData;
+}
+
+void MainWindow::slotSetCurrentPos(int x)
+{
+    QVector<double> xVec;
+    QVector<double> yVec;
+
+    for (iCurrentXPosOnGraph; iCurrentXPosOnGraph < x; iCurrentXPosOnGraph++)
+    {
+        xVec.push_back(iCurrentXPosOnGraph);
+        yVec.push_back(MAX_AMPLITUDE);
+    }
+
+    ui->widget_graph->graph(0)->addData(xVec, yVec, true);
+
+    ui->widget_graph->replot();
+}
+
+void MainWindow::slotClickOnGraph(QMouseEvent* ev)
+{
+    pController->setTrackPos( static_cast<unsigned int>(ui->widget_graph->xAxis->pixelToCoord(ev->pos().x())) );
 }
 
 void MainWindow::slotSetTrack(size_t iTrackIndex, bool bClear)

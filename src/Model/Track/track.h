@@ -49,8 +49,13 @@ public:
             // Sets track volume.
             bool setVolume       (float fNewVolume);
 
+            bool setPosForDummy  (unsigned int pcm);
+
 
     // 'Get' functions
+
+            // Returns private'std::string pcmFormat.
+            std::string getPCMFormat        ();
 
             // Returns private 'std::string format' variable. It contains the audio file format like mp3, ogg, wav, flac.
             std::string  getFormat          ();
@@ -58,8 +63,13 @@ public:
             // Returns the length of the track.
             unsigned int getLengthInMS      ();
 
+            // Returns the length of the track in PCM bytes.
+            unsigned int getLengthInPCMbytes();
+
             // Returns the current position of the track in milliseconds.
             unsigned int getPositionInMS    ();
+
+            unsigned int getPositionInPCMBytes();
 
             // Returns the sampling rate of the track.
             float        getFrequency       ();
@@ -80,6 +90,19 @@ public:
             bool         getPlaying         ();
 
 
+            // We will read data (and not play sound) from this dummy sound.
+            bool         createDummySound   ();
+
+            // Returns every Nth PCM sample. Because if we return every byte it will be very difficult to draw on the graph.
+            // -1 == end of file
+            // 0 == error
+            // 1 == ok
+            char         getSimpleAudioData (char* pBuff, unsigned int lengthInBytes, unsigned int *pActualRead, unsigned int iEveryNsample);
+
+            // Will call that after we read the whole file.
+            bool         releaseDummySound   ();
+
+
 
     ~Track();
 
@@ -94,12 +117,14 @@ private:
 
     // FMOD stuff
     FMOD::Sound*   pSound;
+    FMOD::Sound*   pDummySound;
     FMOD::Channel* pChannel;
     FMOD::System*  pSystem;
 
     const wchar_t* pFilePath;
 
     std::string    format;
+    std::string    pcmFormat;
 
     bool           bPaused;
 };

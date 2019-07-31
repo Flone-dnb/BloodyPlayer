@@ -22,6 +22,7 @@ public:
     void addTracks    (std::vector<wchar_t*> paths);
     void playTrack    (size_t iTrackIndex);
     void pauseTrack   ();
+    void setTrackPos  (unsigned int ms);
     void stopTrack    ();
     void nextTrack    ();
     void prevTrack    ();

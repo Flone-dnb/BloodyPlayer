@@ -27,6 +27,7 @@ AudioService::AudioService(MainWindow* pMainWindow)
     bRepeatTrack        = false;
     bRandomNextTrack    = false;
 
+
     fCurrentVolume = DEFAULT_VOLUME;
     iCurrentlyPlayingTrackIndex = 0;
 
@@ -294,6 +295,10 @@ void AudioService::playTrack(size_t iTrackIndex, bool bCallFromMonitor)
 
     if ( iTrackIndex < tracks.size() )
     {
+        pMainWindow->clearGraph();
+        pMainWindow->setXMaxToGraph( tracks[iTrackIndex]->getLengthInMS() );
+
+        // Play track
         if (bIsSomeTrackPlaying && (iCurrentlyPlayingTrackIndex != iTrackIndex))
         {
             // Stop currently playing track
@@ -337,6 +342,22 @@ void AudioService::playTrack(size_t iTrackIndex, bool bCallFromMonitor)
     if (!bCallFromMonitor) mtxTracksVec.unlock();
 }
 
+void AudioService::setTrackPos(unsigned int ms)
+{
+    mtxTracksVec.lock();
+
+    if ( (tracks.size() > 0) && (bIsSomeTrackPlaying) )
+    {
+        if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(ms) )
+        {
+            pMainWindow->clearGraph();
+            pMainWindow->setCurrentPos( ms );
+        }
+    }
+
+    mtxTracksVec.unlock();
+}
+
 void AudioService::pauseTrack()
 {
     // This function pauses / unpauses the track.
@@ -371,6 +392,7 @@ void AudioService::stopTrack()
     {
         tracks[iCurrentlyPlayingTrackIndex]->stopTrack();
         bIsSomeTrackPlaying = false;
+        pMainWindow->clearGraph();
     }
 
     mtxTracksVec.unlock();
@@ -475,6 +497,7 @@ void AudioService::removeTrack(size_t iTrackIndex)
 
                 // Clear Track Name and Track Info
                 pMainWindow->setPlayingOnTrack(0, true);
+                pMainWindow->clearGraph();
             }
             else if (iCurrentlyPlayingTrackIndex != 0)
             {
@@ -679,6 +702,10 @@ void AudioService::monitorTrack()
                     }
                 }
             }
+            else
+            {
+                pMainWindow->setCurrentPos( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() );
+            }
         }
 
         mtxTracksVec.unlock();
@@ -693,10 +720,10 @@ void AudioService::threadAddTracks(std::vector<wchar_t*> paths, bool* done, int*
     {
         addTrack(paths[i]);
 
-        mtxThreadDone.lock();
+        mtxLoadThreadDone.lock();
         *allCount += 1;
         pMainWindow->setProgress( *allCount *  100 / all);
-        mtxThreadDone.unlock();
+        mtxLoadThreadDone.unlock();
     }
 
     *done = true;

@@ -34,6 +34,11 @@ void Controller::pauseTrack()
     pAudioService->pauseTrack();
 }
 
+void Controller::setTrackPos(unsigned int ms)
+{
+    pAudioService->setTrackPos(ms);
+}
+
 void Controller::stopTrack()
 {
     pAudioService->stopTrack();

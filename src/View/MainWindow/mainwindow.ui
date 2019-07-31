@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1089</width>
+    <width>1170</width>
     <height>715</height>
    </rect>
   </property>
@@ -1277,7 +1277,7 @@ QSlider::sub-page:disabled
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="10,20,20,20,20,10">
+         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="10,20,20,20,10">
           <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
@@ -1365,33 +1365,6 @@ QPushButton:checked
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_FX">
-            <property name="styleSheet">
-             <string notr="true">QPushButton
-{
-	border: none;
-	width: 35px;
-	height: 35px;
-	background-color: rgba(205, 205, 205, 0);
-	border-image: url(&quot;:fx.png&quot;);
-}
-
-QPushButton:hover
-{
-	border-image: url(&quot;:fx_hover.png&quot;);
-}
-
-QPushButton:pressed
-{
-	border-image: url(&quot;:fx.png&quot;);
-}</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="pushButton_clearPlaylist">
             <property name="toolTip">
              <string/>
@@ -1447,11 +1420,40 @@ QPushButton:pressed
      </layout>
     </item>
     <item>
-     <widget class="QWidget" name="widget" native="true">
+     <widget class="QFrame" name="frame">
       <property name="styleSheet">
-       <string notr="true">border: 1px solid darkred;
-border-radius: 25px;</string>
+       <string notr="true">border: 1px solid darkred;</string>
       </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>1</number>
+       </property>
+       <property name="topMargin">
+        <number>1</number>
+       </property>
+       <property name="rightMargin">
+        <number>1</number>
+       </property>
+       <property name="bottomMargin">
+        <number>1</number>
+       </property>
+       <item>
+        <widget class="QCustomPlot" name="widget_graph" native="true">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
     <item>
@@ -1471,7 +1473,7 @@ border-radius: 25px;</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1061</width>
+         <width>1142</width>
          <height>445</height>
         </rect>
        </property>
@@ -1512,7 +1514,7 @@ border-radius: 25px;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1089</width>
+     <width>1170</width>
      <height>33</height>
     </rect>
    </property>
@@ -1563,6 +1565,12 @@ border-radius: 25px;</string>
    <class>TrackList</class>
    <extends>QScrollArea</extends>
    <header>../src/View/TrackList/tracklist.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header>../ext/qcustomplot/qcustomplot.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

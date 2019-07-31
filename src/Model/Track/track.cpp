@@ -51,12 +51,14 @@ bool Track::setTrack(const wchar_t* pFilePath)
 
     // Get audio format (mp3, wav, flac, ogg and etc.)
     FMOD_SOUND_TYPE type;
-    result = pSound->getFormat(&type, nullptr, nullptr, nullptr);
+    FMOD_SOUND_FORMAT formatType;
+    result = pSound->getFormat(&type, &formatType, nullptr, nullptr);
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("Track::setTrack::FMOD::Sound::getFormat() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
         return false;
     }
+
 
     // Save format to 'std::string' and not 'FMOD_SOUND_TYPE' because we will use it later
     // and can't save 'FMOD_SOUND_TYPE' in .h file (it does not include FMOD).
@@ -64,6 +66,10 @@ bool Track::setTrack(const wchar_t* pFilePath)
     else if (type == FMOD_SOUND_TYPE_MPEG)      format = "MP3";
     else if (type == FMOD_SOUND_TYPE_WAV)       format = "WAV";
     else if (type == FMOD_SOUND_TYPE_OGGVORBIS) format = "OGG";
+
+    if      (formatType == FMOD_SOUND_FORMAT_PCM8) pcmFormat = "PCM8";
+    else if (formatType ==FMOD_SOUND_FORMAT_PCM16) pcmFormat = "PCM16";
+    else                                           pcmFormat = "NULL";
 
     return true;
 }
@@ -85,9 +91,113 @@ bool Track::getPlaying()
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("Track::isPlaying::FMOD::Channel::isPlaying() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        return false;
     }
 
     return bPlaying;
+}
+
+bool Track::createDummySound()
+{
+    // wchar_t is 16 bits and holds UTF-16 code units
+    // FMOD accepts UTF-8 strings
+    // convert wchar_t* (UTF-16) to char* (UTF-8)
+    char filePathInUTF8[MAX_PATH];
+    WideCharToMultiByte(CP_UTF8, 0, pFilePath, -1, filePathInUTF8, sizeof(filePathInUTF8), nullptr, nullptr);
+
+
+    FMOD_RESULT result;
+
+    result = pSystem->createStream(filePathInUTF8, FMOD_DEFAULT, nullptr, &pDummySound);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("Track::createDummySound::FMOD::System::createStream() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        return false;
+    }
+
+    return true;
+}
+
+char Track::getSimpleAudioData(char *pBuff, unsigned int lengthInBytes, unsigned int *pActualRead, unsigned int iEveryNSample)
+{
+    // This function returns every Nth PCM sample. Because if we return every byte it will be very difficult to draw on the graph.
+    // -1 == end of file
+    // 0 == error
+    // 1 == ok
+
+    FMOD_RESULT result;
+
+    if (lengthInBytes > 429496719)
+    {
+        // If we are here then 'lengthInBytes * iEveryNSample' will be too big for unsigned int to store.
+        return 0;
+    }
+
+
+    if (lengthInBytes % 2 != 0)
+    {
+        lengthInBytes--;
+    }
+
+    char* pTemp = new char[lengthInBytes * iEveryNSample];
+
+    result = pDummySound->readData(pTemp, lengthInBytes * iEveryNSample, pActualRead);
+    if ( (result) && (result != FMOD_ERR_FILE_EOF))
+    {
+        delete[] pTemp;
+        pMainWindow->showMessageBox( true, std::string("Track::getAudioData::FMOD::Sound::readData() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        return 0;
+    }
+    else
+    {
+        unsigned int iNewRead = 0;
+        for (unsigned int i = 0; i < *pActualRead; i += iEveryNSample*2)
+        {
+            if ( (iNewRead >= lengthInBytes - 1) || (i + 4 >= *pActualRead) )
+            {
+                break;
+            }
+
+            // Assuming that the sound is in stereo
+
+            // Left channel
+            pBuff[iNewRead] = pTemp[i];
+            iNewRead++;
+            pBuff[iNewRead] = pTemp[i + 1];
+            iNewRead++;
+            // Right channel
+            pBuff[iNewRead] = pTemp[i + 2];
+            iNewRead++;
+            pBuff[iNewRead] = pTemp[i + 3];
+            iNewRead++;
+        }
+
+        *pActualRead = iNewRead;
+
+        delete[] pTemp;
+
+        if (result == FMOD_ERR_FILE_EOF)
+        {
+            return -1;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}
+
+bool Track::releaseDummySound()
+{
+    FMOD_RESULT result;
+    result = pDummySound->release();
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("Track::releaseDummySound::FMOD::Sound::release() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        return false;
+    }
+
+    return true;
 }
 
 bool Track::playTrack(float fVolume)
@@ -373,6 +483,26 @@ bool Track::setVolume(float fNewVolume)
     return false;
 }
 
+bool Track::setPosForDummy(unsigned int pcm)
+{
+    FMOD_RESULT result;
+    result = pDummySound->seekData(pcm);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("Track::setPos::FMOD::Sound::seekData() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+std::string Track::getPCMFormat()
+{
+    return pcmFormat;
+}
+
 unsigned int Track::getLengthInMS()
 {
     // This function returns the length of the track.
@@ -397,6 +527,22 @@ unsigned int Track::getLengthInMS()
     }
 }
 
+unsigned int Track::getLengthInPCMbytes()
+{
+    FMOD_RESULT result;
+    unsigned int iLength;
+    result = pSound->getLength(&iLength, FMOD_TIMEUNIT_PCMBYTES);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("Track::getLengthInPCMBytes::FMOD::Sound::getLength() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        return 0;
+    }
+    else
+    {
+        return iLength;
+    }
+}
+
 unsigned int Track::getPositionInMS()
 {
     // This function returns the current position of the track in milliseconds.
@@ -410,6 +556,28 @@ unsigned int Track::getPositionInMS()
         if (result)
         {
             pMainWindow->showMessageBox( true, std::string("Track::getPositionInMS::FMOD::Channel::getPosition() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            return 0;
+        }
+
+        return pos;
+    }
+
+    return 0;
+}
+
+unsigned int Track::getPositionInPCMBytes()
+{
+    // This function returns the current position of the track in milliseconds.
+
+    if (pChannel != nullptr)
+    {
+        FMOD_RESULT result;
+
+        unsigned int pos = 0;
+        result = pChannel->getPosition(&pos, FMOD_TIMEUNIT_PCMBYTES);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::getPositionInPCMBytes::FMOD::Channel::getPosition() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
             return 0;
         }
 

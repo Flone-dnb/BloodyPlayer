@@ -13,6 +13,8 @@ class TrackWidget;
 class WaitWindow;
 class QHideEvent;
 class QSystemTrayIcon;
+class TrackProgressWindow;
+class QMouseEvent;
 
 namespace Ui
 {
@@ -38,6 +40,12 @@ signals:
     void signalHideWaitWindow();
     void signalSetProgress(int value);
 
+    // Graph
+    void signalClearGraph();
+    void signalSetXMaxToGraph(unsigned int iMaxX);
+    void signalAddDataToGraph(char* pData, unsigned int iSizeInBytes);
+    void signalSetCurrentPos(int x);
+
 public:
 
     explicit MainWindow(QWidget *parent = nullptr);
@@ -51,6 +59,12 @@ public:
     void setPlayingOnTrack(size_t iTrackIndex, bool bClear = false);
     void uncheckRandomTrackButton();
     void uncheckRepeatTrackButton();
+
+    // Graph
+    void clearGraph();
+    void setXMaxToGraph(unsigned int iMaxX);
+    void addDataToGraph(char* pData, unsigned int iSizeInBytes);
+    void setCurrentPos(int x);
 
     // Focus
     void setFocusOnTrack(size_t index);
@@ -101,6 +115,13 @@ private slots:
     void slotHideWaitWindow();
     void slotSetProgress(int value);
 
+    // Graph
+    void slotClearGraph();
+    void slotSetXMaxToGraph(unsigned int iMaxX);
+    void slotAddDataToGraph(char* pData, unsigned int iSizeInBytes);
+    void slotSetCurrentPos(int x);
+    void slotClickOnGraph(QMouseEvent* ev);
+
     // Buttons
     void on_pushButton_Play_clicked();
     void on_pushButton_pause_clicked();
@@ -132,6 +153,8 @@ private:
     std::vector<TrackWidget*> tracks;
 
     int iSelectedTrackIndex;
+
+    unsigned int iCurrentXPosOnGraph;
 
     bool bSystemReady;
 };

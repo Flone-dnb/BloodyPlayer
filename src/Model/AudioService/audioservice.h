@@ -32,6 +32,9 @@ public:
             // Starts track playback.
             void playTrack(size_t iTrackIndex, bool bCallFromMonitor = false);
 
+            // Moves track to position
+            void setTrackPos(unsigned int ms);
+
             // Pauses / unpauses the track.
             void pauseTrack();
 
@@ -68,7 +71,7 @@ public:
             void changeVolume(float fNewVolume);
 
     // get
-             size_t getPlayingTrackIndex(bool& bSomeTrackIsPlaying);
+            size_t getPlayingTrackIndex(bool& bSomeTrackIsPlaying);
 
 
 
@@ -88,7 +91,6 @@ private:
     void monitorTrack();
 
 
-
     FMOD::System* pSystem;
     MainWindow*   pMainWindow;
     std::mt19937_64* pRndGen;
@@ -101,9 +103,10 @@ private:
     bool bMonitorTracks;
 
     float  fCurrentVolume;
+    unsigned int iEveryNSample;
     size_t iCurrentlyPlayingTrackIndex;
 
     std::mutex mtxTracksVec;
     std::mutex mtxThreadLoadAddTrack;
-    std::mutex mtxThreadDone;
+    std::mutex mtxLoadThreadDone;
 };
