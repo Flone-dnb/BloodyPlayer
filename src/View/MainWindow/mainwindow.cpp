@@ -356,6 +356,8 @@ void MainWindow::slotClearGraph()
 {
     ui->widget_graph->graph(0)->data()->clear();
 
+    ui->widget_graph->replot();
+
     iCurrentXPosOnGraph = 0;
 }
 
@@ -496,6 +498,8 @@ void MainWindow::deleteSelectedTrack()
             ui->horizontalSlider->setEnabled(false);
         }
 
+        slotClearGraph();
+
         iSelectedTrackIndex = -1;
     }
 }
@@ -612,6 +616,8 @@ void MainWindow::on_pushButton_clearPlaylist_clicked()
 
         ui->label_TrackName->setText( "Track Name" );
         ui->label_TrackInfo->setText( "Track Info" );
+
+        slotClearGraph();
 
         ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
         ui->horizontalSlider->setEnabled(false);
