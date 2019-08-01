@@ -71,6 +71,8 @@ public:
 
             unsigned int getPositionInPCMBytes();
 
+            std::string  getCurrentTime();
+
             // Returns the sampling rate of the track.
             float        getFrequency       ();
 

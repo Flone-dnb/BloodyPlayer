@@ -18,8 +18,6 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-DEFINES += QCUSTOMPLOT_USE_OPENGL
-
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
@@ -56,7 +54,6 @@ FORMS += \
         ../src/View/WaitWindow/waitwindow.ui
 
 LIBS += -L"D:\Program Files (x86)\FMOD Studio API Windows\api\core\lib\x64"
-LIBS += -lOpenGL32
 
 
 win32

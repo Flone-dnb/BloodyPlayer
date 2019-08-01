@@ -15,6 +15,7 @@ class QHideEvent;
 class QSystemTrayIcon;
 class TrackProgressWindow;
 class QMouseEvent;
+class QCPItemText;
 
 namespace Ui
 {
@@ -32,7 +33,6 @@ signals:
     void signalShowMessageBox(bool errorBox, std::string text);
     void signalSetTrack(size_t iTrackIndex, bool bClear = false);
     void signalSetNumber(size_t iNumber);
-    void signalRemoveTrack(size_t iTrackIndex);
     void signalAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
 
     // WaitWindow
@@ -44,7 +44,7 @@ signals:
     void signalClearGraph();
     void signalSetXMaxToGraph(unsigned int iMaxX);
     void signalAddDataToGraph(char* pData, unsigned int iSizeInBytes);
-    void signalSetCurrentPos(int x);
+    void signalSetCurrentPos(int x, std::string time);
 
 public:
 
@@ -64,7 +64,7 @@ public:
     void clearGraph();
     void setXMaxToGraph(unsigned int iMaxX);
     void addDataToGraph(char* pData, unsigned int iSizeInBytes);
-    void setCurrentPos(int x);
+    void setCurrentPos(int x, std::string time);
 
     // Focus
     void setFocusOnTrack(size_t index);
@@ -73,8 +73,6 @@ public:
     void showWaitWindow();
     void hideWaitWindow();
     void setProgress(int value);
-
-    void removeTrack(size_t iTrackIndex);
 
     void markAnError();
     bool isSystemReady();
@@ -119,7 +117,7 @@ private slots:
     void slotClearGraph();
     void slotSetXMaxToGraph(unsigned int iMaxX);
     void slotAddDataToGraph(char* pData, unsigned int iSizeInBytes);
-    void slotSetCurrentPos(int x);
+    void slotSetCurrentPos(int x, std::string time);
     void slotClickOnGraph(QMouseEvent* ev);
 
     // Buttons
@@ -145,16 +143,19 @@ private slots:
 
 private:
 
-    Ui::MainWindow *ui;
-    Controller* pController;
-    WaitWindow* pWaitWindow;
+    Ui::MainWindow*  ui;
+    Controller*      pController;
+    WaitWindow*      pWaitWindow;
     QSystemTrayIcon* pTrayIcon;
+    QCPItemText*     pGraphTextTrackTime;
 
     std::vector<TrackWidget*> tracks;
 
     int iSelectedTrackIndex;
 
     unsigned int iCurrentXPosOnGraph;
+    double minPosOnGraphForText;
+    double maxPosOnGraphForText;
 
     bool bSystemReady;
 };

@@ -61,12 +61,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Graph
     ui->widget_graph->addGraph();
-    ui->widget_graph->setOpenGl(true, 8);
-    if (!ui->widget_graph->openGl()) QMessageBox::warning(nullptr, "Error", "QCustomPlot's OpenGL mode wasn't launched.\n"
-                                                                            "This is not a critical error, but the application will run slower.");
+    ui->widget_graph->xAxis->setRange(0, MAX_X_AXIS_VALUE);
     ui->widget_graph->yAxis->setRange(0, MAX_AMPLITUDE);
     QPen pen;
-    pen.setWidth(2);
+    pen.setWidth(3);
     pen.setColor(QColor(Qt::darkRed));
     ui->widget_graph->graph(0)->setPen(pen);
     ui->widget_graph->setBackground(QColor(24, 24, 24));
@@ -78,8 +76,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->widget_graph->axisRect()->setAutoMargins(QCP::msNone);
     ui->widget_graph->axisRect()->setMargins(QMargins(0,0,0,0));
     connect(ui->widget_graph, &QCustomPlot::mousePress, this, &MainWindow::slotClickOnGraph);
+    pGraphTextTrackTime = new QCPItemText(ui->widget_graph);
+    pGraphTextTrackTime->position->setType(QCPItemPosition::ptAxisRectRatio);
+    pGraphTextTrackTime->position->setCoords(0, 0.5);
+    pGraphTextTrackTime->setFont( QFont("Segoe UI", 10) );
+    pGraphTextTrackTime->setColor(Qt::white);
+    pGraphTextTrackTime->setPen(Qt::NoPen);
+    pGraphTextTrackTime->setSelectedPen(Qt::NoPen);
+    pGraphTextTrackTime->setText("");
 
     iCurrentXPosOnGraph = 0;
+
+    // 3%
+    minPosOnGraphForText = MAX_X_AXIS_VALUE * 3 / 100;
+    minPosOnGraphForText /= static_cast<double>(MAX_X_AXIS_VALUE);
+    maxPosOnGraphForText = MAX_X_AXIS_VALUE * 97 / 100;
+    maxPosOnGraphForText /= static_cast<double>(MAX_X_AXIS_VALUE);
 
     pController = new Controller(this);
 }
@@ -145,9 +157,9 @@ void MainWindow::addDataToGraph(char *pData, unsigned int iSizeInBytes)
     emit signalAddDataToGraph(pData, iSizeInBytes);
 }
 
-void MainWindow::setCurrentPos(int x)
+void MainWindow::setCurrentPos(int x, std::string time)
 {
-    emit signalSetCurrentPos(x);
+    emit signalSetCurrentPos(x, time);
 }
 
 void MainWindow::setFocusOnTrack(size_t index)
@@ -168,11 +180,6 @@ void MainWindow::hideWaitWindow()
 void MainWindow::setProgress(int value)
 {
     emit signalSetProgress(value);
-}
-
-void MainWindow::removeTrack(size_t iTrackIndex)
-{
-    emit signalRemoveTrack(iTrackIndex);
 }
 
 void MainWindow::markAnError()
@@ -347,6 +354,7 @@ void MainWindow::slotHideWaitWindow()
     pWaitWindow->close();
     delete pWaitWindow;
 }
+
 void MainWindow::slotSetProgress(int value)
 {
     pWaitWindow->setProgressValue(value);
@@ -355,6 +363,8 @@ void MainWindow::slotSetProgress(int value)
 void MainWindow::slotClearGraph()
 {
     ui->widget_graph->graph(0)->data()->clear();
+
+    pGraphTextTrackTime->setText("");
 
     ui->widget_graph->replot();
 
@@ -408,7 +418,7 @@ void MainWindow::slotAddDataToGraph(char *pData, unsigned int iSizeInBytes)
     delete[] pData;
 }
 
-void MainWindow::slotSetCurrentPos(int x)
+void MainWindow::slotSetCurrentPos(int x, std::string time)
 {
     QVector<double> xVec;
     QVector<double> yVec;
@@ -420,6 +430,20 @@ void MainWindow::slotSetCurrentPos(int x)
     }
 
     ui->widget_graph->graph(0)->addData(xVec, yVec, true);
+
+    pGraphTextTrackTime->setText(QString::fromStdString(time));
+
+    double currentPos = iCurrentXPosOnGraph / static_cast<double>(MAX_X_AXIS_VALUE);
+
+    if ( (currentPos > (minPosOnGraphForText + 0.03)) && (currentPos < maxPosOnGraphForText) )
+    {
+        pGraphTextTrackTime->position->setCoords(currentPos - 0.03, 0.5);
+    }
+    else
+    {
+        if (currentPos <= minPosOnGraphForText)      pGraphTextTrackTime->position->setCoords(minPosOnGraphForText, 0.5);
+        else if (currentPos >= maxPosOnGraphForText) pGraphTextTrackTime->position->setCoords(maxPosOnGraphForText - 0.03, 0.5);
+    }
 
     ui->widget_graph->replot();
 }
@@ -497,8 +521,6 @@ void MainWindow::deleteSelectedTrack()
             ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
             ui->horizontalSlider->setEnabled(false);
         }
-
-        slotClearGraph();
 
         iSelectedTrackIndex = -1;
     }

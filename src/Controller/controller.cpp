@@ -9,6 +9,9 @@
 Controller::Controller(MainWindow* pMainWindow)
 {
     pAudioService = new AudioService(pMainWindow);
+
+    bRepeatTrack = false;
+    bRandomTrack = false;
 }
 
 
@@ -34,9 +37,9 @@ void Controller::pauseTrack()
     pAudioService->pauseTrack();
 }
 
-void Controller::setTrackPos(unsigned int ms)
+void Controller::setTrackPos(unsigned int graphPos)
 {
-    pAudioService->setTrackPos(ms);
+    pAudioService->setTrackPos(graphPos);
 }
 
 void Controller::stopTrack()
@@ -46,7 +49,8 @@ void Controller::stopTrack()
 
 void Controller::nextTrack()
 {
-    pAudioService->nextTrack();
+    if (bRandomTrack) pAudioService->nextTrack(false, true);
+    else              pAudioService->nextTrack();
 }
 
 void Controller::prevTrack()
@@ -82,11 +86,17 @@ void Controller::moveUp(size_t iTrackIndex)
 void Controller::repeatTrack()
 {
     pAudioService->repeatTrack();
+
+    bRepeatTrack = !bRepeatTrack;
+    if (bRepeatTrack && bRandomTrack) bRandomTrack = false;
 }
 
 void Controller::randomNextTrack()
 {
     pAudioService->randomNextTrack();
+
+    bRandomTrack = !bRandomTrack;
+    if (bRandomTrack && bRepeatTrack) bRepeatTrack = false;
 }
 
 size_t Controller::getPlaingTrackIndex(bool& bSomeTrackIsPlaying)

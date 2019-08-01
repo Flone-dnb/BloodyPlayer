@@ -22,7 +22,7 @@ public:
     void addTracks    (std::vector<wchar_t*> paths);
     void playTrack    (size_t iTrackIndex);
     void pauseTrack   ();
-    void setTrackPos  (unsigned int ms);
+    void setTrackPos  (unsigned int graphPos);
     void stopTrack    ();
     void nextTrack    ();
     void prevTrack    ();
@@ -31,9 +31,9 @@ public:
     void moveUp       (size_t iTrackIndex);
 
     // Buttons under the volume slider
-    void repeatTrack  ();
+    void repeatTrack    ();
     void randomNextTrack();
-    void clearPlaylist();
+    void clearPlaylist  ();
 
     // set
     void changeVolume (float fNewVolume);
@@ -48,4 +48,7 @@ public:
 private:
 
     AudioService* pAudioService;
+
+    bool bRepeatTrack;
+    bool bRandomTrack;
 };

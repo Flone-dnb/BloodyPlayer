@@ -587,6 +587,23 @@ unsigned int Track::getPositionInPCMBytes()
     return 0;
 }
 
+std::string Track::getCurrentTime()
+{
+    unsigned int iMS = getPositionInMS();
+    if (iMS == 0) return "";
+
+    unsigned int iSeconds = iMS / 1000;
+    unsigned int iMinutes = iSeconds / 60;
+    iSeconds -= (iMinutes * 60);
+    std::string trackTime = "";
+    trackTime += std::to_string(iMinutes);
+    trackTime += ":";
+    if (iSeconds < 10) trackTime += "0";
+    trackTime += std::to_string(iSeconds);
+
+    return trackTime;
+}
+
 std::string Track::getFormat()
 {
     // This function returns private 'std::string format' variable.

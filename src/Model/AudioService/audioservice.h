@@ -30,10 +30,10 @@ public:
             void addTracks(std::vector<wchar_t*> paths);
 
             // Starts track playback.
-            void playTrack(size_t iTrackIndex, bool bCallFromMonitor = false);
+            void playTrack(size_t iTrackIndex, bool bDontLockMutex = false);
 
             // Moves track to position
-            void setTrackPos(unsigned int ms);
+            void setTrackPos(unsigned int graphPos);
 
             // Pauses / unpauses the track.
             void pauseTrack();
@@ -42,7 +42,7 @@ public:
             void stopTrack();
 
             // Switch to the next track in the 'tracks' vector.
-            void nextTrack(bool bCallFromMonitor = false, bool bRandomNextTrack = false);
+            void nextTrack(bool bDontLockMutex = false, bool bRandomNextTrack = false);
 
             // Switch to the previous track in the 'tracks' vector.
             void prevTrack();
@@ -91,13 +91,15 @@ private:
     void monitorTrack();
 
 
-    FMOD::System* pSystem;
-    MainWindow*   pMainWindow;
+    FMOD::System*    pSystem;
+    MainWindow*      pMainWindow;
     std::mt19937_64* pRndGen;
 
     std::vector<Track*> tracks;
 
+
     bool bIsSomeTrackPlaying;
+    bool bCurrentTrackPaused;
     bool bRepeatTrack;
     bool bRandomNextTrack;
     bool bMonitorTracks;
