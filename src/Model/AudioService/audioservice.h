@@ -15,7 +15,6 @@ class MainWindow;
 class Track;
 
 
-
 class AudioService
 {
 public:
@@ -67,6 +66,18 @@ public:
             // Removes all tracks.
             void clearPlaylist();
 
+    // FX
+            void setPan          (float fPan);
+            void setPitch        (float fPitch);
+            void setSpeedByPitch (float fSpeed);
+            void setSpeedByTime  (float fSpeed);
+            void setReverbVolume (float fVolume);
+            void setEchoVolume   (float fEchoVolume);
+
+            void loadVSTPlugin   (wchar_t* pPathToDll);
+            void unloadVSTPlugin ();
+            void systemUpdate    ();
+
     // set
             void changeVolume(float fNewVolume);
 
@@ -95,6 +106,15 @@ private:
     MainWindow*      pMainWindow;
     std::mt19937_64* pRndGen;
 
+    // FX
+    FMOD::DSP* pPitch;
+    FMOD::DSP* pPitchForTime;
+    FMOD::DSP* pFaderForTime;
+    FMOD::DSP* pReverb;
+    FMOD::DSP* pEcho;
+    unsigned int iVSTHandle;
+    FMOD::DSP* pVST;
+
     std::vector<Track*> tracks;
 
 
@@ -104,7 +124,10 @@ private:
     bool bRandomNextTrack;
     bool bMonitorTracks;
 
-    float  fCurrentVolume;
+    float fCurrentVolume;
+    float fCurrentSpeedByPitch;
+    float fCurrentSpeedByTime;
+
     unsigned int iEveryNSample;
     size_t iCurrentlyPlayingTrackIndex;
 

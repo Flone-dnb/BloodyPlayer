@@ -1277,7 +1277,7 @@ QSlider::sub-page:disabled
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="10,20,20,20,10">
+         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="10,20,20,0,20,10">
           <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
@@ -1365,6 +1365,33 @@ QPushButton:checked
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pushButton_fx">
+            <property name="styleSheet">
+             <string notr="true">QPushButton
+{
+	border: none;
+	width: 45px;
+	height: 45px;
+	background-color: rgba(255, 255, 255, 0);
+	border-image: url(&quot;:fx.png&quot;);
+}
+
+QPushButton:hover
+{
+	border-image: url(&quot;:fx_hover.png&quot;);
+}
+
+QPushButton:pressed
+{
+	border-image: url(&quot;:fx.png&quot;);
+}</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="pushButton_clearPlaylist">
             <property name="toolTip">
              <string/>
@@ -1379,8 +1406,8 @@ QPushButton:checked
              <string notr="true">QPushButton
 {
 	border: none;
-	width: 40px;
-	height: 40px;
+	width: 35px;
+	height: 35px;
 	background-color: rgba(255, 255, 255, 0);
 	border-image: url(&quot;:clear.png&quot;);
 }

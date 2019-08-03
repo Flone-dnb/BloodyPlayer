@@ -17,8 +17,10 @@
 // Custom
 #include "../src/Controller/controller.h"
 #include "../src/View/TrackWidget/trackwidget.h"
-#include "../src/globalparams.h"
 #include "../src/View/WaitWindow/waitwindow.h"
+#include "../src/View/FXWindow/fxwindow.h"
+#include "../src/View/VSTWindow/vstwindow.h"
+#include "../src/globalparams.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -93,6 +95,26 @@ MainWindow::MainWindow(QWidget *parent) :
     maxPosOnGraphForText = MAX_X_AXIS_VALUE * 97 / 100;
     maxPosOnGraphForText /= static_cast<double>(MAX_X_AXIS_VALUE);
 
+    // FXWindow
+    pFXWindow = new FXWindow(this);
+    pFXWindow->setWindowModality(Qt::WindowModality::WindowModal);
+    connect(pFXWindow, &FXWindow::signalChangePan,          this, &MainWindow::slotSetPan);
+    connect(pFXWindow, &FXWindow::signalChangePitch,        this, &MainWindow::slotSetPitch);
+    connect(pFXWindow, &FXWindow::signalChangeSpeedByPitch, this, &MainWindow::slotSetSpeedByPitch);
+    connect(pFXWindow, &FXWindow::signalChangeSpeedByTime,  this, &MainWindow::slotSetSpeedByTime);
+    connect(pFXWindow, &FXWindow::signalChangeReverbVolume, this, &MainWindow::slotSetReverbVolume);
+    connect(pFXWindow, &FXWindow::signalChangeEchoVolume,   this, &MainWindow::slotSetEchoVolume);
+    connect(pFXWindow, &FXWindow::signalOpenVST,            this, &MainWindow::slotLoadVST);
+    connect(pFXWindow, &FXWindow::signalShowVST,            this, &MainWindow::slotShowVST);
+    connect(this, &MainWindow::signalResetAll,              pFXWindow, &FXWindow::slotResetAll);
+    connect(this, &MainWindow::signalSetVSTName,            pFXWindow, &FXWindow::slotSetVSTName);
+
+    // VSTWindow
+    pVSTWindow = new VSTWindow(this);
+    pVSTWindow->setWindowModality(Qt::WindowModality::WindowModal);
+    connect(pVSTWindow, &VSTWindow::unloadVST, this, &MainWindow::slotUnloadVST);
+    connect(pVSTWindow, &VSTWindow::updateAudio, this, &MainWindow::slotUpdate);
+
     pController = new Controller(this);
 }
 
@@ -140,6 +162,18 @@ void MainWindow::uncheckRandomTrackButton()
 void MainWindow::uncheckRepeatTrackButton()
 {
     ui->pushButton_repeat->setChecked(false);
+}
+
+HWND MainWindow::getVSTWindowHWND()
+{
+    return pVSTWindow->getVSTWidgetHandle();
+}
+
+void MainWindow::setVSTName(std::string name)
+{
+    emit signalSetVSTName(QString::fromStdString(name));
+
+    slotShowVST();
 }
 
 void MainWindow::clearGraph()
@@ -218,7 +252,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.0");
+    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.10");
 }
 
 void MainWindow::on_pushButton_Play_clicked()
@@ -441,7 +475,7 @@ void MainWindow::slotSetCurrentPos(int x, std::string time)
     }
     else
     {
-        if (currentPos <= minPosOnGraphForText)      pGraphTextTrackTime->position->setCoords(minPosOnGraphForText, 0.5);
+        if (currentPos <= minPosOnGraphForText + 0.03)      pGraphTextTrackTime->position->setCoords(minPosOnGraphForText, 0.5);
         else if (currentPos >= maxPosOnGraphForText) pGraphTextTrackTime->position->setCoords(maxPosOnGraphForText - 0.03, 0.5);
     }
 
@@ -451,6 +485,61 @@ void MainWindow::slotSetCurrentPos(int x, std::string time)
 void MainWindow::slotClickOnGraph(QMouseEvent* ev)
 {
     pController->setTrackPos( static_cast<unsigned int>(ui->widget_graph->xAxis->pixelToCoord(ev->pos().x())) );
+}
+
+void MainWindow::slotSetPan(float fPan)
+{
+    pController->setPan(fPan);
+}
+
+void MainWindow::slotSetPitch(float fPitch)
+{
+    pController->setPitch(fPitch);
+}
+
+void MainWindow::slotSetSpeedByPitch(float fSpeed)
+{
+    pController->setSpeedByPitch(fSpeed);
+}
+
+void MainWindow::slotSetSpeedByTime(float fSpeed)
+{
+    pController->setSpeedByTime(fSpeed);
+}
+
+void MainWindow::slotSetReverbVolume(float fVolume)
+{
+    pController->setReverbVolume(fVolume);
+}
+
+void MainWindow::slotSetEchoVolume(float fEchoVolume)
+{
+    pController->setEchoVolume(fEchoVolume);
+}
+
+void MainWindow::slotLoadVST(wchar_t *pPath)
+{
+    pController->loadVSTPlugin(pPath);
+}
+
+void MainWindow::slotShowVST()
+{
+    pVSTWindow->show();
+}
+
+void MainWindow::slotUnloadVST()
+{
+    pVSTWindow->hide();
+    pController->unloadVSTPlugin();
+
+    emit signalSetVSTName("NULL");
+}
+
+void MainWindow::slotUpdate()
+{
+    pController->systemUpdate();
+    // We will reset all effects because some changes to vst does not apply until you reset or change current effects
+    emit signalResetAll();
 }
 
 void MainWindow::slotSetTrack(size_t iTrackIndex, bool bClear)
@@ -656,6 +745,11 @@ void MainWindow::on_pushButton_Random_clicked()
     pController->randomNextTrack();
 }
 
+void MainWindow::on_pushButton_fx_clicked()
+{
+    pFXWindow->show();
+}
+
 
 
 
@@ -663,6 +757,9 @@ void MainWindow::on_pushButton_Random_clicked()
 
 MainWindow::~MainWindow()
 {
+    if (pVSTWindow) delete pVSTWindow;
+    delete pFXWindow;
+
     delete pTrayIcon;
 
     for (size_t i = 0; i < tracks.size(); i++)

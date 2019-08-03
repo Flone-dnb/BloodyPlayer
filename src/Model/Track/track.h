@@ -51,6 +51,10 @@ public:
 
             bool setPosForDummy  (unsigned int pcm);
 
+            // FX
+            void setSpeedByFreq(float fSpeed);
+            void setSpeedByTime(float fSpeed);
+
 
     // 'Get' functions
 
@@ -127,6 +131,10 @@ private:
 
     std::string    format;
     std::string    pcmFormat;
+
+    float fDefaultFrequency;
+    float fSpeedByFreq;
+    float fSpeedByTime;
 
     bool           bPaused;
 };

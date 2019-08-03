@@ -30,8 +30,10 @@ SOURCES += \
         ../src/Controller/controller.cpp \
         ../src/Model/AudioService/audioservice.cpp \
         ../src/Model/Track/track.cpp \
+        ../src/View/FXWindow/fxwindow.cpp \
         ../src/View/TrackList/tracklist.cpp \
         ../src/View/TrackWidget/trackwidget.cpp \
+        ../src/View/VSTWindow/vstwindow.cpp \
         ../src/View/WaitWindow/waitwindow.cpp \
         ../src/main.cpp \
         ../src/View/MainWindow/mainwindow.cpp
@@ -41,16 +43,20 @@ HEADERS += \
         ../src/Controller/controller.h \
         ../src/Model/AudioService/audioservice.h \
         ../src/Model/Track/track.h \
+        ../src/View/FXWindow/fxwindow.h \
         ../src/View/MainWindow/mainwindow.h \
         ../src/View/TrackList/tracklist.h \
         ../src/View/TrackWidget/trackwidget.h \
+        ../src/View/VSTWindow/vstwindow.h \
         ../src/View/WaitWindow/waitwindow.h \
         ../src/globalparams.h
 
 FORMS += \
+        ../src/View/FXWindow/fxwindow.ui \
         ../src/View/MainWindow/mainwindow.ui \
         ../src/View/TrackList/tracklist.ui \
         ../src/View/TrackWidget/trackwidget.ui \
+        ../src/View/VSTWindow/vstwindow.ui \
         ../src/View/WaitWindow/waitwindow.ui
 
 LIBS += -L"D:\Program Files (x86)\FMOD Studio API Windows\api\core\lib\x64"

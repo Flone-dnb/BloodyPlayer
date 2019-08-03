@@ -19,6 +19,9 @@ Track::Track(MainWindow *pMainWindow, FMOD::System* pSystem)
     this->pSystem     = pSystem;
 
     bPaused           = false;
+
+    fSpeedByFreq = 1.0f;
+    fSpeedByTime = 1.0f;
 }
 
 
@@ -39,7 +42,7 @@ bool Track::setTrack(const wchar_t* pFilePath)
 
     FMOD_RESULT result;
 
-    result = pSystem->createStream(filePathInUTF8, FMOD_DEFAULT, nullptr, &pSound);
+    result = pSystem->createStream(filePathInUTF8, FMOD_DEFAULT | FMOD_LOOP_OFF, nullptr, &pSound);
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("Track::setTrack::FMOD::System::createStream() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
@@ -217,11 +220,38 @@ bool Track::playTrack(float fVolume)
             return false;
         }
 
+        float fFrequency;
+        result = pChannel->getFrequency(&fFrequency);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::getFrequency() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        }
+
+        fDefaultFrequency = fFrequency;
+
         result = pChannel->setVolume(fVolume);
         if (result)
         {
             pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setVolume() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
             return false;
+        }
+
+        if (fSpeedByFreq == 1.0f)
+        {
+            pChannel->setFrequency( fDefaultFrequency );
+        }
+        else
+        {
+            pChannel->setFrequency( fDefaultFrequency * fSpeedByFreq );
+        }
+
+        if (fSpeedByTime == 1.0f)
+        {
+            pChannel->setFrequency( fDefaultFrequency );
+        }
+        else
+        {
+            pChannel->setFrequency( fDefaultFrequency * fSpeedByTime );
         }
 
         result = pChannel->setPaused(false);
@@ -284,6 +314,7 @@ bool Track::playTrack(float fVolume)
             {
                 // The track is plaing and user pressed Play so now we just need to start track from the beginning.
                 setPositionInMS(0);
+                pChannel->setPaused(true);
             }
             else
             {
@@ -291,7 +322,6 @@ bool Track::playTrack(float fVolume)
                 // Now every operation with 'pChannel' will return error because sound is ended.
                 // We will recreate the track:
 
-                // Free all resources
                 result = pChannel->stop();
                 if (result)
                 {
@@ -299,21 +329,46 @@ bool Track::playTrack(float fVolume)
                     return false;
                 }
 
-                result = pSound->release();
-                if (result)
-                {
-                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                    return false;
-                }
-
                 // And play it again.
-                result = pSystem->playSound(pSound, nullptr, false, &pChannel);
+                result = pSystem->playSound(pSound, nullptr, true, &pChannel);
                 if (result)
                 {
                     pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::System::playSound() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
                     return false;
                 }
+
+                result = pChannel->setVolume(fVolume);
+                if (result)
+                {
+                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setVolume() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+                    return false;
+                }
             }
+        }
+
+        if (fSpeedByFreq == 1.0f)
+        {
+            pChannel->setFrequency( fDefaultFrequency );
+        }
+        else
+        {
+            pChannel->setFrequency( fDefaultFrequency * fSpeedByFreq );
+        }
+
+        if (fSpeedByTime == 1.0f)
+        {
+            pChannel->setFrequency( fDefaultFrequency );
+        }
+        else
+        {
+            pChannel->setFrequency( fDefaultFrequency * fSpeedByTime );
+        }
+
+        result = pChannel->setPaused(false);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            return false;
         }
 
         bPaused = false;
@@ -412,20 +467,20 @@ bool Track::reCreateTrack(float fVolume)
         result = pChannel->stop();
         if (result)
         {
-            pMainWindow->showMessageBox( true, std::string("Track::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            pMainWindow->showMessageBox( true, std::string("Track::reCreateTrack::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
         }
 
         result = pSystem->playSound(pSound, nullptr, true, &pChannel);
         if (result)
         {
-            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::System::playSound() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            pMainWindow->showMessageBox( true, std::string("Track::reCreateTrack::FMOD::System::playSound() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
             return false;
         }
 
         result = pChannel->setVolume(fVolume);
         if (result)
         {
-            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setVolume() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            pMainWindow->showMessageBox( true, std::string("Track::reCreateTrack::FMOD::Channel::setVolume() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
             return false;
         }
 
@@ -495,6 +550,40 @@ bool Track::setPosForDummy(unsigned int pcm)
     else
     {
         return true;
+    }
+}
+
+void Track::setSpeedByFreq(float fSpeed)
+{
+    fSpeedByFreq = fSpeed;
+
+    if (pChannel != nullptr)
+    {
+        if (fSpeedByFreq == 1.0f)
+        {
+            pChannel->setFrequency( fDefaultFrequency );
+        }
+        else
+        {
+            pChannel->setFrequency( fDefaultFrequency * fSpeedByFreq );
+        }
+    }
+}
+
+void Track::setSpeedByTime(float fSpeed)
+{
+    fSpeedByTime = fSpeed;
+
+    if (pChannel != nullptr)
+    {
+        if (fSpeedByTime == 1.0f)
+        {
+            pChannel->setFrequency( fDefaultFrequency );
+        }
+        else
+        {
+            pChannel->setFrequency( fDefaultFrequency * fSpeedByTime );
+        }
     }
 }
 

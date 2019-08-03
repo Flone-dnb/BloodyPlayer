@@ -30,6 +30,17 @@ public:
     void moveDown     (size_t iTrackIndex);
     void moveUp       (size_t iTrackIndex);
 
+    // FX
+    void setPan          (float fPan);
+    void setPitch        (float fPitch);
+    void setSpeedByPitch (float fSpeed);
+    void setSpeedByTime  (float fSpeed);
+    void setReverbVolume (float fVolume);
+    void setEchoVolume   (float fEchoVolume);
+    void loadVSTPlugin   (wchar_t *pPathToDll);
+    void unloadVSTPlugin ();
+    void systemUpdate    ();
+
     // Buttons under the volume slider
     void repeatTrack    ();
     void randomNextTrack();

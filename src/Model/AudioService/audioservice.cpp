@@ -27,9 +27,19 @@ AudioService::AudioService(MainWindow* pMainWindow)
     bRepeatTrack        = false;
     bRandomNextTrack    = false;
 
+    // FX
+    pPitch        = nullptr;
+    pPitchForTime = nullptr;
+    pFaderForTime = nullptr;
+    pReverb       = nullptr;
+    pEcho         = nullptr;
+    pVST          = nullptr;
+
 
     fCurrentVolume = DEFAULT_VOLUME;
     iCurrentlyPlayingTrackIndex = 0;
+    fCurrentSpeedByPitch = 1.0f;
+    fCurrentSpeedByTime  = 1.0f;
 
     FMODinit();
 }
@@ -73,6 +83,70 @@ void AudioService::FMODinit()
         pMainWindow->markAnError();
         return;
     }
+
+    FMOD::ChannelGroup* pMaster;
+    pSystem->getMasterChannelGroup(&pMaster);
+
+
+    result = pSystem->createDSPByType(FMOD_DSP_TYPE_PITCHSHIFT, &pPitch);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System::createDSPByType() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pPitch = nullptr;
+    }
+    else
+    {
+        pMaster->addDSP(0, pPitch);
+    }
+
+    result = pSystem->createDSPByType(FMOD_DSP_TYPE_PITCHSHIFT, &pPitchForTime);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System::createDSPByType() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pPitchForTime = nullptr;
+    }
+    else
+    {
+        pMaster->addDSP(1, pPitchForTime);
+    }
+
+    result = pSystem->createDSPByType(FMOD_DSP_TYPE_FADER, &pFaderForTime);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System::createDSPByType() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pFaderForTime = nullptr;
+    }
+    else
+    {
+        pMaster->addDSP(2, pFaderForTime);
+    }
+
+    result = pSystem->createDSPByType(FMOD_DSP_TYPE_SFXREVERB, &pReverb);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System::createDSPByType() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pReverb = nullptr;
+    }
+    else
+    {
+        pMaster->addDSP(3, pReverb);
+        pReverb->setParameterFloat(FMOD_DSP_SFXREVERB_WETLEVEL, -80.0f);
+    }
+
+    result = pSystem->createDSPByType(FMOD_DSP_TYPE_ECHO, &pEcho);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System::createDSPByType() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pEcho = nullptr;
+    }
+    else
+    {
+        pMaster->addDSP(4, pEcho);
+        pEcho->setParameterFloat(FMOD_DSP_ECHO_DELAY, 1000);
+        pEcho->setParameterFloat(FMOD_DSP_ECHO_WETLEVEL, -80.0f);
+    }
+
+    pMaster->setPan(0.0f);
 }
 
 void AudioService::addTrack(const wchar_t *pFilePath)
@@ -151,6 +225,9 @@ void AudioService::addTrack(const wchar_t *pFilePath)
     trackTime += ":";
     if (iSeconds < 10) trackTime += "0";
     trackTime += std::to_string(iSeconds);
+
+    pNewTrack->setSpeedByFreq(fCurrentSpeedByPitch);
+    pNewTrack->setSpeedByTime(fCurrentSpeedByTime);
 
     mtxThreadLoadAddTrack.lock();
 
@@ -322,6 +399,13 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
             bCurrentTrackPaused = false;
             iCurrentlyPlayingTrackIndex = iTrackIndex;
         }
+        else
+        {
+            bIsSomeTrackPlaying = false;
+            bCurrentTrackPaused = false;
+            iCurrentlyPlayingTrackIndex = 0;
+            pMainWindow->showMessageBox(false, "Something went wrong and we could not play the track.");
+        }
 
         pMainWindow->setPlayingOnTrack(iCurrentlyPlayingTrackIndex);
     }
@@ -475,6 +559,9 @@ void AudioService::removeTrack(size_t iTrackIndex)
         {
             bMonitorTracks      = false;
             bIsSomeTrackPlaying = false;
+            bCurrentTrackPaused = false;
+            pMainWindow->clearGraph();
+            iCurrentlyPlayingTrackIndex = 0;
             std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));
         }
         else if (bIsSomeTrackPlaying)
@@ -519,6 +606,174 @@ void AudioService::clearPlaylist()
     tracks.clear();
 
     fCurrentVolume = DEFAULT_VOLUME;
+}
+
+void AudioService::setPan(float fPan)
+{
+    mtxTracksVec.lock();
+
+    if (tracks.size() > 0)
+    {
+        FMOD::ChannelGroup* pMaster;
+        pSystem->getMasterChannelGroup(&pMaster);
+        pMaster->setPan(fPan);
+    }
+
+    mtxTracksVec.unlock();
+}
+
+void AudioService::setPitch(float fPitch)
+{
+    if (pPitch)
+    {
+        pPitch->setParameterFloat(FMOD_DSP_PITCHSHIFT_PITCH, fPitch);
+        pPitch->setParameterInt(FMOD_DSP_PITCHSHIFT_FFTSIZE, 4096);
+    }
+}
+
+void AudioService::setSpeedByPitch(float fSpeed)
+{
+    mtxTracksVec.lock();
+
+    fCurrentSpeedByPitch = fSpeed;
+
+    if (tracks.size() > 0)
+    {
+        for (size_t i = 0; i < tracks.size(); i++)
+        {
+            tracks[i]->setSpeedByFreq(fSpeed);
+        }
+    }
+
+    mtxTracksVec.unlock();
+}
+
+void AudioService::setSpeedByTime(float fSpeed)
+{
+    mtxTracksVec.lock();
+
+    fCurrentSpeedByTime = fSpeed;
+
+    if (tracks.size() > 0)
+    {
+        for (size_t i = 0; i < tracks.size(); i++)
+        {
+            tracks[i]->setSpeedByTime(fSpeed);
+        }
+    }
+
+    pPitchForTime->setParameterFloat(FMOD_DSP_PITCHSHIFT_PITCH, 1.0f / fSpeed);
+    pPitchForTime->setParameterInt(FMOD_DSP_PITCHSHIFT_FFTSIZE, 4096);
+
+    if (fSpeed != 1.0f) pFaderForTime->setParameterFloat(FMOD_DSP_FADER_GAIN, 3);
+    else pFaderForTime->setParameterFloat(FMOD_DSP_FADER_GAIN, 0);
+
+    mtxTracksVec.unlock();
+}
+
+void AudioService::setReverbVolume(float fVolume)
+{
+    if (pReverb)
+    {
+        pReverb->setParameterFloat(FMOD_DSP_SFXREVERB_WETLEVEL, fVolume);
+    }
+}
+
+void AudioService::setEchoVolume(float fEchoVolume)
+{
+    if (pEcho)
+    {
+        pEcho->setParameterFloat(FMOD_DSP_ECHO_WETLEVEL, fEchoVolume);
+    }
+}
+
+void AudioService::loadVSTPlugin(wchar_t *pPathToDll)
+{
+    // wchar_t is 16 bits and holds UTF-16 code units
+    // FMOD accepts UTF-8 strings
+    // convert wchar_t* (UTF-16) to char* (UTF-8)
+    char filePathInUTF8[MAX_PATH];
+    WideCharToMultiByte(CP_UTF8, 0, pPathToDll, -1, filePathInUTF8, sizeof(filePathInUTF8), nullptr, nullptr);
+
+    delete[] pPathToDll;
+
+    FMOD_RESULT result;
+
+    result = pSystem->loadPlugin(reinterpret_cast<const char*>(&filePathInUTF8), &iVSTHandle);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::loadVSTPlugin::FMOD::System::loadPlugin() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        return;
+    }
+    result = pSystem->createDSPByPlugin(iVSTHandle, &pVST);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::loadVSTPlugin::FMOD::System::createDSPByPlugin() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pVST = nullptr;
+        pSystem->unloadPlugin(iVSTHandle);
+        return;
+    }
+
+    FMOD::ChannelGroup* pMaster;
+    pSystem->getMasterChannelGroup(&pMaster);
+
+    pMaster->addDSP(5, pVST);
+
+    char name[MAX_PATH];
+    memset(name, 0, MAX_PATH);
+    pVST->getInfo(name, nullptr, nullptr, nullptr, nullptr);
+
+    result = pVST->showConfigDialog(pMainWindow->getVSTWindowHWND(), true);
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::loadVSTPlugin::FMOD::DSP::showConfigDialog() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+    }
+
+    pMainWindow->setVSTName(name);
+
+    pSystem->update();
+}
+
+void AudioService::unloadVSTPlugin()
+{
+    if (pVST)
+    {
+        FMOD::ChannelGroup* pMaster;
+        pSystem->getMasterChannelGroup(&pMaster);
+
+        FMOD_RESULT result;
+
+        result = pVST->showConfigDialog(pMainWindow->getVSTWindowHWND(), false);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("AudioService::unloadVSTPlugin::FMOD::DSP::showConfigDialog() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        }
+
+        result = pMaster->removeDSP(pVST);
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("AudioService::unloadVSTPlugin::FMOD::ChannelGroup::removeDSP() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        }
+        result = pVST->release();
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("AudioService::unloadVSTPlugin::FMOD::DSP::release() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        }
+
+        // returns error: "remove plugin from dsp network first", but it's removed
+        // what to do?
+//        result = pSystem->unloadPlugin(iVSTHandle);
+//        if (result)
+//        {
+//            pMainWindow->showMessageBox( true, std::string("AudioService::unloadVSTPlugin::FMOD::System::unloadPlugin() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+//        }
+        pVST = nullptr;
+    }
+}
+
+void AudioService::systemUpdate()
+{
+    pSystem->update();
 }
 
 void AudioService::moveDown(size_t iTrackIndex)
@@ -728,6 +983,45 @@ AudioService::~AudioService()
     mtxTracksVec.lock();
     mtxTracksVec.unlock();
     std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));
+
+    // FX
+    if ( (pPitch != nullptr) || (pPitchForTime != nullptr) || (pFaderForTime != nullptr) || (pReverb != nullptr) || (pEcho != nullptr) || (pVST != nullptr) )
+    {
+        FMOD::ChannelGroup* pMaster;
+        pSystem->getMasterChannelGroup(&pMaster);
+
+        if (pPitch)
+        {
+            pMaster->removeDSP(pPitch);
+            pPitch->release();
+        }
+        if (pPitchForTime)
+        {
+            pMaster->removeDSP(pPitchForTime);
+            pPitchForTime->release();
+        }
+        if (pFaderForTime)
+        {
+            pMaster->removeDSP(pFaderForTime);
+            pFaderForTime->release();
+        }
+        if (pReverb)
+        {
+            pMaster->removeDSP(pReverb);
+            pReverb->release();
+        }
+        if (pEcho)
+        {
+            pMaster->removeDSP(pEcho);
+            pEcho->release();
+        }
+        if (pVST)
+        {
+            pMaster->removeDSP(pVST);
+            pVST->release();
+            pSystem->unloadPlugin(iVSTHandle);
+        }
+    }
 
     FMOD_RESULT result;
 

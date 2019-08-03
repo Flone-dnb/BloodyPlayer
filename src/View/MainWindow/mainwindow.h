@@ -11,9 +11,11 @@
 class Controller;
 class TrackWidget;
 class WaitWindow;
+class FXWindow;
+class VSTWindow;
+
 class QHideEvent;
 class QSystemTrayIcon;
-class TrackProgressWindow;
 class QMouseEvent;
 class QCPItemText;
 
@@ -46,6 +48,10 @@ signals:
     void signalAddDataToGraph(char* pData, unsigned int iSizeInBytes);
     void signalSetCurrentPos(int x, std::string time);
 
+    // VST
+    void signalSetVSTName(QString name);
+    void signalResetAll();
+
 public:
 
     explicit MainWindow(QWidget *parent = nullptr);
@@ -59,6 +65,10 @@ public:
     void setPlayingOnTrack(size_t iTrackIndex, bool bClear = false);
     void uncheckRandomTrackButton();
     void uncheckRepeatTrackButton();
+
+    // VST
+    HWND getVSTWindowHWND();
+    void setVSTName(std::string name);
 
     // Graph
     void clearGraph();
@@ -120,6 +130,18 @@ private slots:
     void slotSetCurrentPos(int x, std::string time);
     void slotClickOnGraph(QMouseEvent* ev);
 
+    // FX
+    void slotSetPan          (float fPan);
+    void slotSetPitch        (float fPitch);
+    void slotSetSpeedByPitch (float fSpeed);
+    void slotSetSpeedByTime  (float fSpeed);
+    void slotSetReverbVolume (float fVolume);
+    void slotSetEchoVolume   (float fEchoVolume);
+    void slotLoadVST         (wchar_t* pPath);
+    void slotShowVST         ();
+    void slotUnloadVST       ();
+    void slotUpdate          ();
+
     // Buttons
     void on_pushButton_Play_clicked();
     void on_pushButton_pause_clicked();
@@ -129,6 +151,8 @@ private slots:
 
     // Buttons under the volume slider
     void on_pushButton_repeat_clicked();
+    void on_pushButton_Random_clicked();
+    void on_pushButton_fx_clicked();
     void on_pushButton_clearPlaylist_clicked();
 
     // Volume slider
@@ -139,13 +163,14 @@ private slots:
     void on_actionOpen_Directory_triggered();
     void on_actionAbout_triggered();
 
-    void on_pushButton_Random_clicked();
-
 private:
 
     Ui::MainWindow*  ui;
     Controller*      pController;
     WaitWindow*      pWaitWindow;
+    FXWindow*        pFXWindow;
+    VSTWindow*       pVSTWindow;
+
     QSystemTrayIcon* pTrayIcon;
     QCPItemText*     pGraphTextTrackTime;
 

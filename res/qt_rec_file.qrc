@@ -19,5 +19,7 @@
 	<file>random.png</file>
 	<file>random_hover.png</file>
 	<file>random_active.png</file>
+	<file>fx.png</file>
+	<file>fx_hover.png</file>
 </qresource>
 </RCC>

@@ -1,0 +1,1090 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FXWindow</class>
+ <widget class="QMainWindow" name="FXWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>728</width>
+    <height>720</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Effects</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(13, 13, 13, 255), stop:1 rgba(27, 27, 27, 255));
+
+color: white;</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="25,25,25,10,5,10">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="50,50">
+      <item>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border: 1px solid darkred;</string>
+        </property>
+        <property name="title">
+         <string>Pan</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="20,60,20">
+         <property name="topMargin">
+          <number>15</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_pan">
+           <property name="font">
+            <font>
+             <family>Segoe UI</family>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgba(255, 255, 255, 0);
+
+border: none;</string>
+           </property>
+           <property name="text">
+            <string>Pan: 0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="horizontalSlider_pan">
+           <property name="styleSheet">
+            <string notr="true">QSlider
+{
+	border: none;
+}
+
+QSlider::handle
+{
+	background-color: black;
+	border: 1px solid darkred;
+}
+
+QSlider::add-page
+ {
+	background: darkred;
+}
+
+QSlider::sub-page 
+{
+	background: darkred;
+}</string>
+           </property>
+           <property name="minimum">
+            <number>-100</number>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="value">
+            <number>0</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="25,50,25">
+           <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_pan">
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton
+{
+	color: white;
+	background-color: dark;
+	border: 1px solid darkred;
+}
+
+QPushButton:hover
+{
+	background-color: rgb(69, 69, 69);
+}</string>
+             </property>
+             <property name="text">
+              <string>Set to Default</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_2">
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border: 1px solid darkred;</string>
+        </property>
+        <property name="title">
+         <string>Pitch</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3" stretch="20,60,20">
+         <property name="topMargin">
+          <number>15</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_pitch">
+           <property name="font">
+            <font>
+             <family>Segoe UI</family>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgba(255, 255, 255, 0);
+border: none;</string>
+           </property>
+           <property name="text">
+            <string>Pitch: 0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="horizontalSlider_pitch">
+           <property name="styleSheet">
+            <string notr="true">QSlider
+{
+	border: none;
+}
+
+QSlider::handle
+{
+	background-color: black;
+	border: 1px solid darkred;
+}
+
+QSlider::add-page
+ {
+	background: darkred;
+}
+
+QSlider::sub-page 
+{
+	background: darkred;
+}</string>
+           </property>
+           <property name="minimum">
+            <number>-100</number>
+           </property>
+           <property name="maximum">
+            <number>100</number>
+           </property>
+           <property name="value">
+            <number>0</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout" stretch="25,50,25">
+           <item>
+            <spacer name="horizontalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_pitch">
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>9</pointsize>
+               <kerning>true</kerning>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton
+{
+	color: white;
+	background-color: dark;
+	border: 1px solid darkred;
+}
+
+QPushButton:hover
+{
+	background-color: rgb(69, 69, 69);
+}</string>
+             </property>
+             <property name="text">
+              <string>Set to Default</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="50,50">
+      <item>
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border: 1px solid darkred;</string>
+        </property>
+        <property name="title">
+         <string>Speed (by pitch)</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_4" stretch="20,60,20">
+         <property name="topMargin">
+          <number>15</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_speed_by_pitch">
+           <property name="font">
+            <font>
+             <family>Segoe UI</family>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgba(255, 255, 255, 0);
+border: none;</string>
+           </property>
+           <property name="text">
+            <string>Speed: x1</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="horizontalSlider_speed_by_pitch">
+           <property name="styleSheet">
+            <string notr="true">QSlider
+{
+	border: none;
+}
+
+QSlider::handle
+{
+	background-color: black;
+	border: 1px solid darkred;
+}
+
+QSlider::add-page
+ {
+	background: darkred;
+}
+
+QSlider::sub-page 
+{
+	background: darkred;
+}
+
+QSlider::handle:disabled
+{
+	background-color: rgb(59, 59, 59);
+	border: 1px solid gray;
+}
+
+QSlider::add-page:disabled 
+{
+    background: gray;
+}
+
+QSlider::sub-page:disabled
+{
+    background: gray;
+}</string>
+           </property>
+           <property name="minimum">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <number>200</number>
+           </property>
+           <property name="value">
+            <number>100</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="25,50,25">
+           <item>
+            <spacer name="horizontalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_speed_by_pitch">
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton
+{
+	color: white;
+	background-color: dark;
+	border: 1px solid darkred;
+}
+
+QPushButton:hover
+{
+	background-color: rgb(69, 69, 69);
+}
+
+QPushButton::disabled
+{
+	background-color: gray;
+	color: dark;
+}</string>
+             </property>
+             <property name="text">
+              <string>Set to Default</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_4">
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border: 1px solid darkred;</string>
+        </property>
+        <property name="title">
+         <string>Speed (by time)</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_5" stretch="20,60,20">
+         <property name="topMargin">
+          <number>15</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_speed_by_time">
+           <property name="font">
+            <font>
+             <family>Segoe UI</family>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgba(255, 255, 255, 0);
+border: none;</string>
+           </property>
+           <property name="text">
+            <string>Speed: x1</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="horizontalSlider_speed_by_time">
+           <property name="styleSheet">
+            <string notr="true">QSlider
+{
+	border: none;
+}
+
+QSlider::handle
+{
+	background-color: black;
+	border: 1px solid darkred;
+}
+
+QSlider::add-page
+ {
+	background: darkred;
+}
+
+QSlider::sub-page 
+{
+	background: darkred;
+}
+
+QSlider::handle:disabled
+{
+	background-color: rgb(59, 59, 59);
+	border: 1px solid gray;
+}
+
+QSlider::add-page:disabled 
+{
+    background: gray;
+}
+
+QSlider::sub-page:disabled
+{
+    background: gray;
+}</string>
+           </property>
+           <property name="maximum">
+            <number>200</number>
+           </property>
+           <property name="value">
+            <number>100</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="25,50,25">
+           <item>
+            <spacer name="horizontalSpacer_11">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_speed_by_time">
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton
+{
+	color: white;
+	background-color: dark;
+	border: 1px solid darkred;
+}
+
+QPushButton:hover
+{
+	background-color: rgb(69, 69, 69);
+}
+
+QPushButton::disabled
+{
+	background-color: gray;
+	color: dark;
+}</string>
+             </property>
+             <property name="text">
+              <string>Set to Default</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_12">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="50,50">
+      <item>
+       <widget class="QGroupBox" name="groupBox_5">
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border: 1px solid darkred;</string>
+        </property>
+        <property name="title">
+         <string>Reverb</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_6" stretch="20,60,20">
+         <property name="topMargin">
+          <number>15</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_reverb">
+           <property name="font">
+            <font>
+             <family>Segoe UI</family>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgba(255, 255, 255, 0);
+border: none;</string>
+           </property>
+           <property name="text">
+            <string>Reverb wet volume: -80 dB</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="horizontalSlider_reverb">
+           <property name="styleSheet">
+            <string notr="true">QSlider
+{
+	border: none;
+}
+
+QSlider::handle
+{
+	background-color: black;
+	border: 1px solid darkred;
+}
+
+QSlider::add-page
+ {
+	background: darkred;
+}
+
+QSlider::sub-page 
+{
+	background: darkred;
+}
+
+QSlider::handle:disabled
+{
+	background-color: rgb(59, 59, 59);
+	border: 1px solid gray;
+}
+
+QSlider::add-page:disabled 
+{
+    background: gray;
+}
+
+QSlider::sub-page:disabled
+{
+    background: gray;
+}</string>
+           </property>
+           <property name="minimum">
+            <number>-80</number>
+           </property>
+           <property name="maximum">
+            <number>0</number>
+           </property>
+           <property name="value">
+            <number>-80</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="25,50,25">
+           <item>
+            <spacer name="horizontalSpacer_13">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_reverb">
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton
+{
+	color: white;
+	background-color: dark;
+	border: 1px solid darkred;
+}
+
+QPushButton:hover
+{
+	background-color: rgb(69, 69, 69);
+}
+
+QPushButton::disabled
+{
+	background-color: gray;
+	color: dark;
+}</string>
+             </property>
+             <property name="text">
+              <string>Set to Default</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_14">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_6">
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border: 1px solid darkred;</string>
+        </property>
+        <property name="title">
+         <string>Echo</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_7" stretch="20,60,20">
+         <property name="topMargin">
+          <number>15</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_delay">
+           <property name="font">
+            <font>
+             <family>Segoe UI</family>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgba(255, 255, 255, 0);
+border: none;</string>
+           </property>
+           <property name="text">
+            <string>Echo wet volume: -80 dB</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSlider" name="horizontalSlider_delay">
+           <property name="styleSheet">
+            <string notr="true">QSlider
+{
+	border: none;
+}
+
+QSlider::handle
+{
+	background-color: black;
+	border: 1px solid darkred;
+}
+
+QSlider::add-page
+ {
+	background: darkred;
+}
+
+QSlider::sub-page 
+{
+	background: darkred;
+}
+
+QSlider::handle:disabled
+{
+	background-color: rgb(59, 59, 59);
+	border: 1px solid gray;
+}
+
+QSlider::add-page:disabled 
+{
+    background: gray;
+}
+
+QSlider::sub-page:disabled
+{
+    background: gray;
+}</string>
+           </property>
+           <property name="minimum">
+            <number>-80</number>
+           </property>
+           <property name="maximum">
+            <number>0</number>
+           </property>
+           <property name="value">
+            <number>-80</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="25,50,25">
+           <item>
+            <spacer name="horizontalSpacer_15">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_delay">
+             <property name="font">
+              <font>
+               <family>Segoe UI</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QPushButton
+{
+	color: white;
+	background-color: dark;
+	border: 1px solid darkred;
+}
+
+QPushButton:hover
+{
+	background-color: rgb(69, 69, 69);
+}
+
+QPushButton::disabled
+{
+	background-color: gray;
+	color: dark;
+}</string>
+             </property>
+             <property name="text">
+              <string>Set to Default</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_16">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_12" stretch="30,40,30">
+      <item>
+       <spacer name="horizontalSpacer_17">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_vst">
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton
+{
+	color: white;
+	background-color: dark;
+	border: 1px solid darkred;
+}
+
+QPushButton:hover
+{
+	background-color: rgb(69, 69, 69);
+}
+
+QPushButton::disabled
+{
+	background-color: gray;
+	color: dark;
+}</string>
+        </property>
+        <property name="text">
+         <string>Load your VST plugin</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_18">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="30,40,30">
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton">
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+          <pointsize>11</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton
+{
+	color: white;
+	background-color: dark;
+	border: 1px solid darkred;
+}
+
+QPushButton:hover
+{
+	background-color: rgb(69, 69, 69);
+}</string>
+        </property>
+        <property name="text">
+         <string>Set All to Default</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>728</width>
+     <height>30</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuOpen">
+    <property name="styleSheet">
+     <string notr="true">QMenu::item:selected
+{
+	background-color: rgb(89, 89, 89);
+}</string>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+   </widget>
+   <addaction name="menuOpen"/>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

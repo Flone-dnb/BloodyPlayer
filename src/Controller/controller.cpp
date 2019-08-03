@@ -83,6 +83,51 @@ void Controller::moveUp(size_t iTrackIndex)
     pAudioService->moveUp(iTrackIndex);
 }
 
+void Controller::setPan(float fPan)
+{
+    pAudioService->setPan(fPan);
+}
+
+void Controller::setPitch(float fPitch)
+{
+    pAudioService->setPitch(fPitch);
+}
+
+void Controller::setSpeedByPitch(float fSpeed)
+{
+    pAudioService->setSpeedByPitch(fSpeed);
+}
+
+void Controller::setSpeedByTime(float fSpeed)
+{
+    pAudioService->setSpeedByTime(fSpeed);
+}
+
+void Controller::setReverbVolume(float fVolume)
+{
+    pAudioService->setReverbVolume(fVolume);
+}
+
+void Controller::setEchoVolume(float fEchoVolume)
+{
+    pAudioService->setEchoVolume(fEchoVolume);
+}
+
+void Controller::loadVSTPlugin(wchar_t *pPathToDll)
+{
+    pAudioService->loadVSTPlugin(pPathToDll);
+}
+
+void Controller::unloadVSTPlugin()
+{
+    pAudioService->unloadVSTPlugin();
+}
+
+void Controller::systemUpdate()
+{
+    pAudioService->systemUpdate();
+}
+
 void Controller::repeatTrack()
 {
     pAudioService->repeatTrack();
