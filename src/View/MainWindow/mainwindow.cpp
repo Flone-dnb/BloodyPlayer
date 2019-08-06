@@ -252,7 +252,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.10");
+    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.10.5");
 }
 
 void MainWindow::on_pushButton_Play_clicked()

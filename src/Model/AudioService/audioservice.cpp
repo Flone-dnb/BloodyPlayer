@@ -423,7 +423,8 @@ void AudioService::setTrackPos(unsigned int graphPos)
 
     if ( (tracks.size() > 0) && (bIsSomeTrackPlaying) )
     {
-        unsigned int posInMS = graphPos * tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() / MAX_X_AXIS_VALUE;
+        // static_cast<size_t> because overflow may occur if the track is longer than 70 minutes, for example: graphPos = 800 and track length is 110 minutes.
+        unsigned int posInMS = static_cast<unsigned int>(static_cast<size_t>(graphPos) * tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() / MAX_X_AXIS_VALUE);
         if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS( posInMS ) )
         {
             pMainWindow->clearGraph();
@@ -619,6 +620,8 @@ void AudioService::setPan(float fPan)
         pMaster->setPan(fPan);
     }
 
+    pSystem->update();
+
     mtxTracksVec.unlock();
 }
 
@@ -628,6 +631,8 @@ void AudioService::setPitch(float fPitch)
     {
         pPitch->setParameterFloat(FMOD_DSP_PITCHSHIFT_PITCH, fPitch);
         pPitch->setParameterInt(FMOD_DSP_PITCHSHIFT_FFTSIZE, 4096);
+
+        pSystem->update();
     }
 }
 
@@ -644,6 +649,8 @@ void AudioService::setSpeedByPitch(float fSpeed)
             tracks[i]->setSpeedByFreq(fSpeed);
         }
     }
+
+    pSystem->update();
 
     mtxTracksVec.unlock();
 }
@@ -668,6 +675,8 @@ void AudioService::setSpeedByTime(float fSpeed)
     if (fSpeed != 1.0f) pFaderForTime->setParameterFloat(FMOD_DSP_FADER_GAIN, 3);
     else pFaderForTime->setParameterFloat(FMOD_DSP_FADER_GAIN, 0);
 
+    pSystem->update();
+
     mtxTracksVec.unlock();
 }
 
@@ -676,6 +685,7 @@ void AudioService::setReverbVolume(float fVolume)
     if (pReverb)
     {
         pReverb->setParameterFloat(FMOD_DSP_SFXREVERB_WETLEVEL, fVolume);
+        pSystem->update();
     }
 }
 
@@ -684,6 +694,7 @@ void AudioService::setEchoVolume(float fEchoVolume)
     if (pEcho)
     {
         pEcho->setParameterFloat(FMOD_DSP_ECHO_WETLEVEL, fEchoVolume);
+        pSystem->update();
     }
 }
 
