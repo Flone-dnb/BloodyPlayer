@@ -57,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::signalSetXMaxToGraph, this, &MainWindow::slotSetXMaxToGraph);
     connect(this, &MainWindow::signalAddDataToGraph, this, &MainWindow::slotAddDataToGraph);
     connect(this, &MainWindow::signalSetCurrentPos,  this, &MainWindow::slotSetCurrentPos);
+    connect(this, &MainWindow::signalHideVSTWindow,  this, &MainWindow::slotHideVSTWindow);
 
     // Tracklist connects
     connect(ui->scrollArea, &TrackList::signalDrop, this, &MainWindow::slotDrop);
@@ -176,6 +177,11 @@ void MainWindow::setVSTName(std::string name)
     slotShowVST();
 }
 
+void MainWindow::hideVSTWindow()
+{
+    emit signalHideVSTWindow();
+}
+
 void MainWindow::clearGraph()
 {
     emit signalClearGraph();
@@ -252,7 +258,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.10.5");
+    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.11");
 }
 
 void MainWindow::on_pushButton_Play_clicked()
@@ -553,6 +559,14 @@ void MainWindow::slotSetTrack(size_t iTrackIndex, bool bClear)
     {
         ui->label_TrackName->setText( tracks[iTrackIndex]->trackName );
         ui->label_TrackInfo->setText( tracks[iTrackIndex]->trackInfo );
+    }
+}
+
+void MainWindow::slotHideVSTWindow()
+{
+    if (pVSTWindow)
+    {
+        pVSTWindow->hide();
     }
 }
 

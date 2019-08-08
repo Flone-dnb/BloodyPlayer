@@ -771,14 +771,19 @@ void AudioService::unloadVSTPlugin()
             pMainWindow->showMessageBox( true, std::string("AudioService::unloadVSTPlugin::FMOD::DSP::release() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
         }
 
-        // returns error: "remove plugin from dsp network first", but it's removed
-        // what to do?
-//        result = pSystem->unloadPlugin(iVSTHandle);
-//        if (result)
-//        {
-//            pMainWindow->showMessageBox( true, std::string("AudioService::unloadVSTPlugin::FMOD::System::unloadPlugin() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-//        }
+        do
+        {
+            result = pSystem->update();
+            if (result)
+            {
+                pMainWindow->showMessageBox( true, std::string("AudioService::unloadVSTPlugin::FMOD::System::update() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            }
+            result = pSystem->unloadPlugin(iVSTHandle);
+        } while (result == FMOD_ERR_DSP_INUSE);
+
         pVST = nullptr;
+
+        pMainWindow->hideVSTWindow();
     }
 }
 
@@ -1032,6 +1037,8 @@ AudioService::~AudioService()
             pVST->release();
             pSystem->unloadPlugin(iVSTHandle);
         }
+
+        pSystem->update();
     }
 
     FMOD_RESULT result;

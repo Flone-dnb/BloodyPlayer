@@ -51,6 +51,7 @@ signals:
     // VST
     void signalSetVSTName(QString name);
     void signalResetAll();
+    void signalHideVSTWindow();
 
 public:
 
@@ -69,6 +70,7 @@ public:
     // VST
     HWND getVSTWindowHWND();
     void setVSTName(std::string name);
+    void hideVSTWindow();
 
     // Graph
     void clearGraph();
@@ -117,6 +119,9 @@ private slots:
     void slotSetNumber(size_t iNumber);
     void slotAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
     void slotSetTrack(size_t iTrackIndex, bool bClear = false);
+
+    // VST
+    void slotHideVSTWindow();
 
     // WaitWindow
     void slotShowWaitWindow();

@@ -34,7 +34,6 @@ void VSTWindow::closeEvent(QCloseEvent *ev)
 
 void VSTWindow::on_actionUnload_triggered()
 {
-    hide();
     emit unloadVST();
 }
 
