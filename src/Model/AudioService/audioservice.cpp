@@ -565,7 +565,7 @@ void AudioService::removeTrack(size_t iTrackIndex)
             iCurrentlyPlayingTrackIndex = 0;
             std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));
         }
-        else if (bIsSomeTrackPlaying)
+        else if (bIsSomeTrackPlaying || bCurrentTrackPaused)
         {
             if (iTrackIndex == iCurrentlyPlayingTrackIndex)
             {
