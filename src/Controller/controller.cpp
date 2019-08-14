@@ -83,6 +83,16 @@ void Controller::moveUp(size_t iTrackIndex)
     pAudioService->moveUp(iTrackIndex);
 }
 
+void Controller::openTracklist(std::wstring pathToTracklist, bool bClearCurrent)
+{
+    pAudioService->openTracklist(pathToTracklist, bClearCurrent);
+}
+
+void Controller::saveTracklist(std::wstring pathToTracklist)
+{
+    pAudioService->saveTracklist(pathToTracklist);
+}
+
 void Controller::setPan(float fPan)
 {
     pAudioService->setPan(fPan);

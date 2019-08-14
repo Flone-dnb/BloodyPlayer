@@ -30,6 +30,9 @@ public:
     void moveDown     (size_t iTrackIndex);
     void moveUp       (size_t iTrackIndex);
 
+    void openTracklist(std::wstring pathToTracklist, bool bClearCurrent);
+    void saveTracklist(std::wstring pathToTracklist);
+
     // FX
     void setPan          (float fPan);
     void setPitch        (float fPitch);

@@ -66,6 +66,10 @@ public:
             // Removes all tracks.
             void clearPlaylist();
 
+            // Tracklist
+            void saveTracklist(std::wstring pathToTracklist);
+            void openTracklist(std::wstring pathToTracklist, bool bClearCurrent);
+
     // FX
             void setPan          (float fPan);
             void setPitch        (float fPitch);

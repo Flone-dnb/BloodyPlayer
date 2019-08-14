@@ -108,6 +108,9 @@ public:
             // Will call that after we read the whole file.
             bool         releaseDummySound   ();
 
+            const wchar_t* getFilePath();
+
+
 
 
     ~Track();

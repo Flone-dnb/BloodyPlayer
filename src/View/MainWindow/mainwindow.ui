@@ -1568,7 +1568,21 @@ border-radius: 25px;</string>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuTracklist">
+    <property name="styleSheet">
+     <string notr="true">QMenu::item:selected
+{
+	background-color: rgb(89, 89, 89);
+}</string>
+    </property>
+    <property name="title">
+     <string>Tracklist</string>
+    </property>
+    <addaction name="actionOpen_2"/>
+    <addaction name="actionSave"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuTracklist"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -1583,6 +1597,16 @@ border-radius: 25px;</string>
   <action name="actionOpen_Directory">
    <property name="text">
     <string>Open Directory</string>
+   </property>
+  </action>
+  <action name="actionOpen_2">
+   <property name="text">
+    <string>Open</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
    </property>
   </action>
  </widget>

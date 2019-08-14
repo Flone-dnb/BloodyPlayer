@@ -38,7 +38,7 @@ signals:
     void signalAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
 
     // WaitWindow
-    void signalShowWaitWindow();
+    void signalShowWaitWindow(QString text);
     void signalHideWaitWindow();
     void signalSetProgress(int value);
 
@@ -67,6 +67,8 @@ public:
     void uncheckRandomTrackButton();
     void uncheckRepeatTrackButton();
 
+    void clearCurrentPlaylist();
+
     // VST
     HWND getVSTWindowHWND();
     void setVSTName(std::string name);
@@ -82,7 +84,7 @@ public:
     void setFocusOnTrack(size_t index);
 
     // WaitWindow
-    void showWaitWindow();
+    void showWaitWindow(std::string text);
     void hideWaitWindow();
     void setProgress(int value);
 
@@ -124,7 +126,7 @@ private slots:
     void slotHideVSTWindow();
 
     // WaitWindow
-    void slotShowWaitWindow();
+    void slotShowWaitWindow(QString text);
     void slotHideWaitWindow();
     void slotSetProgress(int value);
 
@@ -167,6 +169,11 @@ private slots:
     void on_actionOpen_triggered();
     void on_actionOpen_Directory_triggered();
     void on_actionAbout_triggered();
+
+    // Tracklist
+    void on_actionSave_triggered();
+
+    void on_actionOpen_2_triggered();
 
 private:
 

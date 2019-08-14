@@ -42,7 +42,7 @@ bool Track::setTrack(const wchar_t* pFilePath)
 
     FMOD_RESULT result;
 
-    result = pSystem->createStream(filePathInUTF8, FMOD_DEFAULT | FMOD_LOOP_OFF, nullptr, &pSound);
+    result = pSystem->createStream(filePathInUTF8, FMOD_DEFAULT | FMOD_LOOP_OFF | FMOD_ACCURATETIME, nullptr, &pSound);
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("Track::setTrack::FMOD::System::createStream() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
@@ -201,6 +201,11 @@ bool Track::releaseDummySound()
     }
 
     return true;
+}
+
+const wchar_t* Track::getFilePath()
+{
+    return pFilePath;
 }
 
 bool Track::playTrack(float fVolume)
@@ -807,6 +812,7 @@ bool Track::getBitRate(int *bitrate)
                 bool bit1 = (bool((1 << 7)  &  byte));
                 bool bit2 = (bool((1 << 6)  &  byte));
                 bool bit3 = (bool((1 << 5)  &  byte));
+                bool bit4 = false;
 
                 if (bit1 && bit2 && bit3)
                 {
@@ -819,99 +825,73 @@ bool Track::getBitRate(int *bitrate)
                     {
                         // MPEG-1
 
-                        // Check if format is Layer III
-                             bit3 = (bool((1 << 2)  &  byte));
-                        bool bit4 = (bool((1 << 1)  &  byte));
-                        if ( (bit3 == false) && (bit4 == true) )
+                        // Starting to read third byte of mp3 frame
+                        mp3File.read(reinterpret_cast<char*>(&byte),sizeof(byte));
+                        pos++;
+
+                        bit1 = (bool((1 << 7)  &  byte));
+                        bit2 = (bool((1 << 6)  &  byte));
+                        bit3 = (bool((1 << 5)  &  byte));
+                        bit4 = (bool((1 << 4)  &  byte));
+
+                        int iBitRate = tellBitRate(bit1, bit2, bit3, bit4);
+
+                        if ( iBitRate == -1 )
                         {
-                            // Layer III
-
-                            // Check if protection is on
-                            bit1 = (bool((1 << 0)  &  byte));
-                            if (bit1 == false)
-                            {
-                                // Protection is on
-                                bFoundProtection = true;
-                                break;
-                            }
-                            else
-                            {
-                                // Starting to read third byte of mp3 frame
-                                mp3File.read(reinterpret_cast<char*>(&byte),sizeof(byte));
-                                pos++;
-
-                                bit1 = (bool((1 << 7)  &  byte));
-                                bit2 = (bool((1 << 6)  &  byte));
-                                bit3 = (bool((1 << 5)  &  byte));
-                                bit4 = (bool((1 << 4)  &  byte));
-
-                                int iBitRate = tellBitRate(bit1, bit2, bit3, bit4);
-
-                                if ( iBitRate == -1 )
-                                {
-                                    // bitrate code is 1111 or 0000 - this is not valid
-                                    continue;
-                                }
-
-                                framesBitrates.push_back(iBitRate);
-
-                                // check if next 2 bits != 11
-                                bit1 = (bool((1 << 3)  &  byte));
-                                bit2 = (bool((1 << 2)  &  byte));
-
-                                int iSamplingRate = tellSamplingRate(bit1,bit2);
-
-                                if ( iSamplingRate == -1 )
-                                {
-                                    // sampling rate index == 11 - this is not valid
-                                    continue;
-                                }
-
-                                if (bFirstMP3FramePassed == false)
-                                {
-                                    bFirstMP3FramePassed = true;
-                                    // It will probably contain some VBR and LAME stuff which we do not want to change
-                                    continue;
-                                }
-
-                                // check if padding bit is set
-                                bit1 = (bool((1 << 1)  &  byte));
-
-                                amountOfBits += 5;
-
-                                // Calculate the size of this mp3 frame
-                                // And we don't count padding byte here (we will do that later)
-                                // Not 1024 but 1000!
-                                iBitRate *= 1000;
-
-                                // We need to floor() it
-                                int iFrameSize = static_cast<int>(floor(144 * iBitRate / static_cast<double>(iSamplingRate)));
-
-                                // Minus header size
-                                iFrameSize -= 4;
-
-                                // read last (4th) byte of mp3 frame header
-                                mp3File.read(reinterpret_cast<char*>(&byte),sizeof(byte));
-                                pos++;
-
-                                // If padding bit is set
-                                if (bit1 == true)
-                                {
-                                    iFrameSize++;
-                                }
-
-                                // Jump right to the end of this mp3 frame - the beginning of a new mp3 frame
-                                mp3File.seekg(iFrameSize,std::ios::cur);
-                                pos += iFrameSize;
-                            }
+                            // bitrate code is 1111 or 0000 - this is not valid
+                            continue;
                         }
-                        else
+
+                        framesBitrates.push_back(iBitRate);
+
+                        // check if next 2 bits != 11
+                        bit1 = (bool((1 << 3)  &  byte));
+                        bit2 = (bool((1 << 2)  &  byte));
+
+                        int iSamplingRate = tellSamplingRate(bit1,bit2);
+
+                        if ( iSamplingRate == -1 )
                         {
-                            // Unsupported format
-                            mp3File.close();
-
-                            return false;
+                            // sampling rate index == 11 - this is not valid
+                            continue;
                         }
+
+                        if (bFirstMP3FramePassed == false)
+                        {
+                            bFirstMP3FramePassed = true;
+                            // It will probably contain some VBR and LAME stuff which we do not want to change
+                            continue;
+                        }
+
+                        // check if padding bit is set
+                        bit1 = (bool((1 << 1)  &  byte));
+
+                        amountOfBits += 5;
+
+                        // Calculate the size of this mp3 frame
+                        // And we don't count padding byte here (we will do that later)
+                        // Not 1024 but 1000!
+                        iBitRate *= 1000;
+
+                        // We need to floor() it
+                        int iFrameSize = static_cast<int>(floor(144 * iBitRate / static_cast<double>(iSamplingRate)));
+
+                        // Minus header size
+                        iFrameSize -= 4;
+
+                        // read last (4th) byte of mp3 frame header
+                        mp3File.read(reinterpret_cast<char*>(&byte),sizeof(byte));
+                        pos++;
+
+                        // If padding bit is set
+                        if (bit1 == true)
+                        {
+                            iFrameSize++;
+                        }
+
+                        // Jump right to the end of this mp3 frame - the beginning of a new mp3 frame
+                        mp3File.seekg(iFrameSize,std::ios::cur);
+                        pos += iFrameSize;
                     }
                     else
                     {

@@ -165,6 +165,26 @@ void MainWindow::uncheckRepeatTrackButton()
     ui->pushButton_repeat->setChecked(false);
 }
 
+void MainWindow::clearCurrentPlaylist()
+{
+    if (tracks.size() > 0)
+    {
+        for (size_t i = 0; i < tracks.size(); i++)
+        {
+            delete tracks[i];
+        }
+        tracks.clear();
+
+        ui->label_TrackName->setText( "Track Name" );
+        ui->label_TrackInfo->setText( "Track Info" );
+
+        slotClearGraph();
+
+        ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
+        ui->horizontalSlider->setEnabled(false);
+    }
+}
+
 HWND MainWindow::getVSTWindowHWND()
 {
     return pVSTWindow->getVSTWidgetHandle();
@@ -207,9 +227,9 @@ void MainWindow::setFocusOnTrack(size_t index)
     ui->scrollArea->ensureWidgetVisible(tracks[index], 50, 50);
 }
 
-void MainWindow::showWaitWindow()
+void MainWindow::showWaitWindow(std::string text)
 {
-    emit signalShowWaitWindow();
+    emit signalShowWaitWindow(QString::fromStdString(text));
 }
 
 void MainWindow::hideWaitWindow()
@@ -258,7 +278,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.11.1");
+    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.12");
 }
 
 void MainWindow::on_pushButton_Play_clicked()
@@ -381,11 +401,12 @@ void MainWindow::slotAddNewTrack(std::wstring trackName, std::wstring trackInfo,
     }
 }
 
-void MainWindow::slotShowWaitWindow()
+void MainWindow::slotShowWaitWindow(QString text)
 {
     pWaitWindow = new WaitWindow(this);
     pWaitWindow->setWindowModality(Qt::WindowModality::ApplicationModal);
-    pWaitWindow->setLabelText("Please wait.\nAdding tracks.");
+    pWaitWindow->setLabelText(text);
+    //pWaitWindow->setLabelText("Please wait.\nAdding tracks.");
     pWaitWindow->show();
 }
 
@@ -623,6 +644,11 @@ void MainWindow::deleteSelectedTrack()
         {
             ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
             ui->horizontalSlider->setEnabled(false);
+
+            ui->label_TrackName->setText( "Track Name" );
+            ui->label_TrackInfo->setText( "Track Info" );
+
+            slotClearGraph();
         }
 
         iSelectedTrackIndex = -1;
@@ -764,6 +790,46 @@ void MainWindow::on_pushButton_fx_clicked()
     pFXWindow->show();
 }
 
+void MainWindow::on_actionSave_triggered()
+{
+    if (tracks.size() > 0)
+    {
+        QString file = QFileDialog::getSaveFileName(nullptr, "Save Tracklist", "", "Bloody Player Tracklist (*.bpt)");
+
+        if (file != "")
+        {
+            pController->saveTracklist(file.toStdWString());
+        }
+    }
+    else
+    {
+        QMessageBox::information(nullptr, "Tracklist", "The tracklist is empty. There is nothing to save.");
+    }
+}
+
+void MainWindow::on_actionOpen_2_triggered()
+{
+    QString file = QFileDialog::getOpenFileName(nullptr, "Open Tracklist", "", "Bloody Player Tracklist (*.bpt)");
+    if (file != "")
+    {
+        if (tracks.size() > 0)
+        {
+            QMessageBox::StandardButton answer = QMessageBox::question(nullptr, "Open Tracklist", "Do you want to clear current tracklist and add a new one? Select \"No\" if you want to add tracks from new tracklist to the current one.");
+            if (answer == QMessageBox::StandardButton::Yes)
+            {
+                pController->openTracklist(file.toStdWString(), true);
+            }
+            else
+            {
+                pController->openTracklist(file.toStdWString(), false);
+            }
+        }
+        else
+        {
+            pController->openTracklist(file.toStdWString(), false);
+        }
+    }
+}
 
 
 

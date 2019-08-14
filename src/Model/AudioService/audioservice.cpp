@@ -3,6 +3,7 @@
 //STL
 #include <string>
 #include <thread>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <ctime>
@@ -269,7 +270,7 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
     }
 
 
-    pMainWindow->showWaitWindow();
+    pMainWindow->showWaitWindow("Please wait.\nAdding tracks.");
 
     // Get amount of CPU threads
     // In every CPU thread we will add tracks
@@ -423,8 +424,8 @@ void AudioService::setTrackPos(unsigned int graphPos)
 
     if ( (tracks.size() > 0) && (bIsSomeTrackPlaying) )
     {
-        // static_cast<size_t> because overflow may occur if the track is longer than 70 minutes, for example: graphPos = 800 and track length is 110 minutes.
-        unsigned int posInMS = static_cast<unsigned int>(static_cast<size_t>(graphPos) * tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() / MAX_X_AXIS_VALUE);
+        // static_cast<unsigned long long> because overflow may occur if the track is longer than 70 minutes, for example: graphPos = 800 and track length is 110 minutes.
+        unsigned int posInMS = static_cast<unsigned int>(static_cast<unsigned long long>(graphPos) * tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() / MAX_X_AXIS_VALUE);
         if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS( posInMS ) )
         {
             pMainWindow->clearGraph();
@@ -593,6 +594,9 @@ void AudioService::removeTrack(size_t iTrackIndex)
 
 void AudioService::clearPlaylist()
 {
+    mtxTracksVec.lock();
+
+
     bMonitorTracks = false;
 
     std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));
@@ -607,6 +611,80 @@ void AudioService::clearPlaylist()
     tracks.clear();
 
     fCurrentVolume = DEFAULT_VOLUME;
+
+
+    mtxTracksVec.unlock();
+}
+
+void AudioService::saveTracklist(std::wstring pathToTracklist)
+{
+    mtxTracksVec.lock();
+
+    pMainWindow->showWaitWindow("Saving...");
+
+    std::ofstream tracklistFile(pathToTracklist, std::ios::binary);
+
+    short iTrackCount = static_cast<short>(tracks.size());
+    tracklistFile.write(reinterpret_cast<char*>(&iTrackCount), 2);
+
+    for (size_t i = 0; i < tracks.size(); i++)
+    {
+        std::wstring trackPath( tracks[i]->getFilePath() );
+        short iPathSize = static_cast<short>(trackPath.size()) * 2;
+
+        // Write path size
+        tracklistFile.write(reinterpret_cast<char*>(&iPathSize), sizeof(iPathSize));
+
+        tracklistFile.write(reinterpret_cast<char*>( const_cast<wchar_t*>(trackPath.c_str()) ), iPathSize);
+    }
+
+    tracklistFile.close();
+
+    pMainWindow->hideWaitWindow();
+
+    mtxTracksVec.unlock();
+}
+
+void AudioService::openTracklist(std::wstring pathToTracklist, bool bClearCurrent)
+{
+    if (bClearCurrent)
+    {
+        pMainWindow->clearCurrentPlaylist();
+        clearPlaylist();
+    }
+
+    std::ifstream tracklistFile(pathToTracklist, std::ios::binary);
+    if (tracklistFile.is_open())
+    {
+        mtxTracksVec.lock();
+
+        short iTrackPathSize = 0;
+        std::vector<wchar_t*> newTracks;
+
+        short iTrackCount = 0;
+        tracklistFile.read(reinterpret_cast<char*>(&iTrackCount), 2);
+
+        for (short i = 0; i < iTrackCount; i++)
+        {
+            tracklistFile.read(reinterpret_cast<char*>(&iTrackPathSize), 2);
+
+            wchar_t* pNewTrack = new wchar_t[static_cast<size_t>(iTrackPathSize + 2)];
+            memset(pNewTrack, 0, static_cast<size_t>(iTrackPathSize + 2));
+
+            tracklistFile.read(reinterpret_cast<char*>(pNewTrack), iTrackPathSize);
+            newTracks.push_back(pNewTrack);
+        }
+
+        tracklistFile.close();
+        mtxTracksVec.unlock();
+
+        std::thread addThread(&AudioService::addTracks, this, newTracks);
+        addThread.detach();
+    }
+    else
+    {
+        pMainWindow->showMessageBox(true, "Can't open file.");
+    }
 }
 
 void AudioService::setPan(float fPan)
