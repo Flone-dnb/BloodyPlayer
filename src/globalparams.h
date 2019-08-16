@@ -7,4 +7,4 @@
 
 // graph
 #define MAX_X_AXIS_VALUE 1000
-#define MAX_AMPLITUDE 1
+#define MAX_AMPLITUDE 33500

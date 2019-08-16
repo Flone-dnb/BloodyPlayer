@@ -59,26 +59,43 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::signalSetCurrentPos,  this, &MainWindow::slotSetCurrentPos);
     connect(this, &MainWindow::signalHideVSTWindow,  this, &MainWindow::slotHideVSTWindow);
 
-    // Tracklist connects
+    // Tracklist connect
     connect(ui->scrollArea, &TrackList::signalDrop, this, &MainWindow::slotDrop);
+
+
 
     // Graph
     ui->widget_graph->addGraph();
     ui->widget_graph->xAxis->setRange(0, MAX_X_AXIS_VALUE);
-    ui->widget_graph->yAxis->setRange(0, MAX_AMPLITUDE);
+    ui->widget_graph->yAxis->setRange(-MAX_AMPLITUDE, MAX_AMPLITUDE);
+
     QPen pen;
-    pen.setWidth(3);
+    pen.setWidth(1);
     pen.setColor(QColor(Qt::darkRed));
     ui->widget_graph->graph(0)->setPen(pen);
+
+    // color and stuff
     ui->widget_graph->setBackground(QColor(24, 24, 24));
     ui->widget_graph->xAxis->grid()->setVisible(false);
     ui->widget_graph->yAxis->grid()->setVisible(false);
     ui->widget_graph->xAxis->setTicks(false);
     ui->widget_graph->yAxis->setTicks(false);
-    ui->widget_graph->graph(0)->setLineStyle(QCPGraph::LineStyle::lsImpulse);
+    ui->widget_graph->graph(0)->setLineStyle(QCPGraph::LineStyle::lsLine);
     ui->widget_graph->axisRect()->setAutoMargins(QCP::msNone);
     ui->widget_graph->axisRect()->setMargins(QMargins(0,0,0,0));
+
     connect(ui->widget_graph, &QCustomPlot::mousePress, this, &MainWindow::slotClickOnGraph);
+
+    // fill rect
+    backgnd = new QCPItemRect(ui->widget_graph);
+    backgnd->topLeft->setType(QCPItemPosition::ptAxisRectRatio);
+    backgnd->topLeft->setCoords(0, 0);
+    backgnd->bottomRight->setType(QCPItemPosition::ptAxisRectRatio);
+    backgnd->bottomRight->setCoords(0, 1);
+    backgnd->setBrush(QBrush(QColor(0, 0, 0, 130)));
+    backgnd->setPen(Qt::NoPen);
+
+    // text
     pGraphTextTrackTime = new QCPItemText(ui->widget_graph);
     pGraphTextTrackTime->position->setType(QCPItemPosition::ptAxisRectRatio);
     pGraphTextTrackTime->position->setCoords(0, 0.5);
@@ -87,6 +104,10 @@ MainWindow::MainWindow(QWidget *parent) :
     pGraphTextTrackTime->setPen(Qt::NoPen);
     pGraphTextTrackTime->setSelectedPen(Qt::NoPen);
     pGraphTextTrackTime->setText("");
+
+
+
+
 
     iCurrentXPosOnGraph = 0;
 
@@ -202,9 +223,9 @@ void MainWindow::hideVSTWindow()
     emit signalHideVSTWindow();
 }
 
-void MainWindow::clearGraph()
+void MainWindow::clearGraph(bool stopTrack)
 {
-    emit signalClearGraph();
+    emit signalClearGraph(stopTrack);
 }
 
 void MainWindow::setXMaxToGraph(unsigned int iMaxX)
@@ -212,12 +233,12 @@ void MainWindow::setXMaxToGraph(unsigned int iMaxX)
     emit signalSetXMaxToGraph(iMaxX);
 }
 
-void MainWindow::addDataToGraph(char *pData, unsigned int iSizeInBytes)
+void MainWindow::addDataToGraph(short int* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne)
 {
-    emit signalAddDataToGraph(pData, iSizeInBytes);
+    emit signalAddDataToGraph(pData, iSizeInSamples, iSamplesInOne);
 }
 
-void MainWindow::setCurrentPos(int x, std::string time)
+void MainWindow::setCurrentPos(double x, std::string time)
 {
     emit signalSetCurrentPos(x, time);
 }
@@ -278,7 +299,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.12");
+    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.15");
 }
 
 void MainWindow::on_pushButton_Play_clicked()
@@ -421,15 +442,18 @@ void MainWindow::slotSetProgress(int value)
     pWaitWindow->setProgressValue(value);
 }
 
-void MainWindow::slotClearGraph()
+void MainWindow::slotClearGraph(bool stopTrack)
 {
-    ui->widget_graph->graph(0)->data()->clear();
-
     pGraphTextTrackTime->setText("");
+    backgnd->bottomRight->setCoords(0, 1);
+
+    if (stopTrack == false)
+    {
+        iCurrentXPosOnGraph = 0;
+        ui->widget_graph->graph(0)->data()->clear();
+    }
 
     ui->widget_graph->replot();
-
-    iCurrentXPosOnGraph = 0;
 }
 
 void MainWindow::slotSetXMaxToGraph(unsigned int iMaxX)
@@ -437,37 +461,33 @@ void MainWindow::slotSetXMaxToGraph(unsigned int iMaxX)
     ui->widget_graph->xAxis->setRange(0, iMaxX);
 }
 
-void MainWindow::slotAddDataToGraph(char *pData, unsigned int iSizeInBytes)
+void MainWindow::slotAddDataToGraph(short int* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne)
 {
     QVector<double> x;
     QVector<double> y;
 
-    for (unsigned int i = 0; i < iSizeInBytes;)
-    {
-        if (i + 4 >= iSizeInBytes) break;
+    unsigned int sampleInOne = iSamplesInOne;
 
+    for (unsigned int i = 0; i < iSizeInSamples - (2 * sampleInOne - 1); i+= (2 * sampleInOne))
+    {
         x.push_back( static_cast<double>(iCurrentXPosOnGraph) );
         iCurrentXPosOnGraph++;
 
-        short int iSampleLeft;
-        // Pointers magic
-        // High byte
-        std::memcpy(reinterpret_cast<char*>(&iSampleLeft) + 1, pData + i, sizeof(char));
-        i++;
-        // Low byte
-        std::memcpy(reinterpret_cast<char*>(&iSampleLeft), pData + i, sizeof(char));
-        i++;
+        int iSample = 0;
 
-        short int iSampleRight;
-        // Pointers magic
-        // High byte
-        std::memcpy(reinterpret_cast<char*>(&iSampleRight) + 1, pData + i, sizeof(char));
-        i++;
-        // Low byte
-        std::memcpy(reinterpret_cast<char*>(&iSampleRight), pData + i, sizeof(char));
-        i++;
+        for (unsigned int j = 0; j < (2 * sampleInOne); j+= 2)
+        {
+            int iSample1 = (pData[i + j] + pData[i + j + 1]) / 2;
 
-        int iSample = (iSampleLeft + iSampleRight) / 2;
+            if (iSample == 0)
+            {
+                iSample = iSample1;
+            }
+            else
+            {
+                iSample = (iSample + iSample1) / 2;
+            }
+        }
 
         y.push_back( static_cast<double>(iSample) );
     }
@@ -479,31 +499,19 @@ void MainWindow::slotAddDataToGraph(char *pData, unsigned int iSizeInBytes)
     delete[] pData;
 }
 
-void MainWindow::slotSetCurrentPos(int x, std::string time)
+void MainWindow::slotSetCurrentPos(double x, std::string time)
 {
-    QVector<double> xVec;
-    QVector<double> yVec;
-
-    for (iCurrentXPosOnGraph; iCurrentXPosOnGraph < x; iCurrentXPosOnGraph++)
-    {
-        xVec.push_back(iCurrentXPosOnGraph);
-        yVec.push_back(MAX_AMPLITUDE);
-    }
-
-    ui->widget_graph->graph(0)->addData(xVec, yVec, true);
-
+    backgnd->bottomRight->setCoords(x, 1);
     pGraphTextTrackTime->setText(QString::fromStdString(time));
 
-    double currentPos = iCurrentXPosOnGraph / static_cast<double>(MAX_X_AXIS_VALUE);
-
-    if ( (currentPos > (minPosOnGraphForText + 0.03)) && (currentPos < maxPosOnGraphForText) )
+    if ( (x > (minPosOnGraphForText + 0.03)) && (x < maxPosOnGraphForText) )
     {
-        pGraphTextTrackTime->position->setCoords(currentPos - 0.03, 0.5);
+        pGraphTextTrackTime->position->setCoords(x - 0.03, 0.5);
     }
     else
     {
-        if (currentPos <= minPosOnGraphForText + 0.03)      pGraphTextTrackTime->position->setCoords(minPosOnGraphForText, 0.5);
-        else if (currentPos >= maxPosOnGraphForText) pGraphTextTrackTime->position->setCoords(maxPosOnGraphForText - 0.03, 0.5);
+        if (x <= minPosOnGraphForText + 0.03)      pGraphTextTrackTime->position->setCoords(minPosOnGraphForText, 0.5);
+        else if (x >= maxPosOnGraphForText) pGraphTextTrackTime->position->setCoords(maxPosOnGraphForText - 0.03, 0.5);
     }
 
     ui->widget_graph->replot();

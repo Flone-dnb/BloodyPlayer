@@ -18,6 +18,7 @@ class QHideEvent;
 class QSystemTrayIcon;
 class QMouseEvent;
 class QCPItemText;
+class QCPItemRect;
 
 namespace Ui
 {
@@ -43,10 +44,10 @@ signals:
     void signalSetProgress(int value);
 
     // Graph
-    void signalClearGraph();
+    void signalClearGraph(bool stopTrack = false);
     void signalSetXMaxToGraph(unsigned int iMaxX);
-    void signalAddDataToGraph(char* pData, unsigned int iSizeInBytes);
-    void signalSetCurrentPos(int x, std::string time);
+    void signalAddDataToGraph(short int* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne);
+    void signalSetCurrentPos(double x, std::string time);
 
     // VST
     void signalSetVSTName(QString name);
@@ -75,10 +76,10 @@ public:
     void hideVSTWindow();
 
     // Graph
-    void clearGraph();
+    void clearGraph(bool stopTrack = false);
     void setXMaxToGraph(unsigned int iMaxX);
-    void addDataToGraph(char* pData, unsigned int iSizeInBytes);
-    void setCurrentPos(int x, std::string time);
+    void addDataToGraph(short int* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne);
+    void setCurrentPos(double x, std::string time);
 
     // Focus
     void setFocusOnTrack(size_t index);
@@ -131,10 +132,10 @@ private slots:
     void slotSetProgress(int value);
 
     // Graph
-    void slotClearGraph();
+    void slotClearGraph(bool stopTrack = false);
     void slotSetXMaxToGraph(unsigned int iMaxX);
-    void slotAddDataToGraph(char* pData, unsigned int iSizeInBytes);
-    void slotSetCurrentPos(int x, std::string time);
+    void slotAddDataToGraph(short int* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne);
+    void slotSetCurrentPos(double x, std::string time);
     void slotClickOnGraph(QMouseEvent* ev);
 
     // FX
@@ -185,6 +186,7 @@ private:
 
     QSystemTrayIcon* pTrayIcon;
     QCPItemText*     pGraphTextTrackTime;
+    QCPItemRect*     backgnd;
 
     std::vector<TrackWidget*> tracks;
 

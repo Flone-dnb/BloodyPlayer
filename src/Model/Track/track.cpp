@@ -14,9 +14,12 @@ Track::Track(MainWindow *pMainWindow, FMOD::System* pSystem)
 {
     pChannel          = nullptr;
     pSound            = nullptr;
+    pFilePath         = nullptr;
 
     this->pMainWindow = pMainWindow;
     this->pSystem     = pSystem;
+
+    iMaxValueOnGraph  = 0;
 
     bPaused           = false;
 
@@ -70,9 +73,10 @@ bool Track::setTrack(const wchar_t* pFilePath)
     else if (type == FMOD_SOUND_TYPE_WAV)       format = "WAV";
     else if (type == FMOD_SOUND_TYPE_OGGVORBIS) format = "OGG";
 
-    if      (formatType == FMOD_SOUND_FORMAT_PCM8) pcmFormat = "PCM8";
-    else if (formatType ==FMOD_SOUND_FORMAT_PCM16) pcmFormat = "PCM16";
-    else                                           pcmFormat = "NULL";
+    if      (formatType == FMOD_SOUND_FORMAT_PCM8)  pcmFormat = "PCM8";
+    else if (formatType == FMOD_SOUND_FORMAT_PCM16) pcmFormat = "PCM16";
+    else if (formatType == FMOD_SOUND_FORMAT_PCM24) pcmFormat = "PCM24";
+    else                                            pcmFormat = "NULL";
 
     return true;
 }
@@ -121,30 +125,31 @@ bool Track::createDummySound()
     return true;
 }
 
-char Track::getSimpleAudioData(char *pBuff, unsigned int lengthInBytes, unsigned int *pActualRead, unsigned int iEveryNSample)
+char Track::getPCMSamples(short int *pBuff, unsigned int lengthInBytes, unsigned int *pActualRead)
 {
-    // This function returns every Nth PCM sample. Because if we return every byte it will be very difficult to draw on the graph.
     // -1 == end of file
-    // 0 == error
-    // 1 == ok
+    // 0  == error
+    // 1  == ok
 
-    FMOD_RESULT result;
-
-    if (lengthInBytes > 429496719)
+    if (pcmFormat != "PCM16")
     {
-        // If we are here then 'lengthInBytes * iEveryNSample' will be too big for unsigned int to store.
+        // This function (getPCMSamples) gives only short int (16 bit) samples.
+        // We can add 8 bit and 24 bit support later, for now, this is not the main goal.
+        pMainWindow->showMessageBox(true, "Track::getPCMSamples() error. Unsupported PCM format. "
+                                          "This version of Bloody Player supports only 16 bit audio. This is not a critical error.");
         return 0;
     }
 
+    FMOD_RESULT result;
 
     if (lengthInBytes % 2 != 0)
     {
         lengthInBytes--;
     }
 
-    char* pTemp = new char[lengthInBytes * iEveryNSample];
+    char* pTemp = new char[lengthInBytes];
 
-    result = pDummySound->readData(pTemp, lengthInBytes * iEveryNSample, pActualRead);
+    result = pDummySound->readData(pTemp, lengthInBytes, pActualRead);
     if ( (result) && (result != FMOD_ERR_FILE_EOF))
     {
         delete[] pTemp;
@@ -154,24 +159,22 @@ char Track::getSimpleAudioData(char *pBuff, unsigned int lengthInBytes, unsigned
     else
     {
         unsigned int iNewRead = 0;
-        for (unsigned int i = 0; i < *pActualRead; i += iEveryNSample*2)
+
+        for (unsigned int i = 0; i < *pActualRead - 3; i += 4)
         {
-            if ( (iNewRead >= lengthInBytes - 1) || (i + 4 >= *pActualRead) )
-            {
-                break;
-            }
+            short int iSampleL = 0;
 
-            // Assuming that the sound is in stereo
+            std::memcpy(reinterpret_cast<char*>(&iSampleL),     &pTemp[i],     1);
+            std::memcpy(reinterpret_cast<char*>(&iSampleL) + 1, &pTemp[i + 1], 1);
 
-            // Left channel
-            pBuff[iNewRead] = pTemp[i];
+            pBuff[iNewRead] = iSampleL;
             iNewRead++;
-            pBuff[iNewRead] = pTemp[i + 1];
-            iNewRead++;
-            // Right channel
-            pBuff[iNewRead] = pTemp[i + 2];
-            iNewRead++;
-            pBuff[iNewRead] = pTemp[i + 3];
+
+            short int iSampleR = 0;
+            std::memcpy(reinterpret_cast<char*>(&iSampleR),     &pTemp[i + 2], 1);
+            std::memcpy(reinterpret_cast<char*>(&iSampleR) + 1, &pTemp[i + 3], 1);
+
+            pBuff[iNewRead] = iSampleR;
             iNewRead++;
         }
 
@@ -206,6 +209,11 @@ bool Track::releaseDummySound()
 const wchar_t* Track::getFilePath()
 {
     return pFilePath;
+}
+
+unsigned int Track::getMaxValueOnGraph()
+{
+    return iMaxValueOnGraph;
 }
 
 bool Track::playTrack(float fVolume)
@@ -556,6 +564,11 @@ bool Track::setPosForDummy(unsigned int pcm)
     {
         return true;
     }
+}
+
+void Track::setMaxPosInGraph(unsigned int iMax)
+{
+    iMaxValueOnGraph = iMax;
 }
 
 void Track::setSpeedByFreq(float fSpeed)
@@ -1096,7 +1109,13 @@ Track::~Track()
         result = pChannel->stop();
         if (result)
         {
-            pMainWindow->showMessageBox( true, std::string("Track::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            // FMOD_ERR_INVALID_HANDLE can occur if the track is currently playing, it's very short and it's just ended
+            // stop() will return FMOD_ERR_INVALID_HANDLE because after the sound is ended every operation on the channel will be invalid (that's an FMOD thing)
+            // in monitorTrack() we will recreate track (recreate channel) but user is closing app.
+            if (result != FMOD_ERR_INVALID_HANDLE)
+            {
+               pMainWindow->showMessageBox( true, std::string("~Track::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            }
         }
     }
 
@@ -1105,9 +1124,9 @@ Track::~Track()
         result = pSound->release();
         if (result)
         {
-            pMainWindow->showMessageBox( true, std::string("Track::FMOD::Sound::release() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            pMainWindow->showMessageBox( true, std::string("~Track::FMOD::Sound::release() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
         }
     }
 
-    delete pFilePath;
+    if (pFilePath) delete[] pFilePath;
 }

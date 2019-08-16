@@ -51,6 +51,8 @@ public:
 
             bool setPosForDummy  (unsigned int pcm);
 
+            void setMaxPosInGraph(unsigned int iMax);
+
             // FX
             void setSpeedByFreq(float fSpeed);
             void setSpeedByTime(float fSpeed);
@@ -99,16 +101,14 @@ public:
             // We will read data (and not play sound) from this dummy sound.
             bool         createDummySound   ();
 
-            // Returns every Nth PCM sample. Because if we return every byte it will be very difficult to draw on the graph.
-            // -1 == end of file
-            // 0 == error
-            // 1 == ok
-            char         getSimpleAudioData (char* pBuff, unsigned int lengthInBytes, unsigned int *pActualRead, unsigned int iEveryNsample);
+            char         getPCMSamples (short int* pBuff, unsigned int lengthInBytes, unsigned int *pActualRead);
 
             // Will call that after we read the whole file.
             bool         releaseDummySound   ();
 
             const wchar_t* getFilePath();
+
+            unsigned int getMaxValueOnGraph();
 
 
 
@@ -134,6 +134,8 @@ private:
 
     std::string    format;
     std::string    pcmFormat;
+
+    unsigned int iMaxValueOnGraph;
 
     float fDefaultFrequency;
     float fSpeedByFreq;
