@@ -105,7 +105,7 @@ private:
     // Will switch to next track if one's ended
     void monitorTrack();
 
-    void drawGraph(size_t iTrackIndex);
+    void drawGraph(size_t* iTrackIndex);
 
 
     FMOD::System*    pSystem;
@@ -126,6 +126,8 @@ private:
     // Graph draw
     bool bDrawing;
     std::mutex mtxDrawGraph;
+    size_t* iCurrentlyDrawingTrackIndex;
+    std::mutex mtxGetCurrentDrawingIndex;
 
     bool bIsSomeTrackPlaying;
     bool bCurrentTrackPaused;

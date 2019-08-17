@@ -22,6 +22,7 @@ AudioService::AudioService(MainWindow* pMainWindow)
     this->pMainWindow   = pMainWindow;
     pSystem              = nullptr;
     pRndGen              = new std::mt19937_64(time(nullptr));
+    iCurrentlyDrawingTrackIndex = new size_t(0);
 
     bMonitorTracks      = false;
     bIsSomeTrackPlaying = false;
@@ -377,8 +378,17 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
     {
         if ( ((bCurrentTrackPaused == false) && (bIsSomeTrackPlaying == false)) || (iTrackIndex != iCurrentlyPlayingTrackIndex) )
         {
+            if (bDrawing)
+            {
+                // Some thread is drawing, stop it
+                bDrawing = false;
+                mtxDrawGraph.lock();
+                mtxDrawGraph.unlock();
+            }
+
             // Add new graph
-            std::thread drawGraphThread(&AudioService::drawGraph, this, iTrackIndex);
+            *iCurrentlyDrawingTrackIndex = iTrackIndex;
+            std::thread drawGraphThread(&AudioService::drawGraph, this, iCurrentlyDrawingTrackIndex);
             drawGraphThread.detach();
         }
 
@@ -562,15 +572,7 @@ void AudioService::removeTrack(size_t iTrackIndex)
 
     if ( iTrackIndex < tracks.size() )
     {
-        if ((bIsSomeTrackPlaying || bCurrentTrackPaused) && (iCurrentlyPlayingTrackIndex == iTrackIndex))
-        {
-            bDrawing = false;
-            mtxDrawGraph.lock();
-            mtxDrawGraph.unlock();
-        }
-
-        delete tracks[iTrackIndex];
-        tracks.erase( tracks.begin() + iTrackIndex );
+        mtxGetCurrentDrawingIndex.lock();
 
         if ( tracks.size() == 0)
         {
@@ -584,6 +586,12 @@ void AudioService::removeTrack(size_t iTrackIndex)
         {
             if (iTrackIndex == iCurrentlyPlayingTrackIndex)
             {
+                mtxGetCurrentDrawingIndex.unlock();
+                bDrawing = false;
+                mtxDrawGraph.lock();
+                mtxDrawGraph.unlock();
+                mtxGetCurrentDrawingIndex.lock();
+
                 bIsSomeTrackPlaying = false;
                 bCurrentTrackPaused = false;
                 iCurrentlyPlayingTrackIndex = 0;
@@ -597,8 +605,14 @@ void AudioService::removeTrack(size_t iTrackIndex)
             {
                 // Move 'iCurrentlyPlayingTrackIndex' to the left in the 'tracks' vector because of the delete.
                 iCurrentlyPlayingTrackIndex--;
+                *iCurrentlyDrawingTrackIndex -= 1;
             }
         }
+
+        delete tracks[iTrackIndex];
+        tracks.erase( tracks.begin() + iTrackIndex );
+
+        mtxGetCurrentDrawingIndex.unlock();
     }
     else
     {
@@ -890,6 +904,8 @@ void AudioService::moveDown(size_t iTrackIndex)
 {
     mtxTracksVec.lock();
 
+    mtxGetCurrentDrawingIndex.lock();
+
     if (iTrackIndex == tracks.size() - 1)
     {
         Track* pTemp = tracks[iTrackIndex];
@@ -901,10 +917,12 @@ void AudioService::moveDown(size_t iTrackIndex)
             if (iTrackIndex == iCurrentlyPlayingTrackIndex)
             {
                 iCurrentlyPlayingTrackIndex = 0;
+                *iCurrentlyDrawingTrackIndex = 0;
             }
             else
             {
                 iCurrentlyPlayingTrackIndex++;
+                *iCurrentlyDrawingTrackIndex += 1;
             }
         }
     }
@@ -919,16 +937,20 @@ void AudioService::moveDown(size_t iTrackIndex)
             if (iTrackIndex == iCurrentlyPlayingTrackIndex)
             {
                 iCurrentlyPlayingTrackIndex++;
+                *iCurrentlyDrawingTrackIndex += 1;
             }
             else if (iCurrentlyPlayingTrackIndex != 0)
             {
                 if (iTrackIndex == iCurrentlyPlayingTrackIndex - 1)
                 {
                     iCurrentlyPlayingTrackIndex--;
+                    *iCurrentlyDrawingTrackIndex -= 1;
                 }
             }
         }
     }
+
+    mtxGetCurrentDrawingIndex.unlock();
 
     mtxTracksVec.unlock();
 }
@@ -936,6 +958,8 @@ void AudioService::moveDown(size_t iTrackIndex)
 void AudioService::moveUp(size_t iTrackIndex)
 {
     mtxTracksVec.lock();
+
+    mtxGetCurrentDrawingIndex.lock();
 
     if (iTrackIndex == 0)
     {
@@ -948,10 +972,12 @@ void AudioService::moveUp(size_t iTrackIndex)
             if (iTrackIndex == iCurrentlyPlayingTrackIndex)
             {
                 iCurrentlyPlayingTrackIndex = tracks.size() - 1;
+                *iCurrentlyDrawingTrackIndex = tracks.size() - 1;
             }
             else
             {
                 iCurrentlyPlayingTrackIndex--;
+                *iCurrentlyDrawingTrackIndex -= 1;
             }
         }
     }
@@ -966,13 +992,17 @@ void AudioService::moveUp(size_t iTrackIndex)
             if (iTrackIndex == iCurrentlyPlayingTrackIndex)
             {
                 iCurrentlyPlayingTrackIndex--;
+                *iCurrentlyDrawingTrackIndex -= 1;
             }
             else if (iTrackIndex == iCurrentlyPlayingTrackIndex + 1)
             {
                 iCurrentlyPlayingTrackIndex++;
+                *iCurrentlyDrawingTrackIndex += 1;
             }
         }
     }
+
+    mtxGetCurrentDrawingIndex.unlock();
 
     mtxTracksVec.unlock();
 }
@@ -1073,14 +1103,8 @@ void AudioService::monitorTrack()
     }
 }
 
-void AudioService::drawGraph(size_t iTrackIndex)
+void AudioService::drawGraph(size_t* iTrackIndex)
 {
-    if (bDrawing)
-    {
-        // Some thread is drawing, stop it
-        bDrawing = false;
-    }
-
     mtxDrawGraph.lock();
     bDrawing = true;
 
@@ -1097,14 +1121,16 @@ void AudioService::drawGraph(size_t iTrackIndex)
     // x    ('iSamplesInOne') - track length (in sec.)
 
     // here we do: 3000 * (tracks[iTrackIndex]->getLengthInMS() / 1000) / 6000, but we can replace this with just:
-    iSamplesInOne = tracks[iTrackIndex]->getLengthInMS() * 3 / 6000;
+    mtxGetCurrentDrawingIndex.lock();
+    iSamplesInOne = tracks[*iTrackIndex]->getLengthInMS() * 3 / 6000;
     if (iSamplesInOne == 0) iSamplesInOne = 1;
 
-    unsigned int iTempMax = tracks[iTrackIndex]->getLengthInPCMbytes() / 4 / iSamplesInOne;
+    unsigned int iTempMax = tracks[*iTrackIndex]->getLengthInPCMbytes() / 4 / iSamplesInOne;
     pMainWindow->setXMaxToGraph(iTempMax);
-    tracks[iTrackIndex]->setMaxPosInGraph(iTempMax);
+    tracks[*iTrackIndex]->setMaxPosInGraph(iTempMax);
 
-    tracks[iTrackIndex]->createDummySound();
+    tracks[*iTrackIndex]->createDummySound();
+    mtxGetCurrentDrawingIndex.unlock();
 
     // 2 MB because you need to multiply this value by 2 (because of short int type of buffer).
     unsigned int iBufferSize = 1048576;
@@ -1115,7 +1141,10 @@ void AudioService::drawGraph(size_t iTrackIndex)
     {
         short int* pSamples = new short int[iBufferSize];
         unsigned int iActuallyRead;
-        result = tracks[iTrackIndex]->getPCMSamples(pSamples, iBufferSize * 2, &iActuallyRead);
+
+        mtxGetCurrentDrawingIndex.lock();
+        result = tracks[*iTrackIndex]->getPCMSamples(pSamples, iBufferSize * 2, &iActuallyRead);
+        mtxGetCurrentDrawingIndex.unlock();
 
         if (result == 0)
         {
@@ -1131,14 +1160,17 @@ void AudioService::drawGraph(size_t iTrackIndex)
 
     }while ( (result == 1) && (bDrawing) );
 
+    mtxGetCurrentDrawingIndex.lock();
+
     if (bDrawing)
     {
         pMainWindow->setXMaxToGraph(iGraphMax);
-        tracks[iTrackIndex]->setMaxPosInGraph(iGraphMax);
+        tracks[*iTrackIndex]->setMaxPosInGraph(iGraphMax);
     }
 
-    tracks[iTrackIndex]->releaseDummySound();
+    tracks[*iTrackIndex]->releaseDummySound();
 
+    mtxGetCurrentDrawingIndex.unlock();
 
     bDrawing = false;
     mtxDrawGraph.unlock();
@@ -1165,6 +1197,8 @@ AudioService::~AudioService()
     bDrawing = false;
     mtxDrawGraph.lock();
     mtxDrawGraph.unlock();
+
+    delete iCurrentlyDrawingTrackIndex;
 
     delete pRndGen;
 
