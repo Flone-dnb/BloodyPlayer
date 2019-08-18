@@ -1152,6 +1152,12 @@ void AudioService::drawGraph(size_t* iTrackIndex)
             delete[] pSamples;
             break;
         }
+        else if ((result == -1) && (iActuallyRead == 0))
+        {
+            delete[] pSamples;
+            break;
+        }
+
 
         // Because 'iActuallyRead' is amount of L and R samples and we in MainWindow mix L and R channels in one.
         iGraphMax += iActuallyRead / 2 / iSamplesInOne;

@@ -158,6 +158,11 @@ char Track::getPCMSamples(short int *pBuff, unsigned int lengthInBytes, unsigned
     }
     else
     {
+        if ( (result == FMOD_ERR_FILE_EOF) && (*pActualRead == 0) )
+        {
+            return -1;
+        }
+
         unsigned int iNewRead = 0;
 
         for (unsigned int i = 0; i < *pActualRead - 3; i += 4)
@@ -186,10 +191,7 @@ char Track::getPCMSamples(short int *pBuff, unsigned int lengthInBytes, unsigned
         {
             return -1;
         }
-        else
-        {
-            return 1;
-        }
+        else return 1;
     }
 }
 
