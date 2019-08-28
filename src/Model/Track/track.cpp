@@ -251,22 +251,14 @@ bool Track::playTrack(float fVolume)
             return false;
         }
 
-        if (fSpeedByFreq == 1.0f)
+        if ( (fSpeedByFreq == 1.0f) && (fSpeedByTime == 1.0f) )
         {
             pChannel->setFrequency( fDefaultFrequency );
         }
         else
         {
-            pChannel->setFrequency( fDefaultFrequency * fSpeedByFreq );
-        }
-
-        if (fSpeedByTime == 1.0f)
-        {
-            pChannel->setFrequency( fDefaultFrequency );
-        }
-        else
-        {
-            pChannel->setFrequency( fDefaultFrequency * fSpeedByTime );
+            if (fSpeedByFreq != 1.0f) pChannel->setFrequency( fDefaultFrequency * fSpeedByFreq );
+            else                      pChannel->setFrequency( fDefaultFrequency * fSpeedByTime );
         }
 
         result = pChannel->setPaused(false);
@@ -361,22 +353,14 @@ bool Track::playTrack(float fVolume)
             }
         }
 
-        if (fSpeedByFreq == 1.0f)
+        if ( (fSpeedByFreq == 1.0f) && (fSpeedByTime == 1.0f) )
         {
             pChannel->setFrequency( fDefaultFrequency );
         }
         else
         {
-            pChannel->setFrequency( fDefaultFrequency * fSpeedByFreq );
-        }
-
-        if (fSpeedByTime == 1.0f)
-        {
-            pChannel->setFrequency( fDefaultFrequency );
-        }
-        else
-        {
-            pChannel->setFrequency( fDefaultFrequency * fSpeedByTime );
+            if (fSpeedByFreq != 1.0f) pChannel->setFrequency( fDefaultFrequency * fSpeedByFreq );
+            else                      pChannel->setFrequency( fDefaultFrequency * fSpeedByTime );
         }
 
         result = pChannel->setPaused(false);
@@ -575,6 +559,7 @@ void Track::setMaxPosInGraph(unsigned int iMax)
 
 void Track::setSpeedByFreq(float fSpeed)
 {
+    // Save the value even if pChannel is not created
     fSpeedByFreq = fSpeed;
 
     if (pChannel != nullptr)
@@ -592,6 +577,7 @@ void Track::setSpeedByFreq(float fSpeed)
 
 void Track::setSpeedByTime(float fSpeed)
 {
+    // Save the value even if pChannel is not created
     fSpeedByTime = fSpeed;
 
     if (pChannel != nullptr)

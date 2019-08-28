@@ -21,7 +21,7 @@ AudioService::AudioService(MainWindow* pMainWindow)
 {
     this->pMainWindow   = pMainWindow;
     pSystem              = nullptr;
-    pRndGen              = new std::mt19937_64(time(nullptr));
+    pRndGen              = new std::mt19937_64( static_cast<unsigned long long>(time(nullptr)) );
     iCurrentlyDrawingTrackIndex = new size_t(0);
 
     bMonitorTracks      = false;
@@ -273,7 +273,7 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
     }
 
 
-    pMainWindow->showWaitWindow("Please wait.\nAdding tracks.");
+    pMainWindow->showWaitWindow("Please wait.\nAdding your music.");
 
     // Get amount of CPU threads
     // In every CPU thread we will add tracks
@@ -319,6 +319,8 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
     }
     else
     {
+        // Just add them in one thread
+
         for (size_t i = 0; i < paths.size(); i++)
         {
             addTrack(paths[i]);
@@ -327,6 +329,7 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
         delete allCount;
         pMainWindow->hideWaitWindow();
 
+        // Wait a little for all track widgets to show
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (tracks.size() > 0) pMainWindow->setFocusOnTrack(tracks.size() - 1);
 
@@ -334,11 +337,13 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
         return;
     }
 
+    // Check loop if all threads are done
     bool bDone;
     do
     {
         bDone = true;
 
+        // Wait a little for all track widgets to show
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         for (size_t i = 0; i < threadsDoneFlags.size(); i++)
@@ -362,6 +367,7 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
 
     pMainWindow->hideWaitWindow();
 
+    // Wait a little for all track widgets to show
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     if (tracks.size() > 0) pMainWindow->setFocusOnTrack(tracks.size() - 1);
 
@@ -393,7 +399,7 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
         }
 
 
-        // Play track
+        // Stop currently playing track
         if (bIsSomeTrackPlaying)
         {
             if (iTrackIndex != iCurrentlyPlayingTrackIndex)
@@ -408,6 +414,7 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
             pMainWindow->removePlayingOnTrack(iCurrentlyPlayingTrackIndex);
         }
 
+        // Play track
         if ( tracks[iTrackIndex]->playTrack(fCurrentVolume) )
         {
             bIsSomeTrackPlaying = true;
