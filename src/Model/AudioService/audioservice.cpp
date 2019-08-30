@@ -460,8 +460,7 @@ void AudioService::setTrackPos(unsigned int graphPos)
         // graphPos                    - x%
 
         // cast to unsigned long long to avoid overflow
-        unsigned int iPosInPercent = static_cast<unsigned int>(static_cast<unsigned long long>(graphPos) * 100 / static_cast<double>(tracks[iCurrentlyPlayingTrackIndex]->getMaxValueOnGraph()));
-        double fPosMult = iPosInPercent / 100.0;
+        double fPosMult = graphPos / static_cast<double>(tracks[iCurrentlyPlayingTrackIndex]->getMaxValueOnGraph());
         unsigned int iPosInMS = static_cast<unsigned int>(tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
         if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iPosInMS) )
         {
@@ -1177,8 +1176,8 @@ void AudioService::drawGraph(size_t* iTrackIndex)
     // 3000 ('iSamplesInOne') - 6000 (sec.)
     // x    ('iSamplesInOne') - track length (in sec.)
 
-    // here we do: 3000 * (tracks[iTrackIndex]->getLengthInMS() / 1000) / 6000, but we can replace this with just:
     mtxGetCurrentDrawingIndex.lock();
+    // here we do: 3000 * (tracks[iTrackIndex]->getLengthInMS() / 1000) / 6000, but we can replace this with just:
     iSamplesInOne = tracks[*iTrackIndex]->getLengthInMS() * 3 / 6000;
     if (iSamplesInOne == 0) iSamplesInOne = 1;
 
