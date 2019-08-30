@@ -285,72 +285,20 @@ bool Track::playTrack(float fVolume)
             return false;
         }
 
-        // Is track paused?
-        bool bPausedTrack;
-        result = pChannel->getPaused(&bPausedTrack);
+
+        // Check if it's actually playing
+        bool bIsPlaying;
+        result = pChannel->isPlaying(&bIsPlaying);
         if (result)
         {
-            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::getPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+            pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
             return false;
         }
 
-        if (bPausedTrack)
+        if (bIsPlaying)
         {
-            // Unpause track is it's paused
-            // 'bPaused = false' in the end of this function
-            result = pChannel->setPaused(false);
-            if (result)
-            {
-                pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                return false;
-            }
-        }
-        else
-        {
-            // The track is not paused, maybe it's stopped?
-
-            bool bIsPlaying;
-            result = pChannel->isPlaying(&bIsPlaying);
-            if (result)
-            {
-                pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setPaused() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                return false;
-            }
-
-            if (bIsPlaying)
-            {
-                // The track is plaing and user pressed Play so now we just need to start track from the beginning.
-                setPositionInMS(0);
-                pChannel->setPaused(true);
-            }
-            else
-            {
-                // The track is stopped (probably it was playing and ended).
-                // Now every operation with 'pChannel' will return error because sound is ended.
-                // We will recreate the track:
-
-                result = pChannel->stop();
-                if (result)
-                {
-                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                    return false;
-                }
-
-                // And play it again.
-                result = pSystem->playSound(pSound, nullptr, true, &pChannel);
-                if (result)
-                {
-                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::System::playSound() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                    return false;
-                }
-
-                result = pChannel->setVolume(fVolume);
-                if (result)
-                {
-                    pMainWindow->showMessageBox( true, std::string("Track::playTrack::FMOD::Channel::setVolume() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-                    return false;
-                }
-            }
+            // The track is plaing and user pressed Play so now we just need to start track from the beginning.
+            setPositionInMS(0);
         }
 
         if ( (fSpeedByFreq == 1.0f) && (fSpeedByTime == 1.0f) )

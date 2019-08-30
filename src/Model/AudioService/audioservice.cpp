@@ -247,6 +247,11 @@ void AudioService::addTrack(const wchar_t *pFilePath)
         monitor.detach();
     }
 
+    FMOD_RESULT result = pSystem->update();
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::addTrack::FMOD::System::update() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+    }
 
     mtxThreadLoadAddTrack.unlock();
 }
@@ -429,6 +434,12 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
             pMainWindow->showMessageBox(false, "Something went wrong and we could not play the track.");
         }
 
+        FMOD_RESULT result = pSystem->update();
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("AudioService::playTrack::FMOD::System::update() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        }
+
         pMainWindow->setPlayingOnTrack(iCurrentlyPlayingTrackIndex);
     }
     else
@@ -458,6 +469,13 @@ void AudioService::setTrackPos(unsigned int graphPos)
         }
     }
 
+    FMOD_RESULT result;
+    result = pSystem->update();
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::setTrackPos::FMOD::System::update() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+    }
+
     mtxTracksVec.unlock();
 }
 
@@ -481,6 +499,13 @@ void AudioService::pauseTrack()
                 bIsSomeTrackPlaying = true;
             }
         }
+    }
+
+    FMOD_RESULT result;
+    result = pSystem->update();
+    if (result)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::pauseTrack::FMOD::System::update() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
     }
 
     mtxTracksVec.unlock();
@@ -618,6 +643,13 @@ void AudioService::removeTrack(size_t iTrackIndex)
 
         delete tracks[iTrackIndex];
         tracks.erase( tracks.begin() + iTrackIndex );
+
+        FMOD_RESULT result;
+        result = pSystem->update();
+        if (result)
+        {
+            pMainWindow->showMessageBox( true, std::string("AudioService::removeTrack::FMOD::System::update() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        }
 
         mtxGetCurrentDrawingIndex.unlock();
     }
@@ -1076,6 +1108,12 @@ void AudioService::monitorTrack()
                 // The track is ended, play next
                 tracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
 
+                FMOD_RESULT result = pSystem->update();
+                if (result)
+                {
+                    pMainWindow->showMessageBox(true, std::string("AudioService::monitorTrack::FMOD::System::update() failed. Error: ") + FMOD_ErrorString(result));
+                }
+
                 if (bRepeatTrack)
                 {
                     // Or not
@@ -1104,6 +1142,8 @@ void AudioService::monitorTrack()
             }
         }
 
+        pSystem->update();
+
         mtxTracksVec.unlock();
 
         std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));
@@ -1114,6 +1154,16 @@ void AudioService::drawGraph(size_t* iTrackIndex)
 {
     mtxDrawGraph.lock();
     bDrawing = true;
+
+
+    // default: 16384
+    // "If FMOD_TIMEUNIT_RAWBYTES is used, the memory allocated is two times the size passed in, because fmod allocates a double buffer."
+    // 131072 * 2 = 256 kB (x8 times bigger than default) to speed up our graph draw (to speed up our readData() calls)
+    FMOD_RESULT fresult = pSystem->setStreamBufferSize(131072, FMOD_TIMEUNIT_RAWBYTES);
+    if (fresult)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System::setStreamBufferSize() failed. Error: ") + std::string(FMOD_ErrorString(fresult)) );
+    }
 
 
     pMainWindow->clearGraph();
@@ -1184,6 +1234,16 @@ void AudioService::drawGraph(size_t* iTrackIndex)
     tracks[*iTrackIndex]->releaseDummySound();
 
     mtxGetCurrentDrawingIndex.unlock();
+
+
+
+    // set to default: 16384
+    fresult = pSystem->setStreamBufferSize(16384, FMOD_TIMEUNIT_RAWBYTES);
+    if (fresult)
+    {
+        pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System::setStreamBufferSize() failed. Error: ") + std::string(FMOD_ErrorString(fresult)) );
+    }
+
 
     bDrawing = false;
     mtxDrawGraph.unlock();
