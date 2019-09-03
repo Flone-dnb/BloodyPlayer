@@ -6,6 +6,7 @@
 - Make better icons for buttons.
 - Add gain (fader) DSP.
 - Add multi-band EQ.
+- Add the Ctrl + F shortcut to show the 'Search by Keyword' window and set focus on the track with the match. 'Search by Keyword' will also have a 'next match' and 'prev match' buttons.
 - On every startup check if the Player is associated with the audio formats in windows and if not then ask to associate.
 - Speed up the process of adding the tracks. Maybe do something with the bitrate calculation because the current function may be kinda slow and maybe there is a faster and easy way.
 - Decrease RAM used.
