@@ -1,6 +1,8 @@
 ﻿- Add bounds in which track will repeat by clicking RMB on the graph. Track's volume in the transition from end bound to start bound will change?
 - Add a history of played tracks so the 'prev' button will get back to actually previous track even if 'random track' function is selected.
 - After the tracklist was cleared volume returns to the default value of 75%, we don't want that, don't change master volume when tracklist is clear and allow to change it if tracklist is clear.
+- Add winsock2 and make 'Check for Updates' button in menu (see https://stackoverflow.com/questions/39931347/simple-http-get-with-winsock and https://github.com/VioletGiraffe/github-releases-autoupdater).
+- With winsock2 create a server and if another audio file is being opened a new instance of Player will check if one is running and if true then this new track will be sent to currently running instance. 
 - Make better icons for buttons.
 - Speed up the process of adding the tracks. Maybe do something with the bitrate calculation because the current function may be kinda slow and maybe there is a faster and easy way.
 - Add multi-band EQ.
