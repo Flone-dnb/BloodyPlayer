@@ -295,7 +295,11 @@ bool Track::playTrack(float fVolume)
             return false;
         }
 
-        if (bIsPlaying)
+        if (bPaused)
+        {
+            pauseTrack();
+        }
+        else if (bIsPlaying)
         {
             // The track is plaing and user pressed Play so now we just need to start track from the beginning.
             setPositionInMS(0);

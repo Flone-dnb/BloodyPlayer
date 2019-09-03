@@ -5,5 +5,6 @@
 - With winsock2 create a server and if another audio file is being opened a new instance of Player will check if one is running and if true then this new track will be sent to currently running instance. 
 - Make better icons for buttons.
 - Speed up the process of adding the tracks. Maybe do something with the bitrate calculation because the current function may be kinda slow and maybe there is a faster and easy way.
+- Add gain (fader) DSP.
 - Add multi-band EQ.
 - Decrease RAM used.

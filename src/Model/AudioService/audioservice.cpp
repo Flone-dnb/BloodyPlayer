@@ -100,6 +100,8 @@ void AudioService::FMODinit()
     }
     else
     {
+        pPitch->setParameterFloat(FMOD_DSP_PITCHSHIFT_FFTSIZE, 4096);
+        pPitch->setBypass(true);
         pMaster->addDSP(0, pPitch);
     }
 
@@ -111,6 +113,8 @@ void AudioService::FMODinit()
     }
     else
     {
+        pPitchForTime->setParameterFloat(FMOD_DSP_PITCHSHIFT_FFTSIZE, 4096);
+        pPitchForTime->setBypass(true);
         pMaster->addDSP(1, pPitchForTime);
     }
 
@@ -776,9 +780,15 @@ void AudioService::setPitch(float fPitch)
     if (pPitch)
     {
         pPitch->setParameterFloat(FMOD_DSP_PITCHSHIFT_PITCH, fPitch);
-        pPitch->setParameterInt(FMOD_DSP_PITCHSHIFT_FFTSIZE, 4096);
 
-        pSystem->update();
+        if (fPitch != 1.0f)
+        {
+            pPitch->setBypass(false);
+        }
+        else
+        {
+            pPitch->setBypass(true);
+        }
     }
 }
 
@@ -816,10 +826,15 @@ void AudioService::setSpeedByTime(float fSpeed)
     }
 
     pPitchForTime->setParameterFloat(FMOD_DSP_PITCHSHIFT_PITCH, 1.0f / fSpeed);
-    pPitchForTime->setParameterInt(FMOD_DSP_PITCHSHIFT_FFTSIZE, 4096);
 
-    if (fSpeed != 1.0f) pFaderForTime->setParameterFloat(FMOD_DSP_FADER_GAIN, 3);
-    else pFaderForTime->setParameterFloat(FMOD_DSP_FADER_GAIN, 0);
+    if (fSpeed != 1.0f)
+    {
+        pPitchForTime->setBypass(false);
+    }
+    else
+    {
+        pPitchForTime->setBypass(true);
+    }
 
     pSystem->update();
 
