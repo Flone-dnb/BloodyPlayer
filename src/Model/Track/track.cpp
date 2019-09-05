@@ -695,9 +695,6 @@ bool Track::getBitRate(int *bitrate)
     // Some of the code below is from my other program so don't really pay attension to some of the comments
 
 
-    int amountOfBytes = 0;
-    int amountOfBits  = 0;
-
     // Open selected file in binary mode
     std::ifstream mp3File (pFilePath, std::ios::binary);
 
@@ -736,7 +733,53 @@ bool Track::getBitRate(int *bitrate)
         // 'byte' will contain bytes that we read
         unsigned char byte = 0;
 
-        bool bFoundProtection = false;
+        // Find the size of metadata
+        char metaBuffer[4];
+        memset(metaBuffer, 0, 4);
+
+        mp3File.read(metaBuffer, 3);
+
+        if (std::string(metaBuffer) == "ID3")
+        {
+            // Skip to tag size
+            mp3File.seekg(3, std::ios::cur);
+            mp3File.read(metaBuffer, 4);
+
+            int iTagSize = 0;
+
+            int iCurrentBit = 0;
+
+            for (int i = 3; i >= 0; i--)
+            {
+                // last bit does not contain data
+                // so we read 7 bits and not 8
+                for (int j = 0; j < 7; j++)
+                {
+                    bool bit = (bool((1 << j)  &  metaBuffer[i]));
+
+                    if (bit)
+                    {
+                        // write true
+                        iTagSize |= (1 << iCurrentBit);
+                    }
+                    else
+                    {
+                        // write false
+                        iTagSize &= ~(1 << iCurrentBit);
+                    }
+
+                    iCurrentBit++;
+                }
+            }
+
+            mp3File.seekg(iTagSize, std::ios::cur);
+        }
+        else
+        {
+            mp3File.seekg(0, std::ios::beg);
+        }
+
+
 
         do
         {
@@ -819,8 +862,6 @@ bool Track::getBitRate(int *bitrate)
                         // check if padding bit is set
                         bit1 = (bool((1 << 1)  &  byte));
 
-                        amountOfBits += 5;
-
                         // Calculate the size of this mp3 frame
                         // And we don't count padding byte here (we will do that later)
                         // Not 1024 but 1000!
@@ -858,17 +899,6 @@ bool Track::getBitRate(int *bitrate)
         }while(pos < endPos);
 
         mp3File.close();
-
-        if (bFoundProtection)
-        {
-            return 0;
-        }
-
-        // Minus 8 bytes for the size of a file to hide and it's format
-        amountOfBytes -= 8;
-
-        // losing some data here due to int/int - not really important
-        amountOfBytes += (amountOfBits / 8);
 
 
 
@@ -915,9 +945,7 @@ bool Track::getBitRate(int *bitrate)
             }
         }
 
-        int iAverageBitrate = bitrates[iAverageBitrateIndex][0];
-
-        *bitrate = iAverageBitrate;
+        *bitrate = bitrates[iAverageBitrateIndex][0];
 
         return true;
     }
