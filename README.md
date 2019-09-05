@@ -2,7 +2,7 @@
 Bloody Player is an audio player created using Qt and FMOD.<br>
 <p align="center">
   <img width="650" height="400" src="screenshot.png">
-</p><br>
+</p>
 Features:<br>
 - Dark-red design.<br>
 - Drag'n'Drop. Drag'n'Drop tracks right to the Bloody Player window to add tracks to the tracklist. You can also drag'n'drop folders to add tracks from it.<br>
