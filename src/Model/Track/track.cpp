@@ -125,7 +125,7 @@ bool Track::createDummySound()
     return true;
 }
 
-char Track::getPCMSamples(short int *pBuff, unsigned int lengthInBytes, unsigned int *pActualRead)
+char Track::getPCMSamples(short int *pBuff, unsigned int amountInBytes, unsigned int *pActualRead)
 {
     // -1 == end of file
     // 0  == error
@@ -142,14 +142,14 @@ char Track::getPCMSamples(short int *pBuff, unsigned int lengthInBytes, unsigned
 
     FMOD_RESULT result;
 
-    if (lengthInBytes % 2 != 0)
+    if (amountInBytes % 2 != 0)
     {
-        lengthInBytes--;
+        amountInBytes--;
     }
 
-    char* pTemp = new char[lengthInBytes];
+    char* pTemp = new char[amountInBytes];
 
-    result = pDummySound->readData(pTemp, lengthInBytes, pActualRead);
+    result = pDummySound->readData(pTemp, amountInBytes, pActualRead);
     if ( (result) && (result != FMOD_ERR_FILE_EOF))
     {
         delete[] pTemp;
@@ -487,21 +487,6 @@ bool Track::setVolume(float fNewVolume)
     }
 
     return false;
-}
-
-bool Track::setPosForDummy(unsigned int pcm)
-{
-    FMOD_RESULT result;
-    result = pDummySound->seekData(pcm);
-    if (result)
-    {
-        pMainWindow->showMessageBox( true, std::string("Track::setPos::FMOD::Sound::seekData() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-        return false;
-    }
-    else
-    {
-        return true;
-    }
 }
 
 void Track::setMaxPosInGraph(unsigned int iMax)
@@ -956,7 +941,7 @@ bool Track::getBitRate(int *bitrate)
     }
 }
 
-long long Track::getSize()
+long long Track::getFileSizeInBytes()
 {
     // This function returns tracks file size in bytes.
 

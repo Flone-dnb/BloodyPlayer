@@ -58,9 +58,9 @@ void Controller::prevTrack()
     pAudioService->prevTrack();
 }
 
-void Controller::changeVolume(float fNewVolume)
+void Controller::setVolume(float fNewVolume)
 {
-    pAudioService->changeVolume(fNewVolume);
+    pAudioService->setVolume(fNewVolume);
 }
 
 void Controller::removeTrack(size_t iTrackIndex)

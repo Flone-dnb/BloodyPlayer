@@ -1,10 +1,16 @@
 #pragma once
 
+
+
 // STL
 #include <string>
 
 
+
+
+
 class MainWindow;
+
 namespace FMOD
 {
     class System;
@@ -14,54 +20,79 @@ namespace FMOD
 
 
 
+
+
+
 class Track
 {
+
 public:
 
     Track(MainWindow* pMainWindow, FMOD::System* pSystem);
 
 
 
-    // Start/stop functions
-    // This functions return 'false' on fail.
 
-            bool setTrack   (const wchar_t* pFilePath);
-            bool playTrack  (float fVolume);
-            bool pauseTrack ();
-            bool stopTrack  ();
-            bool reCreateTrack(float fVolume);
+
+    // Start/stop functions
+
+        bool           setTrack               (const wchar_t* pFilePath);
+        bool           playTrack              (float fVolume);
+        bool           pauseTrack             ();
+        bool           stopTrack              ();
+        bool           reCreateTrack          (float fVolume);
+
+
+    // 'FX' functions
+
+        void           setSpeedByFreq         (float fSpeed);
+        void           setSpeedByTime         (float fSpeed);
+
+
+    // 'Dummy Sound' functions (related to oscillogram drawing)
+
+        bool           createDummySound       ();
+        bool           releaseDummySound      ();
+
 
     // 'Set' functions
-    // This functions return 'false' on fail.
 
-            bool setPositionInMS (unsigned int iPos);
-            bool setVolume       (float fNewVolume);
-            bool setPosForDummy  (unsigned int pcm);
-            void setMaxPosInGraph(unsigned int iMax);
-            void setSpeedByFreq(float fSpeed);
-            void setSpeedByTime(float fSpeed);
+        bool           setPositionInMS        (unsigned int  iPos);
+        bool           setVolume              (float         fNewVolume);
+        void           setMaxPosInGraph       (unsigned int  iMax);
 
 
     // 'Get' functions
 
-            std::string  getPCMFormat       ();
-            std::string  getFormat          ();
-            std::string  getCurrentTime     ();
-            unsigned int getLengthInMS      ();
-            unsigned int getLengthInPCMbytes();
-            unsigned int getPositionInMS    ();
-            unsigned int getPositionInPCMBytes();
-            float        getFrequency       ();
-            bool         getChannelsAndBits (int* channels, int* bits);
-            bool         getBitRate         (int* bitrate);
-            long long    getSize            ();
-            bool         getPaused          ();
-            bool         getPlaying         ();
-            bool         createDummySound   ();
-            char         getPCMSamples (short int* pBuff, unsigned int lengthInBytes, unsigned int *pActualRead);
-            bool         releaseDummySound  ();
-            const wchar_t* getFilePath();
-            unsigned int getMaxValueOnGraph();
+        // Format
+        std::string    getPCMFormat           ();
+        std::string    getFormat              ();
+
+        // Time
+        std::string    getCurrentTime         ();
+        unsigned int   getLengthInMS          ();
+        unsigned int   getPositionInMS        ();
+        unsigned int   getPositionInPCMBytes  ();
+
+        // Size
+        long long      getFileSizeInBytes     ();
+        unsigned int   getLengthInPCMbytes    ();
+        unsigned int   getMaxValueOnGraph     ();
+
+        // Audio params
+        float          getFrequency           ();
+        bool           getChannelsAndBits     (int* channels,     int* bits);
+        bool           getBitRate             (int* bitrate);
+
+        // State
+        bool           getPaused              ();
+        bool           getPlaying             ();
+
+        // Other
+        char           getPCMSamples          (short int* pBuff,  unsigned int amountInBytes,  unsigned int *pActualRead);
+        const wchar_t* getFilePath            ();
+
+
 
 
 
@@ -70,11 +101,17 @@ public:
 private:
 
     // Funtions that used by getBitRate() function
-        int tellBitRate      (bool bit1, bool bit2, bool bit3, bool bit4);
-        int tellSamplingRate (bool bit1, bool bit2);
+
+        int tellBitRate      (bool bit1,  bool bit2,  bool bit3,  bool bit4);
+        int tellSamplingRate (bool bit1,  bool bit2);
 
 
-    MainWindow* pMainWindow;
+
+
+
+
+    MainWindow*    pMainWindow;
+
 
     // FMOD stuff
     FMOD::Sound*   pSound;
@@ -82,16 +119,21 @@ private:
     FMOD::Channel* pChannel;
     FMOD::System*  pSystem;
 
-    const wchar_t* pFilePath;
 
     std::string    format;
     std::string    pcmFormat;
 
-    unsigned int iMaxValueOnGraph;
 
-    float fDefaultFrequency;
-    float fSpeedByFreq;
-    float fSpeedByTime;
+    const wchar_t* pFilePath;
+
+
+    unsigned int   iMaxValueOnGraph;
+
+
+    float          fDefaultFrequency;
+    float          fSpeedByFreq;
+    float          fSpeedByTime;
+
 
     bool           bPaused;
 };

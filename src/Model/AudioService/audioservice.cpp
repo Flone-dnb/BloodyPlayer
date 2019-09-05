@@ -219,7 +219,7 @@ void AudioService::addTrack(const wchar_t *pFilePath)
     }
     trackInfo += L", ";
     std::wstringstream stream;
-    stream << std::fixed << std::setprecision(2) << pNewTrack->getSize() / 1024.0 / 1024;
+    stream << std::fixed << std::setprecision(2) << pNewTrack->getFileSizeInBytes() / 1024.0 / 1024;
     trackInfo += stream.str();
     trackInfo += L" MB";
 
@@ -458,7 +458,7 @@ void AudioService::setTrackPos(unsigned int graphPos)
 {
     mtxTracksVec.lock();
 
-    if ( (tracks.size() > 0) && (bIsSomeTrackPlaying) )
+    if ( (tracks.size() > 0) && (bIsSomeTrackPlaying || bCurrentTrackPaused) )
     {
         // track->getMaxValueOnGraph() - 100%
         // graphPos                    - x%
@@ -1082,7 +1082,7 @@ void AudioService::randomNextTrack()
     }
 }
 
-void AudioService::changeVolume(float fNewVolume)
+void AudioService::setVolume(float fNewVolume)
 {
     mtxTracksVec.lock();
 

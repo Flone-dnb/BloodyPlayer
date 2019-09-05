@@ -601,7 +601,7 @@ void MainWindow::slotHideVSTWindow()
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
 {
-    pController->changeVolume( value/100.0f );
+    pController->setVolume( value/100.0f );
     ui->label_volume->setText("Volume: " + QString::number(value) + "%");
 }
 

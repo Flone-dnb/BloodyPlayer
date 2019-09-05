@@ -1,11 +1,16 @@
 #pragma once
 
+
+
+
 // Qt
 #include <QMainWindow>
 
 // STL
 #include <string>
 #include <vector>
+
+
 
 
 class Controller;
@@ -27,70 +32,98 @@ namespace Ui
 
 
 
+
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 signals:
 
-    void signalShowMessageBox(bool errorBox, std::string text);
-    void signalSetTrack(size_t iTrackIndex, bool bClear = false);
-    void signalSetNumber(size_t iNumber);
-    void signalAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
 
     // WaitWindow
-    void signalShowWaitWindow(QString text);
-    void signalHideWaitWindow();
-    void signalSetProgress(int value);
 
-    // Graph
-    void signalClearGraph(bool stopTrack = false);
-    void signalSetXMaxToGraph(unsigned int iMaxX);
-    void signalAddDataToGraph(short int* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne);
-    void signalSetCurrentPos(double x, std::string time);
+        void     signalShowWaitWindow      (QString text);
+        void     signalSetProgress         (int     value);
+        void     signalHideWaitWindow      ();
+
+
+    // Oscillogram
+
+        void     signalAddDataToGraph      (short int* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
+        void     signalSetCurrentPos       (double x,          std::string time);
+        void     signalClearGraph          (bool stopTrack = false);
+        void     signalSetXMaxToGraph      (unsigned int iMaxX);
+
 
     // VST
-    void signalSetVSTName(QString name);
-    void signalResetAll();
-    void signalHideVSTWindow();
+
+        void     signalSetVSTName          (QString name);
+        void     signalResetAll            ();
+        void     signalHideVSTWindow       ();
+
+
+    // Other
+
+        void     signalAddNewTrack         (std::wstring trackName,  std::wstring trackInfo,  std::string trackTime);
+        void     signalSetTrack            (size_t iTrackIndex,      bool bClear = false);
+        void     signalShowMessageBox      (bool errorBox,           std::string text);
+        void     signalSetNumber           (size_t iNumber);
+
+
+
 
 public:
 
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow                (QWidget *parent = nullptr);
 
 
 
-    void showMessageBox(bool errorBox, std::string text);
 
-    void addNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
-    void removePlayingOnTrack(size_t iTrackIndex);
-    void setPlayingOnTrack(size_t iTrackIndex, bool bClear = false);
-    void uncheckRandomTrackButton();
-    void uncheckRepeatTrackButton();
 
-    void clearCurrentPlaylist();
+    // Start functions
+
+        void markAnError();
+        bool isSystemReady();
+
 
     // VST
-    HWND getVSTWindowHWND();
-    void setVSTName(std::string name);
-    void hideVSTWindow();
 
-    // Graph
-    void clearGraph(bool stopTrack = false);
-    void setXMaxToGraph(unsigned int iMaxX);
-    void addDataToGraph(short int* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne);
-    void setCurrentPos(double x, std::string time);
+        void     setVSTName                (std::string name);
+        HWND     getVSTWindowHWND          ();
+        void     hideVSTWindow             ();
+
+
+    // Oscillogram
+
+        void     addDataToGraph            (short int* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
+        void     setCurrentPos             (double x,          std::string time);
+        void     clearGraph                (bool stopTrack = false);
+        void     setXMaxToGraph            (unsigned int iMaxX);
+
 
     // Focus
-    void setFocusOnTrack(size_t index);
+
+        void     setFocusOnTrack           (size_t index);
+
 
     // WaitWindow
-    void showWaitWindow(std::string text);
-    void hideWaitWindow();
-    void setProgress(int value);
 
-    void markAnError();
-    bool isSystemReady();
+        void     showWaitWindow            (std::string text);
+        void     setProgress               (int value);
+        void     hideWaitWindow            ();
+
+
+    // Other
+
+        void     addNewTrack               (std::wstring trackName,  std::wstring trackInfo,  std::string trackTime);
+        void     showMessageBox            (bool errorBox,           std::string text);
+        void     setPlayingOnTrack         (size_t iTrackIndex,      bool bClear = false);
+        void     removePlayingOnTrack      (size_t iTrackIndex);
+        void     uncheckRandomTrackButton  ();
+        void     uncheckRepeatTrackButton  ();
+        void     clearCurrentPlaylist      ();
+
 
 
 
@@ -111,70 +144,94 @@ public slots:
     // Tray icon
     void slotShowWindow();
 
+
+
 protected:
 
     void keyPressEvent(QKeyEvent* ev);
     void hideEvent(QHideEvent* ev);
 
+
+
 private slots:
 
-    void slotShowMessageBox(bool errorBox, std::string text);
-    void slotSetNumber(size_t iNumber);
-    void slotAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime);
-    void slotSetTrack(size_t iTrackIndex, bool bClear = false);
-
     // VST
-    void slotHideVSTWindow();
+
+        void  slotHideVSTWindow                    ();
+
 
     // WaitWindow
-    void slotShowWaitWindow(QString text);
-    void slotHideWaitWindow();
-    void slotSetProgress(int value);
 
-    // Graph
-    void slotClearGraph(bool stopTrack = false);
-    void slotSetXMaxToGraph(unsigned int iMaxX);
-    void slotAddDataToGraph(short int* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne);
-    void slotSetCurrentPos(double x, std::string time);
-    void slotClickOnGraph(QMouseEvent* ev);
+        void  slotShowWaitWindow                   (QString text);
+        void  slotSetProgress                      (int value);
+        void  slotHideWaitWindow                   ();
+
+
+    // Oscillogram
+
+        void  slotAddDataToGraph                   (short int* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
+        void  slotSetCurrentPos                    (double x,          std::string time);
+        void  slotClearGraph                       (bool stopTrack = false);
+        void  slotSetXMaxToGraph                   (unsigned int iMaxX);
+        void  slotClickOnGraph                     (QMouseEvent* ev);
+
 
     // FX
-    void slotSetPan          (float fPan);
-    void slotSetPitch        (float fPitch);
-    void slotSetSpeedByPitch (float fSpeed);
-    void slotSetSpeedByTime  (float fSpeed);
-    void slotSetReverbVolume (float fVolume);
-    void slotSetEchoVolume   (float fEchoVolume);
-    void slotLoadVST         (wchar_t* pPath);
-    void slotShowVST         ();
-    void slotUnloadVST       ();
-    void slotUpdate          ();
 
-    // Buttons
-    void on_pushButton_Play_clicked();
-    void on_pushButton_pause_clicked();
-    void on_pushButton_stop_clicked();
-    void on_pushButton_next_clicked();
-    void on_pushButton_prev_clicked();
+        void  slotSetPan                           (float     fPan);
+        void  slotSetPitch                         (float     fPitch);
+        void  slotSetSpeedByPitch                  (float     fSpeed);
+        void  slotSetSpeedByTime                   (float     fSpeed);
+        void  slotSetReverbVolume                  (float     fVolume);
+        void  slotSetEchoVolume                    (float     fEchoVolume);
+        void  slotLoadVST                          (wchar_t*  pPath);
+        void  slotShowVST                          ();
+        void  slotUnloadVST                        ();
+        void  slotUpdate                           ();
+
+
+    // Main buttons
+
+        void  on_pushButton_Play_clicked           ();
+        void  on_pushButton_pause_clicked          ();
+        void  on_pushButton_stop_clicked           ();
+        void  on_pushButton_next_clicked           ();
+        void  on_pushButton_prev_clicked           ();
+
 
     // Buttons under the volume slider
-    void on_pushButton_repeat_clicked();
-    void on_pushButton_Random_clicked();
-    void on_pushButton_fx_clicked();
-    void on_pushButton_clearPlaylist_clicked();
+
+        void  on_pushButton_repeat_clicked         ();
+        void  on_pushButton_Random_clicked         ();
+        void  on_pushButton_fx_clicked             ();
+        void  on_pushButton_clearPlaylist_clicked  ();
+
 
     // Volume slider
-    void on_horizontalSlider_valueChanged(int value);
+
+        void  on_horizontalSlider_valueChanged     (int value);
+
 
     // Menu
-    void on_actionOpen_triggered();
-    void on_actionOpen_Directory_triggered();
-    void on_actionAbout_triggered();
+
+        void  on_actionOpen_triggered              ();
+        void  on_actionOpen_Directory_triggered    ();
+        void  on_actionAbout_triggered             ();
+
 
     // Tracklist
-    void on_actionSave_triggered();
 
-    void on_actionOpen_2_triggered();
+        void  on_actionSave_triggered              ();
+        void  on_actionOpen_2_triggered            ();
+
+
+    // Other
+
+        void  slotAddNewTrack                      (std::wstring trackName,  std::wstring trackInfo,  std::string trackTime);
+        void  slotSetTrack                         (size_t iTrackIndex,      bool bClear = false);
+        void  slotShowMessageBox                   (bool errorBox,           std::string text);
+        void  slotSetNumber                        (size_t iNumber);
+
 
 private:
 
@@ -184,17 +241,24 @@ private:
     FXWindow*        pFXWindow;
     VSTWindow*       pVSTWindow;
 
+
     QSystemTrayIcon* pTrayIcon;
     QCPItemText*     pGraphTextTrackTime;
     QCPItemRect*     backgnd;
 
-    std::vector<TrackWidget*> tracks;
 
     int iSelectedTrackIndex;
 
-    unsigned int iCurrentXPosOnGraph;
+
     double minPosOnGraphForText;
     double maxPosOnGraphForText;
 
+
+    unsigned int iCurrentXPosOnGraph;
+
+
     bool bSystemReady;
+
+
+    std::vector<TrackWidget*> tracks;
 };
