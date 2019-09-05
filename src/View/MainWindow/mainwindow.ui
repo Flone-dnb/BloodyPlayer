@@ -14,7 +14,7 @@
    <string>Bloody Player</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(13, 13, 13, 255), stop:1 rgba(27, 27, 27, 255));
+   <string notr="true">background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(12, 12, 12, 255), stop:1 rgba(26, 26, 26, 255));
 
 color: white;</string>
   </property>
@@ -1449,7 +1449,7 @@ QPushButton:pressed
     <item>
      <widget class="QFrame" name="frame">
       <property name="styleSheet">
-       <string notr="true">border: 1px solid darkred;</string>
+       <string notr="true">border: 1px solid rgb(180, 0, 0);</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
@@ -1486,7 +1486,7 @@ QPushButton:pressed
     <item>
      <widget class="TrackList" name="scrollArea">
       <property name="styleSheet">
-       <string notr="true">border: 1px solid darkred;
+       <string notr="true">border: 1px solid rgb(180, 0, 0);
 border-radius: 25px;</string>
       </property>
       <property name="widgetResizable">
@@ -1551,7 +1551,15 @@ border-radius: 25px;</string>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(24, 24, 24);</string>
+    <string notr="true">QMenuBar
+{
+	background-color: rgb(24, 24, 24);
+}
+
+QMenuBar::item:selected
+{
+	background-color: rgb(89, 89, 89);
+}</string>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="styleSheet">
