@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 
 
@@ -125,7 +125,6 @@ private:
     // FX
     FMOD::DSP*        pPitch;
     FMOD::DSP*        pPitchForTime;
-    FMOD::DSP*        pFaderForTime;
     FMOD::DSP*        pReverb;
     FMOD::DSP*        pEcho;
     FMOD::DSP*        pVST;

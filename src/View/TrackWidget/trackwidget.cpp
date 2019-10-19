@@ -1,4 +1,4 @@
-#include "trackwidget.h"
+﻿#include "trackwidget.h"
 #include "ui_trackwidget.h"
 
 #include <QMouseEvent>
@@ -55,12 +55,12 @@ TrackWidget::TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime
                    ""
                    "QFrame:hover"
                    "{"
-                   "  background-color: rgb(78, 78, 78);"
+                   "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(25, 25, 25, 255), stop:1 rgba(66, 66, 66, 255));"
                    "}";
 
     styleSelected = "QFrame"
                     "{"
-                    "  background-color: rgb(77, 38, 38);"
+                    "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(38, 32, 32, 255), stop:1 rgba(88, 39, 39, 255));"
                     "  border-radius: 25px;"
                     "  border: 1px solid darkred;"
                        "color: white;"
@@ -68,12 +68,12 @@ TrackWidget::TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime
                     ""
                     "QFrame:hover"
                     "{"
-                    "  background-color: rgb(78, 78, 78);"
+                    "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(25, 25, 25, 255), stop:1 rgba(66, 66, 66, 255));"
                     "}";
 
     stylePlaying = "QFrame"
                    "{"
-                   "  background-color: qlineargradient(spread:pad, x1:0.5, y1:0, x2:0.5, y2:1, stop:0 rgba(58, 18, 18, 255), stop:1 rgba(50, 32, 21, 255));"
+                   "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(35, 0, 0, 255), stop:1 rgba(65, 0, 0, 255));"
                    "  border-radius: 25px;"
                    "  border: 1px solid darkred;"
                       "color: white;"
@@ -81,7 +81,7 @@ TrackWidget::TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime
                    ""
                    "QFrame:hover"
                    "{"
-                   "  background-color: rgb(78, 78, 78);"
+                   "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(35, 0, 0, 255), stop:1 rgba(98, 40, 40, 255));"
                    "}";
 }
 

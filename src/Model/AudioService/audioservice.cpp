@@ -1,4 +1,4 @@
-#include "audioservice.h"
+﻿#include "audioservice.h"
 
 //STL
 #include <string>
@@ -34,7 +34,6 @@ AudioService::AudioService(MainWindow* pMainWindow)
     // FX
     pPitch        = nullptr;
     pPitchForTime = nullptr;
-    pFaderForTime = nullptr;
     pReverb       = nullptr;
     pEcho         = nullptr;
     pVST          = nullptr;
@@ -88,6 +87,10 @@ void AudioService::FMODinit()
         return;
     }
 
+
+
+    // FX
+
     FMOD::ChannelGroup* pMaster;
     pSystem->getMasterChannelGroup(&pMaster);
 
@@ -105,6 +108,8 @@ void AudioService::FMODinit()
         pMaster->addDSP(0, pPitch);
     }
 
+
+
     result = pSystem->createDSPByType(FMOD_DSP_TYPE_PITCHSHIFT, &pPitchForTime);
     if (result)
     {
@@ -118,16 +123,6 @@ void AudioService::FMODinit()
         pMaster->addDSP(1, pPitchForTime);
     }
 
-    result = pSystem->createDSPByType(FMOD_DSP_TYPE_FADER, &pFaderForTime);
-    if (result)
-    {
-        pMainWindow->showMessageBox( true, std::string("AudioService::AudioService::FMOD::System::createDSPByType() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-        pFaderForTime = nullptr;
-    }
-    else
-    {
-        pMaster->addDSP(2, pFaderForTime);
-    }
 
     result = pSystem->createDSPByType(FMOD_DSP_TYPE_SFXREVERB, &pReverb);
     if (result)
@@ -139,7 +134,10 @@ void AudioService::FMODinit()
     {
         pMaster->addDSP(3, pReverb);
         pReverb->setParameterFloat(FMOD_DSP_SFXREVERB_WETLEVEL, -80.0f);
+        pReverb->setBypass(true);
     }
+
+
 
     result = pSystem->createDSPByType(FMOD_DSP_TYPE_ECHO, &pEcho);
     if (result)
@@ -152,6 +150,7 @@ void AudioService::FMODinit()
         pMaster->addDSP(4, pEcho);
         pEcho->setParameterFloat(FMOD_DSP_ECHO_DELAY, 1000);
         pEcho->setParameterFloat(FMOD_DSP_ECHO_WETLEVEL, -80.0f);
+        pEcho->setBypass(true);
     }
 
     pMaster->setPan(0.0f);
@@ -845,6 +844,15 @@ void AudioService::setReverbVolume(float fVolume)
 {
     if (pReverb)
     {
+        if (fVolume <= -80.0f)
+        {
+            pReverb->setBypass(true);
+        }
+        else
+        {
+            pReverb->setBypass(false);
+        }
+
         pReverb->setParameterFloat(FMOD_DSP_SFXREVERB_WETLEVEL, fVolume);
         pSystem->update();
     }
@@ -854,6 +862,15 @@ void AudioService::setEchoVolume(float fEchoVolume)
 {
     if (pEcho)
     {
+        if (fEchoVolume <= -80.0f)
+        {
+            pEcho->setBypass(true);
+        }
+        else
+        {
+            pEcho->setBypass(false);
+        }
+
         pEcho->setParameterFloat(FMOD_DSP_ECHO_WETLEVEL, fEchoVolume);
         pSystem->update();
     }
@@ -1295,7 +1312,7 @@ AudioService::~AudioService()
     std::this_thread::sleep_for(std::chrono::milliseconds(MONITOR_TRACK_INTERVAL_MS));
 
     // FX
-    if ( (pPitch != nullptr) || (pPitchForTime != nullptr) || (pFaderForTime != nullptr) || (pReverb != nullptr) || (pEcho != nullptr) || (pVST != nullptr) )
+    if ( (pPitch != nullptr) || (pPitchForTime != nullptr) || (pReverb != nullptr) || (pEcho != nullptr) || (pVST != nullptr) )
     {
         FMOD::ChannelGroup* pMaster;
         pSystem->getMasterChannelGroup(&pMaster);
@@ -1309,11 +1326,6 @@ AudioService::~AudioService()
         {
             pMaster->removeDSP(pPitchForTime);
             pPitchForTime->release();
-        }
-        if (pFaderForTime)
-        {
-            pMaster->removeDSP(pFaderForTime);
-            pFaderForTime->release();
         }
         if (pReverb)
         {

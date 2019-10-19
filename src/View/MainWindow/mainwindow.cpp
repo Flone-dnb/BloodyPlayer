@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 // Qt
@@ -299,7 +299,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.16.0.\nCopyright (c) 2019 Flone.");
+    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.16.1.\nCopyright (c) 2019 Aleksandr \"Flone\" Tretyakov (github.com/Flone-dnb).");
 }
 
 void MainWindow::on_pushButton_Play_clicked()

@@ -45,7 +45,7 @@
 
 QFrame:hover
 {
-	background-color: rgb(78, 78, 78);
+	background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(25, 25, 25, 255), stop:1 rgba(66, 66, 66, 255));
 }</string>
      </property>
      <property name="frameShape">

@@ -59,7 +59,7 @@ FORMS += \
         ../src/View/VSTWindow/vstwindow.ui \
         ../src/View/WaitWindow/waitwindow.ui
 
-LIBS += -L"D:\Program Files (x86)\FMOD Studio API Windows\api\core\lib\x64"
+LIBS += -L"$$_PRO_FILE_PWD_/../ext/FMOD/lib/x64"
 
 
 win32

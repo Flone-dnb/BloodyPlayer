@@ -34,6 +34,12 @@ color: white;</string>
      <height>30</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QMenuBar::item:selected
+{
+	background-color: rgb(89, 89, 89);
+}</string>
+   </property>
    <widget class="QMenu" name="menu">
     <property name="styleSheet">
      <string notr="true">QMenu::item:selected
