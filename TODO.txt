@@ -1,5 +1,7 @@
 ﻿- Add oscillogram drawing for 24 and 8 bit audio.
 - Add tooltips to all buttons.
+- Speed up the process of adding the tracks. Add only paths and when play() called create FMOD object. 
+- When adding music, we need to add it in the same order in which it was in the folder.
 - Seems like with 'speed (by pitch)' effect we also need to increase mid-high frequencies on like 3-4 dB and maybe do the same thing with the low and the mid-low.
 - Add bounds in which track will repeat by clicking RMB on the oscillogram. Track's volume in the transition from end bound to start bound will change?
 - Add a history of played tracks so the 'prev' button will get back to actually previous track even if 'random track' function is selected.
@@ -10,8 +12,6 @@
 - Add gain (fader) DSP.
 - Add multi-band EQ.
 - Add the Ctrl + F shortcut to show the 'Search by Keyword' window and set focus on the track with the match. 'Search by Keyword' will also have a 'next match' and 'prev match' buttons.
-- When adding music, we need to add it in the same order in which it was in the folder.
 - On every startup check if the Player is associated with the audio formats in windows and if not then ask to associate.
-- Speed up the process of adding the tracks. Maybe do something with the bitrate calculation because the current function may be kinda slow and maybe there is a faster and easy way.
 - Decrease RAM used.
 - There is a rare bug that causes a crash right after you open one track (with .ogg seems to crash often than .mp3 (???)).
