@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 
 
@@ -50,7 +50,7 @@ signals:
 
     // Oscillogram
 
-        void     signalAddDataToGraph      (short int* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
+        void     signalAddDataToGraph      (float* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
         void     signalSetCurrentPos       (double x,          std::string time);
         void     signalClearGraph          (bool stopTrack = false);
         void     signalSetXMaxToGraph      (unsigned int iMaxX);
@@ -96,7 +96,7 @@ public:
 
     // Oscillogram
 
-        void     addDataToGraph            (short int* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
+        void     addDataToGraph            (float* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
         void     setCurrentPos             (double x,          std::string time);
         void     clearGraph                (bool stopTrack = false);
         void     setXMaxToGraph            (unsigned int iMaxX);
@@ -169,7 +169,7 @@ private slots:
 
     // Oscillogram
 
-        void  slotAddDataToGraph                   (short int* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
+        void  slotAddDataToGraph                   (float* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
         void  slotSetCurrentPos                    (double x,          std::string time);
         void  slotClearGraph                       (bool stopTrack = false);
         void  slotSetXMaxToGraph                   (unsigned int iMaxX);

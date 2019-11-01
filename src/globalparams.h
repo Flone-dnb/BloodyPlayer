@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define MAX_CHANNELS 2000
 #define DEFAULT_VOLUME 0.75f
@@ -7,4 +7,3 @@
 
 // graph
 #define MAX_X_AXIS_VALUE 1000
-#define MAX_AMPLITUDE 33500

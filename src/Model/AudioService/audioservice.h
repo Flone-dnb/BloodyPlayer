@@ -35,7 +35,7 @@ public:
 
 
 
-    // Main buttons
+    // Main functions
 
         void   playTrack             (size_t iTrackIndex,           bool bDontLockMutex = false);
         void   nextTrack             (bool bDontLockMutex = false,  bool bRandomNextTrack = false);
@@ -109,6 +109,11 @@ private:
 
     // Will draw the oscillogram for the current track
     void   drawGraph       (size_t* iTrackIndex);
+
+    // Used in drawGraph()
+        float* rawBytesToPCM16_0_1 (char* pBuffer, unsigned int iBufferSizeInBytes);
+        float* rawBytesToPCM24_0_1 (char* pBuffer, unsigned int iBufferSizeInBytes);
+        int interpret24bitAsInt32(char byte0, char byte1, char byte2);
 
 
 

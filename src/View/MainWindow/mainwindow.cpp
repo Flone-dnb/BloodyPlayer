@@ -46,18 +46,18 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType<size_t>("size_t");
 
     // This to this
-    connect(this, &MainWindow::signalShowWaitWindow, this, &MainWindow::slotShowWaitWindow);
-    connect(this, &MainWindow::signalHideWaitWindow, this, &MainWindow::slotHideWaitWindow);
-    connect(this, &MainWindow::signalSetProgress,    this, &MainWindow::slotSetProgress);
-    connect(this, &MainWindow::signalSetNumber,      this, &MainWindow::slotSetNumber);
-    connect(this, &MainWindow::signalShowMessageBox, this, &MainWindow::slotShowMessageBox);
-    connect(this, &MainWindow::signalSetTrack,       this, &MainWindow::slotSetTrack);
-    connect(this, &MainWindow::signalAddNewTrack,    this, &MainWindow::slotAddNewTrack);
-    connect(this, &MainWindow::signalClearGraph,     this, &MainWindow::slotClearGraph);
-    connect(this, &MainWindow::signalSetXMaxToGraph, this, &MainWindow::slotSetXMaxToGraph);
-    connect(this, &MainWindow::signalAddDataToGraph, this, &MainWindow::slotAddDataToGraph);
-    connect(this, &MainWindow::signalSetCurrentPos,  this, &MainWindow::slotSetCurrentPos);
-    connect(this, &MainWindow::signalHideVSTWindow,  this, &MainWindow::slotHideVSTWindow);
+    connect(this, &MainWindow::signalShowWaitWindow,      this, &MainWindow::slotShowWaitWindow);
+    connect(this, &MainWindow::signalHideWaitWindow,      this, &MainWindow::slotHideWaitWindow);
+    connect(this, &MainWindow::signalSetProgress,         this, &MainWindow::slotSetProgress);
+    connect(this, &MainWindow::signalSetNumber,           this, &MainWindow::slotSetNumber);
+    connect(this, &MainWindow::signalShowMessageBox,      this, &MainWindow::slotShowMessageBox);
+    connect(this, &MainWindow::signalSetTrack,            this, &MainWindow::slotSetTrack);
+    connect(this, &MainWindow::signalAddNewTrack,         this, &MainWindow::slotAddNewTrack);
+    connect(this, &MainWindow::signalClearGraph,          this, &MainWindow::slotClearGraph);
+    connect(this, &MainWindow::signalSetXMaxToGraph,      this, &MainWindow::slotSetXMaxToGraph);
+    connect(this, &MainWindow::signalAddDataToGraph,      this, &MainWindow::slotAddDataToGraph);
+    connect(this, &MainWindow::signalSetCurrentPos,       this, &MainWindow::slotSetCurrentPos);
+    connect(this, &MainWindow::signalHideVSTWindow,       this, &MainWindow::slotHideVSTWindow);
 
     // Tracklist connect
     connect(ui->scrollArea, &TrackList::signalDrop, this, &MainWindow::slotDrop);
@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Graph
     ui->widget_graph->addGraph();
     ui->widget_graph->xAxis->setRange(0, MAX_X_AXIS_VALUE);
-    ui->widget_graph->yAxis->setRange(-MAX_AMPLITUDE, MAX_AMPLITUDE);
+    ui->widget_graph->yAxis->setRange(0.0, 1.0);
 
     QPen pen;
     pen.setWidth(1);
@@ -233,7 +233,7 @@ void MainWindow::setXMaxToGraph(unsigned int iMaxX)
     emit signalSetXMaxToGraph(iMaxX);
 }
 
-void MainWindow::addDataToGraph(short int* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne)
+void MainWindow::addDataToGraph(float* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne)
 {
     emit signalAddDataToGraph(pData, iSizeInSamples, iSamplesInOne);
 }
@@ -461,7 +461,7 @@ void MainWindow::slotSetXMaxToGraph(unsigned int iMaxX)
     ui->widget_graph->xAxis->setRange(0, iMaxX);
 }
 
-void MainWindow::slotAddDataToGraph(short int* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne)
+void MainWindow::slotAddDataToGraph(float* pData, unsigned int iSizeInSamples, unsigned int iSamplesInOne)
 {
     QVector<double> x;
     QVector<double> y;
@@ -473,13 +473,13 @@ void MainWindow::slotAddDataToGraph(short int* pData, unsigned int iSizeInSample
         x.push_back( static_cast<double>(iCurrentXPosOnGraph) );
         iCurrentXPosOnGraph++;
 
-        int iSample = 0;
+        float iSample = -1.0f;
 
         for (unsigned int j = 0; j < (2 * sampleInOne); j+= 2)
         {
-            int iSample1 = (pData[i + j] + pData[i + j + 1]) / 2;
+            float iSample1 = (pData[i + j] + pData[i + j + 1]) / 2;
 
-            if (iSample == 0)
+            if (iSample < 0.0f)
             {
                 iSample = iSample1;
             }

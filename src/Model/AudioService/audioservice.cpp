@@ -19,7 +19,7 @@
 
 AudioService::AudioService(MainWindow* pMainWindow)
 {
-    this->pMainWindow   = pMainWindow;
+    this->pMainWindow    = pMainWindow;
     pSystem              = nullptr;
     pRndGen              = new std::mt19937_64( static_cast<unsigned long long>(time(nullptr)) );
     iCurrentlyDrawingTrackIndex = new size_t(0);
@@ -388,19 +388,26 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
 
     if (!bDontLockMutex) mtxTracksVec.lock();
 
+
     if ( iTrackIndex < tracks.size() )
     {
         if ( ((bCurrentTrackPaused == false) && (bIsSomeTrackPlaying == false)) || (iTrackIndex != iCurrentlyPlayingTrackIndex) )
         {
+            // If I'm correct then (bCurrentTrackPaused == false) && (bIsSomeTrackPlaying == false) should happend only when
+            // we play first track after player's started.
+
             if (bDrawing)
             {
-                // Some thread is drawing, stop it
+                // Some thread is drawing on the oscillogram, stop it.
+
                 bDrawing = false;
+
+                // A way to wait for that thread to end.
                 mtxDrawGraph.lock();
                 mtxDrawGraph.unlock();
             }
 
-            // Add new graph
+            // Draw new oscillogram.
             *iCurrentlyDrawingTrackIndex = iTrackIndex;
             std::thread drawGraphThread(&AudioService::drawGraph, this, iCurrentlyDrawingTrackIndex);
             drawGraphThread.detach();
@@ -1199,62 +1206,153 @@ void AudioService::drawGraph(size_t* iTrackIndex)
 
     pMainWindow->clearGraph();
 
-    // this value combines 'iSamplesInOne' samples in one to store less points for graph in memory
+    // this value combines 'iOnlySamplesInOneRead' samples in one to store less points for graph in memory
     // more than '200' on a track that is about 5 minutes long looks bad
     // for example 2.5 min track with 'iSamplesInOne' = 100, adds like 3 MB to RAM
     // but less value can fill RAM very bad
-    unsigned int iSamplesInOne = 150;
+    unsigned int iOnlySamplesInOneRead = 150;
     // so we calculate 'iSamplesInOne' like this:
     // 3000 ('iSamplesInOne') - 6000 (sec.)
     // x    ('iSamplesInOne') - track length (in sec.)
 
     mtxGetCurrentDrawingIndex.lock();
-    // here we do: 3000 * (tracks[iTrackIndex]->getLengthInMS() / 1000) / 6000, but we can replace this with just:
-    iSamplesInOne = tracks[*iTrackIndex]->getLengthInMS() * 3 / 6000;
-    if (iSamplesInOne == 0) iSamplesInOne = 1;
 
-    unsigned int iTempMax = tracks[*iTrackIndex]->getLengthInPCMbytes() / 4 / iSamplesInOne;
+
+
+    // here we do: 3000 * (tracks[iTrackIndex]->getLengthInMS() / 1000) / 6000, but we can replace this with just:
+    iOnlySamplesInOneRead = tracks[*iTrackIndex]->getLengthInMS() * 3 / 6000;
+    if (iOnlySamplesInOneRead == 0) iOnlySamplesInOneRead = 1;
+
+
+    // Set max on graph
+    std::string format = tracks[*iTrackIndex]->getPCMFormat();
+    unsigned int iTempMax;
+    if (format == "PCM16")
+    {
+        iTempMax = tracks[*iTrackIndex]->getLengthInPCMbytes() / 4 / iOnlySamplesInOneRead;
+    }
+    else
+    {
+        iTempMax = tracks[*iTrackIndex]->getLengthInPCMbytes() / 6 / iOnlySamplesInOneRead;
+    }
+
     pMainWindow->setXMaxToGraph(iTempMax);
     tracks[*iTrackIndex]->setMaxPosInGraph(iTempMax);
+
 
     tracks[*iTrackIndex]->createDummySound();
     mtxGetCurrentDrawingIndex.unlock();
 
-    // 2 MB because you need to multiply this value by 2 (because of short int type of buffer).
-    unsigned int iBufferSize = 1048576;
+    // Buffer Size = 2 MB
+    unsigned int iBufferSize = 2097152;
     unsigned int iGraphMax = 0;
+    char pcmFormat = 0;
     char result = 1;
 
     do
     {
-        short int* pSamples = new short int[iBufferSize];
-        unsigned int iActuallyRead;
+        char* pSamplesBuffer = new char[iBufferSize];
+        unsigned int iActuallyReadBytes;
+
+
+
+
+        // Read
 
         mtxGetCurrentDrawingIndex.lock();
-        result = tracks[*iTrackIndex]->getPCMSamples(pSamples, iBufferSize * 2, &iActuallyRead);
+
+        result = tracks[*iTrackIndex]->getPCMSamples(pSamplesBuffer, iBufferSize, &iActuallyReadBytes, &pcmFormat);
+
         mtxGetCurrentDrawingIndex.unlock();
+
+
+
+
+        // Check for errors
 
         if (result == 0)
         {
-            // error
-            delete[] pSamples;
+            delete[] pSamplesBuffer;
             break;
         }
-        else if ((result == -1) && (iActuallyRead == 0))
+        else if ((result == -1) && (iActuallyReadBytes == 0))
         {
-            delete[] pSamples;
+            delete[] pSamplesBuffer;
             break;
         }
 
 
-        // Because 'iActuallyRead' is amount of L and R samples and we in MainWindow mix L and R channels in one.
-        iGraphMax += iActuallyRead / 2 / iSamplesInOne;
 
-        pMainWindow->addDataToGraph(pSamples, iActuallyRead, iSamplesInOne);
+
+        // Convert to proper massive format
+
+        if (pcmFormat == 16)
+        {
+            // PCM16
+
+            if (iActuallyReadBytes % 4 != 0)
+            {
+                // Wil probably appear on end of file
+
+                while (iActuallyReadBytes % 4 != 0)
+                {
+                    iActuallyReadBytes--;
+                }
+            }
+
+
+
+            float* pSamples = rawBytesToPCM16_0_1 (pSamplesBuffer, iActuallyReadBytes);
+
+
+            // Delete raw buffer
+
+            delete[] pSamplesBuffer;
+
+
+            // Send to Main Window new buffer
+
+            iGraphMax += iActuallyReadBytes / 4 / iOnlySamplesInOneRead;
+
+            pMainWindow->addDataToGraph(pSamples, iActuallyReadBytes / 2, iOnlySamplesInOneRead);
+        }
+        else
+        {
+            // PCM24
+
+            if (iActuallyReadBytes % 6 != 0)
+            {
+                // Wil probably appear on end of file
+
+                while (iActuallyReadBytes % 6 != 0)
+                {
+                    iActuallyReadBytes--;
+                }
+            }
+
+
+
+            float* pSamples = rawBytesToPCM24_0_1 (pSamplesBuffer, iActuallyReadBytes);
+
+
+            // Delete raw buffer
+
+            delete[] pSamplesBuffer;
+
+
+            // Send to Main Window new buffer
+
+            iGraphMax += iActuallyReadBytes / 6 / iOnlySamplesInOneRead;
+
+            pMainWindow->addDataToGraph(pSamples, iActuallyReadBytes / 3, iOnlySamplesInOneRead);
+        }
 
     }while ( (result == 1) && (bDrawing) );
 
+
+
     mtxGetCurrentDrawingIndex.lock();
+
 
     if (bDrawing)
     {
@@ -1263,6 +1361,8 @@ void AudioService::drawGraph(size_t* iTrackIndex)
     }
 
     tracks[*iTrackIndex]->releaseDummySound();
+
+
 
     mtxGetCurrentDrawingIndex.unlock();
 
@@ -1278,6 +1378,78 @@ void AudioService::drawGraph(size_t* iTrackIndex)
 
     bDrawing = false;
     mtxDrawGraph.unlock();
+}
+
+float *AudioService::rawBytesToPCM16_0_1(char *pBuffer, unsigned int iBufferSizeInBytes)
+{
+    float* pSamples     = new float[ iBufferSizeInBytes / 2 ];
+
+    size_t iPosInSamples = 0;
+
+    for (size_t i = 0; i < iBufferSizeInBytes; i += 4)
+    {
+        short int iSampleL = 0;
+
+        std::memcpy(reinterpret_cast<char*>(&iSampleL),     &pBuffer[i],     1);
+        std::memcpy(reinterpret_cast<char*>(&iSampleL) + 1, &pBuffer[i + 1], 1);
+
+        unsigned short int iSampleLUnsigned = static_cast<unsigned short int> (iSampleL + SHRT_MIN);
+
+        pSamples[iPosInSamples] = static_cast<float>( iSampleLUnsigned / pow(2, 16) );
+        iPosInSamples++;
+
+
+
+        short int iSampleR = 0;
+
+        std::memcpy(reinterpret_cast<char*>(&iSampleR),     &pBuffer[i + 2], 1);
+        std::memcpy(reinterpret_cast<char*>(&iSampleR) + 1, &pBuffer[i + 3], 1);
+
+        unsigned short int iSampleRUnsigned = static_cast<unsigned short int> (iSampleR + SHRT_MIN);
+
+        pSamples[iPosInSamples] = static_cast<float>( iSampleRUnsigned / pow(2, 16) );
+        iPosInSamples++;
+    }
+
+    return pSamples;
+}
+
+float *AudioService::rawBytesToPCM24_0_1(char *pBuffer, unsigned int iBufferSizeInBytes)
+{
+    float* pSamples     = new float [ iBufferSizeInBytes / 3 ];
+
+    size_t iPosInSamples = 0;
+
+    // 8388607 is 2^24 / 2
+    int iMin24BitSigned = 8388608;
+
+    for (size_t i = 0; i < iBufferSizeInBytes; i += 6)
+    {
+        int iSampleL = interpret24bitAsInt32 (pBuffer[i + 2], pBuffer[i + 1], pBuffer[i]);
+
+        unsigned int iSampleLUnsigned = static_cast<unsigned int> (iSampleL + iMin24BitSigned);
+
+        pSamples[iPosInSamples] = static_cast<float>(iSampleLUnsigned / pow(2, 24));
+        iPosInSamples++;
+
+
+
+        int iSampleR = interpret24bitAsInt32 (pBuffer[i + 5], pBuffer[i + 4], pBuffer[i + 3]);
+
+        unsigned int iSampleRUnsigned = static_cast<unsigned int> (iSampleR + iMin24BitSigned);
+
+        pSamples[iPosInSamples] = static_cast<float>(iSampleRUnsigned / pow(2, 24));
+        iPosInSamples++;
+    }
+
+
+    return pSamples;
+}
+
+int AudioService::interpret24bitAsInt32(char byte0, char byte1, char byte2)
+{
+    // copy-paste from stackoverflow
+    return ( (byte0 << 24) | (byte1 << 16) | (byte2 << 8) ) >> 8;
 }
 
 void AudioService::threadAddTracks(std::vector<wchar_t*> paths, bool* done, int* allCount, int all)

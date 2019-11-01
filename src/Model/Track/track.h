@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 
 
@@ -65,31 +65,42 @@ public:
     // 'Get' functions
 
         // Format
+
         std::string    getPCMFormat           ();
         std::string    getFormat              ();
 
+
         // Time
+
         std::string    getCurrentTime         ();
         unsigned int   getLengthInMS          ();
         unsigned int   getPositionInMS        ();
         unsigned int   getPositionInPCMBytes  ();
 
+
         // Size
+
         long long      getFileSizeInBytes     ();
         unsigned int   getLengthInPCMbytes    ();
         unsigned int   getMaxValueOnGraph     ();
 
+
         // Audio params
+
         float          getFrequency           ();
         bool           getChannelsAndBits     (int* channels,     int* bits);
         bool           getBitRate             (int* bitrate);
 
+
         // State
+
         bool           getPaused              ();
         bool           getPlaying             ();
 
+
         // Other
-        char           getPCMSamples          (short int* pBuff,  unsigned int amountInBytes,  unsigned int *pActualRead);
+
+        char           getPCMSamples          (char* pBuff,  unsigned int amountInBytes,  unsigned int *pActualRead, char* pPcmFormat);
         const wchar_t* getFilePath            ();
 
 

@@ -1,4 +1,4 @@
-#include "track.h"
+﻿#include "track.h"
 
 #include <fstream>
 #include <vector>
@@ -125,73 +125,76 @@ bool Track::createDummySound()
     return true;
 }
 
-char Track::getPCMSamples(short int *pBuff, unsigned int amountInBytes, unsigned int *pActualRead)
+char Track::getPCMSamples(char *pBuff, unsigned int amountInBytes, unsigned int *pActualRead, char* pPcmFormat)
 {
+    // return value:
     // -1 == end of file
     // 0  == error
     // 1  == ok
 
-    if (pcmFormat != "PCM16")
+
+    if (pcmFormat == "PCM16")
     {
-        // This function (getPCMSamples) gives only short int (16 bit) samples.
-        // We can add 8 bit and 24 bit support later, for now, this is not the main goal.
+        *pPcmFormat = 16;
+    }
+    else if (pcmFormat == "PCM24")
+    {
+        *pPcmFormat = 24;
+    }
+    else
+    {
         pMainWindow->showMessageBox(true, "Track::getPCMSamples() error. Unsupported PCM format. "
-                                          "This version of Bloody Player supports only 16 bit audio. This is not a critical error.");
+                                          "This version of Bloody Player supports only 16 bit and 24 bit audio. This is not a critical error.");
         return 0;
     }
 
+
+
+
     FMOD_RESULT result;
 
-    if (amountInBytes % 2 != 0)
+    if (pcmFormat == "PCM16")
     {
-        amountInBytes--;
+        if (amountInBytes % 4 != 0)
+        {
+            while (amountInBytes % 4 != 0)
+            {
+                amountInBytes--;
+            }
+        }
+    }
+    else if (pcmFormat == "PCM24")
+    {
+        if (amountInBytes % 6 != 0)
+        {
+            while (amountInBytes % 6 != 0)
+            {
+                amountInBytes--;
+            }
+        }
     }
 
-    char* pTemp = new char[amountInBytes];
 
-    result = pDummySound->readData(pTemp, amountInBytes, pActualRead);
+
+
+    result = pDummySound->readData(pBuff, amountInBytes, pActualRead);
+
     if ( (result) && (result != FMOD_ERR_FILE_EOF))
     {
-        delete[] pTemp;
         pMainWindow->showMessageBox( true, std::string("Track::getAudioData::FMOD::Sound::readData() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+
         return 0;
     }
     else
     {
-        if ( (result == FMOD_ERR_FILE_EOF) && (*pActualRead == 0) )
-        {
-            return -1;
-        }
-
-        unsigned int iNewRead = 0;
-
-        for (unsigned int i = 0; i < *pActualRead - 3; i += 4)
-        {
-            short int iSampleL = 0;
-
-            std::memcpy(reinterpret_cast<char*>(&iSampleL),     &pTemp[i],     1);
-            std::memcpy(reinterpret_cast<char*>(&iSampleL) + 1, &pTemp[i + 1], 1);
-
-            pBuff[iNewRead] = iSampleL;
-            iNewRead++;
-
-            short int iSampleR = 0;
-            std::memcpy(reinterpret_cast<char*>(&iSampleR),     &pTemp[i + 2], 1);
-            std::memcpy(reinterpret_cast<char*>(&iSampleR) + 1, &pTemp[i + 3], 1);
-
-            pBuff[iNewRead] = iSampleR;
-            iNewRead++;
-        }
-
-        *pActualRead = iNewRead;
-
-        delete[] pTemp;
-
         if (result == FMOD_ERR_FILE_EOF)
         {
             return -1;
         }
-        else return 1;
+        else
+        {
+            return 1;
+        }
     }
 }
 
