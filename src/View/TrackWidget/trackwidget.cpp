@@ -68,7 +68,7 @@ TrackWidget::TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime
                     ""
                     "QFrame:hover"
                     "{"
-                    "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(25, 25, 25, 255), stop:1 rgba(66, 66, 66, 255));"
+                    "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(38, 32, 32, 255), stop:1 rgba(128, 59, 59, 255));"
                     "}";
 
     stylePlaying = "QFrame"

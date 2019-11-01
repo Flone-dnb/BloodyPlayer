@@ -1,4 +1,5 @@
-﻿- Add tooltips to all buttons.
+﻿- Update styles, create Help menu and add custom About window.
+- Add tooltips to all buttons.
 - Speed up the process of adding the tracks. Add only paths and when play() called create FMOD object. 
 - When adding music, we need to add it in the same order in which it was in the folder.
 - Change random to random_device?
