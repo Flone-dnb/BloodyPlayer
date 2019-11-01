@@ -10,11 +10,11 @@
 
 #include <windows.h>
 
-Track::Track(MainWindow *pMainWindow, FMOD::System* pSystem)
+Track::Track(const wchar_t* pFilePath, MainWindow *pMainWindow, FMOD::System* pSystem)
 {
     pChannel          = nullptr;
     pSound            = nullptr;
-    pFilePath         = nullptr;
+    this->pFilePath   = pFilePath;
 
     this->pMainWindow = pMainWindow;
     this->pSystem     = pSystem;
@@ -32,7 +32,7 @@ Track::Track(MainWindow *pMainWindow, FMOD::System* pSystem)
 
 
 
-bool Track::setTrack(const wchar_t* pFilePath)
+bool Track::setupTrack()
 {
     // This function creates a track (pSound) in the FMOD system.
 
@@ -52,8 +52,6 @@ bool Track::setTrack(const wchar_t* pFilePath)
         return false;
     }
 
-    // On this point, we are created the sound and can save path to it.
-    this->pFilePath = pFilePath;
 
     // Get audio format (mp3, wav, flac, ogg and etc.)
     FMOD_SOUND_TYPE type;

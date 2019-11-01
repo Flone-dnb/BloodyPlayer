@@ -8,6 +8,7 @@
 
 // STL
 #include <string>
+#include <mutex>
 #include <vector>
 
 
@@ -66,6 +67,7 @@ signals:
     // Other
 
         void     signalAddNewTrack         (std::wstring trackName,  std::wstring trackInfo,  std::string trackTime);
+        void     signalShowAllTracks       ();
         void     signalSetTrack            (size_t iTrackIndex,      bool bClear = false);
         void     signalShowMessageBox      (bool errorBox,           std::string text);
         void     signalSetNumber           (size_t iNumber);
@@ -117,6 +119,7 @@ public:
     // Other
 
         void     addNewTrack               (std::wstring trackName,  std::wstring trackInfo,  std::string trackTime);
+        void     showAllTracks             ();
         void     showMessageBox            (bool errorBox,           std::string text);
         void     setPlayingOnTrack         (size_t iTrackIndex,      bool bClear = false);
         void     removePlayingOnTrack      (size_t iTrackIndex);
@@ -228,6 +231,7 @@ private slots:
     // Other
 
         void  slotAddNewTrack                      (std::wstring trackName,  std::wstring trackInfo,  std::string trackTime);
+        void  slotShowAllTracks                    ();
         void  slotSetTrack                         (size_t iTrackIndex,      bool bClear = false);
         void  slotShowMessageBox                   (bool errorBox,           std::string text);
         void  slotSetNumber                        (size_t iNumber);
@@ -245,6 +249,9 @@ private:
     QSystemTrayIcon* pTrayIcon;
     QCPItemText*     pGraphTextTrackTime;
     QCPItemRect*     backgnd;
+
+
+    std::mutex       mtxAddTrackWidget;
 
 
     int iSelectedTrackIndex;

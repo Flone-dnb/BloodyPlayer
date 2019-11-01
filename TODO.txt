@@ -1,8 +1,6 @@
-﻿- Speed up the process of adding the tracks. Add only paths and when play() called create FMOD object. 
+﻿- Speed up the process of adding the tracks.
 - When adding music, we need to add it in the same order in which it was in the folder.
 - Change random to random_device?
-- There is a rare bug that causes a crash right after you open one track:
-vector subscript out of range exception
 - Do something with color banding.
 - Seems like with 'speed (by pitch)' effect we also need to increase mid-high frequencies on like 3-4 dB and maybe do the same thing with the low and the mid-low.
 - Add bounds in which track will repeat by clicking RMB on the oscillogram. Track's volume in the transition from end bound to start bound will change?

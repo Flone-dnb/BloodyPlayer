@@ -28,7 +28,7 @@ class Track
 
 public:
 
-    Track(MainWindow* pMainWindow, FMOD::System* pSystem);
+    Track(const wchar_t* pFilePath, MainWindow* pMainWindow, FMOD::System* pSystem);
 
 
 
@@ -36,7 +36,7 @@ public:
 
     // Start/stop functions
 
-        bool           setTrack               (const wchar_t* pFilePath);
+        bool           setupTrack             ();
         bool           playTrack              (float fVolume);
         bool           pauseTrack             ();
         bool           stopTrack              ();

@@ -160,14 +160,16 @@ void AudioService::FMODinit()
 
 void AudioService::addTrack(const wchar_t *pFilePath)
 {
-    Track* pNewTrack = new Track(pMainWindow, pSystem);
-    if ( !pNewTrack->setTrack(pFilePath) )
+    Track* pNewTrack = new Track(pFilePath, pMainWindow, pSystem);
+    if ( !pNewTrack->setupTrack() )
     {
         delete pNewTrack;
         return;
     }
 
     std::wstring wPathStr(pFilePath);
+
+
 
     // Get track name
     size_t iNameStartIndex = 0;
@@ -179,12 +181,15 @@ void AudioService::addTrack(const wchar_t *pFilePath)
             break;
         }
     }
+
     std::wstring trackName = L"";
     for (size_t i = iNameStartIndex; i < wPathStr.size() - 4; i++)
     {
         trackName += wPathStr[i];
     }
     if (trackName.back() == L'.') trackName.pop_back();
+
+
 
     // Get track info
     std::wstring trackInfo = L"";
@@ -224,12 +229,14 @@ void AudioService::addTrack(const wchar_t *pFilePath)
     trackInfo += stream.str();
     trackInfo += L" MB";
 
+
+
     // Get track time
+    std::string trackTime = "";
     unsigned int iMS = pNewTrack->getLengthInMS();
     unsigned int iSeconds = iMS / 1000;
     unsigned int iMinutes = iSeconds / 60;
     iSeconds -= (iMinutes * 60);
-    std::string trackTime = "";
     trackTime += std::to_string(iMinutes);
     trackTime += ":";
     if (iSeconds < 10) trackTime += "0";
@@ -278,12 +285,14 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
             paths.pop_back();
         }
 
-        pMainWindow->showMessageBox(true, std::to_string(removeCount) + std::string(" tracks were rejected because with them we will exceed maximum"
-                                                                                    " amount of tracks in the tracklist which is " + std::to_string(MAX_CHANNELS)));
+        pMainWindow->showMessageBox(true, "Maximum tracks exceeded." + std::to_string(removeCount) + " tracks have not been added.");
     }
 
 
-    pMainWindow->showWaitWindow("Please wait.\nAdding your music.");
+
+    pMainWindow->showWaitWindow("Please wait...\n"
+                                "Adding your music.");
+
 
     // Get amount of CPU threads
     // In every CPU thread we will add tracks
@@ -295,35 +304,38 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
     int* allCount = new int(0);
 
 
-    if (paths.size() >= threads*2)
+    if (paths.size() >= threads * 2)
     {
         size_t iPathsOnOneThread = paths.size() / threads;
         size_t iCurrentPos = 0;
 
-        std::vector<wchar_t*> onThread;
+        size_t iStart, iStop;
         for (size_t i = 0; i < paths.size(); i++)
         {
             if (iCurrentPos < iPathsOnOneThread)
             {
-                onThread.push_back(paths[i]);
+                if (iCurrentPos == 0) iStart = i;
                 iCurrentPos++;
             }
 
             if (iCurrentPos == iPathsOnOneThread)
             {
+                iStop = i;
+
                 threadsDoneFlags.push_back(new bool(false));
-                std::thread t (&AudioService::threadAddTracks, this, onThread, threadsDoneFlags.back(), allCount, static_cast<int>(paths.size()));
+                std::thread t (&AudioService::threadAddTracks, this, &paths, iStart, iStop, threadsDoneFlags.back(), allCount, static_cast<int>(paths.size()));
                 t.detach();
 
-                onThread.clear();
                 iCurrentPos = 0;
             }
         }
 
-        if (onThread.size() > 0)
+        if (iCurrentPos > 0)
         {
+            iStop = paths.size() - 1;
+
             threadsDoneFlags.push_back(new bool(false));
-            std::thread t (&AudioService::threadAddTracks, this, onThread, threadsDoneFlags.back(), allCount, static_cast<int>(paths.size()));
+            std::thread t (&AudioService::threadAddTracks, this, &paths, iStart, iStop, threadsDoneFlags.back(), allCount, static_cast<int>(paths.size()));
             t.detach();
         }
     }
@@ -334,6 +346,8 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
         for (size_t i = 0; i < paths.size(); i++)
         {
             addTrack(paths[i]);
+
+            pMainWindow->setProgress( static_cast<int>(100.0f * ( i + 1 ) / paths.size()) );
         }
 
         delete allCount;
@@ -367,7 +381,6 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
 
     }while(bDone == false);
 
-
     delete allCount;
 
     for (size_t i = 0; i < threadsDoneFlags.size(); i++)
@@ -377,11 +390,9 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
 
     pMainWindow->hideWaitWindow();
 
-    // Wait a little for all track widgets to show
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    if (tracks.size() > 0) pMainWindow->setFocusOnTrack(tracks.size() - 1);
-
     mtxTracksVec.unlock();
+
+    pMainWindow->showAllTracks();
 }
 
 void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
@@ -1459,15 +1470,18 @@ int AudioService::interpret24bitAsInt32(char byte0, char byte1, char byte2)
     return ( (byte0 << 24) | (byte1 << 16) | (byte2 << 8) ) >> 8;
 }
 
-void AudioService::threadAddTracks(std::vector<wchar_t*> paths, bool* done, int* allCount, int all)
+void AudioService::threadAddTracks(std::vector<wchar_t*>* paths, size_t iStart, size_t iStop, bool* done, int* allCount, int all)
 {
-    for (size_t i = 0; i < paths.size(); i++)
+    for (size_t i = iStart; i <= iStop; i++)
     {
-        addTrack(paths[i]);
+        addTrack(paths->operator[](i));
+
 
         mtxLoadThreadDone.lock();
+
         *allCount += 1;
         pMainWindow->setProgress( *allCount *  100 / all);
+
         mtxLoadThreadDone.unlock();
     }
 

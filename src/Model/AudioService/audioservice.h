@@ -102,7 +102,7 @@ private:
     void   FMODinit        ();
 
     // Functions for execution in a separete thread
-    void   threadAddTracks (std::vector<wchar_t*> paths,  bool* done,  int* allCount,  int all);
+    void   threadAddTracks (std::vector<wchar_t*>* paths, size_t iStart, size_t iStop, bool* done,  int* allCount,  int all);
     void   addTrack        (const wchar_t* pFilePath);
 
     // Will switch to next track if one's ended

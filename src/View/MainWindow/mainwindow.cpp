@@ -13,6 +13,7 @@
 
 // STL
 #include <cmath>
+#include <thread>
 
 // Custom
 #include "../src/Controller/controller.h"
@@ -129,6 +130,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(pFXWindow, &FXWindow::signalChangeEchoVolume,   this, &MainWindow::slotSetEchoVolume);
     connect(pFXWindow, &FXWindow::signalOpenVST,            this, &MainWindow::slotLoadVST);
     connect(pFXWindow, &FXWindow::signalShowVST,            this, &MainWindow::slotShowVST);
+    connect(this, &MainWindow::signalShowAllTracks,         this, &MainWindow::slotShowAllTracks);
     connect(this, &MainWindow::signalResetAll,              pFXWindow, &FXWindow::slotResetAll);
     connect(this, &MainWindow::signalSetVSTName,            pFXWindow, &FXWindow::slotSetVSTName);
 
@@ -154,6 +156,11 @@ void MainWindow::showMessageBox(bool errorBox, std::string text)
 void MainWindow::addNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime)
 {
     emit signalAddNewTrack(trackName, trackInfo, trackTime);
+}
+
+void MainWindow::showAllTracks()
+{
+    emit signalShowAllTracks();
 }
 
 void MainWindow::removePlayingOnTrack(size_t iTrackIndex)
@@ -246,6 +253,9 @@ void MainWindow::setCurrentPos(double x, std::string time)
 
 void MainWindow::setFocusOnTrack(size_t index)
 {
+    // Wait a little for all track widgets to show
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+
     ui->scrollArea->ensureWidgetVisible(tracks[index], 50, 50);
 }
 
@@ -407,22 +417,39 @@ void MainWindow::slotSetNumber(size_t iNumber)
 
 void MainWindow::slotAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime)
 {
+    mtxAddTrackWidget.lock();
+
     TrackWidget* pNewTrack = new TrackWidget( QString::fromStdWString(trackName), QString::fromStdWString(trackInfo), QString::fromStdString(trackTime) );
     connect(pNewTrack, &TrackWidget::signalDoubleClick, this, &MainWindow::slotClickedOnTrack);
     connect(pNewTrack, &TrackWidget::signalSelected,    this, &MainWindow::slotTrackSelected);
     connect(pNewTrack, &TrackWidget::signalDelete,      this, &MainWindow::deleteSelectedTrack);
     connect(pNewTrack, &TrackWidget::signalMoveUp,      this, &MainWindow::slotMoveUp);
     connect(pNewTrack, &TrackWidget::signalMoveDown,    this, &MainWindow::slotMoveDown);
+
+    pNewTrack->setVisible(false);
     ui->verticalLayout_Tracks->addWidget(pNewTrack);
 
     tracks.push_back(pNewTrack);
     pNewTrack->setNumber( tracks.size() );
-    pNewTrack->show();
+    //pNewTrack->show();
 
     if (tracks.size() == 1)
     {
         ui->horizontalSlider->setEnabled(true);
     }
+
+    mtxAddTrackWidget.unlock();
+}
+
+void MainWindow::slotShowAllTracks()
+{
+    for (size_t i = 0; i < tracks.size(); i++)
+    {
+        tracks[i]->setVisible(true);
+    }
+
+    std::thread focus(&MainWindow::setFocusOnTrack, this, tracks.size() - 1);
+    focus.detach();
 }
 
 void MainWindow::slotShowWaitWindow(QString text)
