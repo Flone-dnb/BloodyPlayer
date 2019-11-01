@@ -47,35 +47,35 @@ TrackWidget::TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime
 
     styleDefault = "QFrame"
                    "{"
-                   "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(25, 25, 25, 255), stop:1 rgba(38, 38, 38, 255));"
+                   "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(18, 18, 18, 255), stop:1 rgba(35, 35, 35, 255));"
                    "  border-radius: 25px;"
-                   "  border: 1px solid darkred;"
-                      "color: white;"
+                   "  border: 1px solid rgb(140, 0, 0);"
+                   "  color: white;"
                    "}"
                    ""
                    "QFrame:hover"
                    "{"
-                   "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(25, 25, 25, 255), stop:1 rgba(66, 66, 66, 255));"
+                   "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(18, 18, 18, 255), stop:1 rgba(56, 56, 56, 255));"
                    "}";
 
     styleSelected = "QFrame"
                     "{"
-                    "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(38, 32, 32, 255), stop:1 rgba(88, 39, 39, 255));"
+                    "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(35, 30, 30, 255), stop:1 rgba(88, 39, 39, 255));"
                     "  border-radius: 25px;"
-                    "  border: 1px solid darkred;"
-                       "color: white;"
+                    "  border: 1px solid rgb(140, 0, 0);"
+                    "  color: white;"
                     "}"
                     ""
                     "QFrame:hover"
                     "{"
-                    "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(38, 32, 32, 255), stop:1 rgba(128, 59, 59, 255));"
+                    "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(35, 30, 30, 255), stop:1 rgba(128, 59, 59, 255));"
                     "}";
 
     stylePlaying = "QFrame"
                    "{"
                    "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(35, 0, 0, 255), stop:1 rgba(65, 0, 0, 255));"
                    "  border-radius: 25px;"
-                   "  border: 1px solid darkred;"
+                   "  border: 1px solid rgb(140, 0, 0);"
                       "color: white;"
                    "}"
                    ""
@@ -83,6 +83,8 @@ TrackWidget::TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime
                    "{"
                    "  background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(35, 0, 0, 255), stop:1 rgba(98, 40, 40, 255));"
                    "}";
+
+    ui ->frame ->setStyleSheet(styleDefault);
 }
 
 void TrackWidget::setPlaying()

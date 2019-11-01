@@ -19,6 +19,8 @@
 
 AudioService::AudioService(MainWindow* pMainWindow)
 {
+    sBloodyVersion       = "1.16.1";
+
     this->pMainWindow    = pMainWindow;
     pSystem              = nullptr;
     pRndGen              = new std::mt19937_64( static_cast<unsigned long long>(time(nullptr)) );
@@ -486,6 +488,11 @@ void AudioService::setTrackPos(unsigned int graphPos)
     }
 
     mtxTracksVec.unlock();
+}
+
+std::string AudioService::getBloodyVersion()
+{
+    return sBloodyVersion;
 }
 
 void AudioService::pauseTrack()

@@ -86,7 +86,8 @@ public:
 
     // Get
 
-        size_t  getPlayingTrackIndex (bool& bSomeTrackIsPlaying);
+        std::string  getBloodyVersion     ();
+        size_t       getPlayingTrackIndex (bool& bSomeTrackIsPlaying);
 
 
 
@@ -111,9 +112,9 @@ private:
     void   drawGraph       (size_t* iTrackIndex);
 
     // Used in drawGraph()
-        float* rawBytesToPCM16_0_1 (char* pBuffer, unsigned int iBufferSizeInBytes);
-        float* rawBytesToPCM24_0_1 (char* pBuffer, unsigned int iBufferSizeInBytes);
-        int interpret24bitAsInt32(char byte0, char byte1, char byte2);
+        float* rawBytesToPCM16_0_1   (char* pBuffer, unsigned int iBufferSizeInBytes);
+        float* rawBytesToPCM24_0_1   (char* pBuffer, unsigned int iBufferSizeInBytes);
+        int    interpret24bitAsInt32 (char byte0, char byte1, char byte2);
 
 
 
@@ -143,6 +144,14 @@ private:
     bool              bDrawing;
 
 
+    std::mutex        mtxTracksVec;
+    std::mutex        mtxThreadLoadAddTrack;
+    std::mutex        mtxLoadThreadDone;
+
+
+    std::string       sBloodyVersion;
+
+
     size_t            iCurrentlyPlayingTrackIndex;
 
 
@@ -158,9 +167,7 @@ private:
     bool              bMonitorTracks;
 
 
-    std::mutex        mtxTracksVec;
-    std::mutex        mtxThreadLoadAddTrack;
-    std::mutex        mtxLoadThreadDone;
+
 
 
     std::vector<Track*> tracks;

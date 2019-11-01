@@ -20,6 +20,7 @@
 #include "../src/View/WaitWindow/waitwindow.h"
 #include "../src/View/FXWindow/fxwindow.h"
 #include "../src/View/VSTWindow/vstwindow.h"
+#include "../src/View/AboutWindow/aboutwindow.h"
 #include "../src/globalparams.h"
 
 
@@ -299,7 +300,9 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::information(nullptr, "Bloody Player", "Bloody Player v1.16.1.\nCopyright (c) 2019 Aleksandr \"Flone\" Tretyakov (github.com/Flone-dnb).");
+    AboutWindow* pAboutWindow = new AboutWindow ( QString::fromStdString(pController->getBloodyVersion()), this );
+    pAboutWindow ->setWindowModality (Qt::WindowModality::WindowModal);
+    pAboutWindow ->show();
 }
 
 void MainWindow::on_pushButton_Play_clicked()

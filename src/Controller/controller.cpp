@@ -1,4 +1,4 @@
-#include "controller.h"
+﻿#include "controller.h"
 
 // STL
 #include <thread>
@@ -40,6 +40,11 @@ void Controller::pauseTrack()
 void Controller::setTrackPos(unsigned int graphPos)
 {
     pAudioService->setTrackPos(graphPos);
+}
+
+std::string Controller::getBloodyVersion()
+{
+    return pAudioService->getBloodyVersion();
 }
 
 void Controller::stopTrack()

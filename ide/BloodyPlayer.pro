@@ -30,6 +30,7 @@ SOURCES += \
         ../src/Controller/controller.cpp \
         ../src/Model/AudioService/audioservice.cpp \
         ../src/Model/Track/track.cpp \
+        ../src/View/AboutWindow/aboutwindow.cpp \
         ../src/View/FXWindow/fxwindow.cpp \
         ../src/View/TrackList/tracklist.cpp \
         ../src/View/TrackWidget/trackwidget.cpp \
@@ -43,6 +44,7 @@ HEADERS += \
         ../src/Controller/controller.h \
         ../src/Model/AudioService/audioservice.h \
         ../src/Model/Track/track.h \
+        ../src/View/AboutWindow/aboutwindow.h \
         ../src/View/FXWindow/fxwindow.h \
         ../src/View/MainWindow/mainwindow.h \
         ../src/View/TrackList/tracklist.h \
@@ -52,6 +54,7 @@ HEADERS += \
         ../src/globalparams.h
 
 FORMS += \
+        ../src/View/AboutWindow/aboutwindow.ui \
         ../src/View/FXWindow/fxwindow.ui \
         ../src/View/MainWindow/mainwindow.ui \
         ../src/View/TrackList/tracklist.ui \

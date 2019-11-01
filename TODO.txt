@@ -1,10 +1,10 @@
-﻿- Update styles, create Help menu and add custom About window.
-- Add tooltips to all buttons.
+﻿- Add tooltips to all buttons.
 - Speed up the process of adding the tracks. Add only paths and when play() called create FMOD object. 
 - When adding music, we need to add it in the same order in which it was in the folder.
 - Change random to random_device?
 - There is a rare bug that causes a crash right after you open one track:
 vector subscript out of range exception
+- Do something with color banding.
 - Seems like with 'speed (by pitch)' effect we also need to increase mid-high frequencies on like 3-4 dB and maybe do the same thing with the low and the mid-low.
 - Add bounds in which track will repeat by clicking RMB on the oscillogram. Track's volume in the transition from end bound to start bound will change?
 - Add a history of played tracks so the 'prev' button will get back to actually previous track even if 'random track' function is selected.

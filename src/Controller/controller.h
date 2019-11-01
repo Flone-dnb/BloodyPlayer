@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 
 
@@ -79,7 +79,8 @@ public:
 
     // Get
 
-        size_t  getPlaingTrackIndex (bool& bSomeTrackIsPlaying);
+        std::string  getBloodyVersion     ();
+        size_t       getPlaingTrackIndex  (bool& bSomeTrackIsPlaying);
 
 
 
