@@ -1,5 +1,4 @@
-﻿- Add tooltips to all buttons.
-- Speed up the process of adding the tracks. Add only paths and when play() called create FMOD object. 
+﻿- Speed up the process of adding the tracks. Add only paths and when play() called create FMOD object. 
 - When adding music, we need to add it in the same order in which it was in the folder.
 - Change random to random_device?
 - There is a rare bug that causes a crash right after you open one track:

@@ -122,6 +122,24 @@ color: white;</string>
                </color>
               </brush>
              </colorrole>
+             <colorrole role="ToolTipBase">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>7</red>
+                <green>7</green>
+                <blue>7</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ToolTipText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
              <colorrole role="PlaceholderText">
               <brush brushstyle="NoBrush">
                <color alpha="128">
@@ -181,6 +199,24 @@ color: white;</string>
              <colorrole role="Window">
               <brush brushstyle="SolidPattern">
                <color alpha="0">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ToolTipBase">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>7</red>
+                <green>7</green>
+                <blue>7</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ToolTipText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
                 <red>255</red>
                 <green>255</green>
                 <blue>255</blue>
@@ -252,6 +288,24 @@ color: white;</string>
                </color>
               </brush>
              </colorrole>
+             <colorrole role="ToolTipBase">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>7</red>
+                <green>7</green>
+                <blue>7</blue>
+               </color>
+              </brush>
+             </colorrole>
+             <colorrole role="ToolTipText">
+              <brush brushstyle="SolidPattern">
+               <color alpha="255">
+                <red>255</red>
+                <green>255</green>
+                <blue>255</blue>
+               </color>
+              </brush>
+             </colorrole>
              <colorrole role="PlaceholderText">
               <brush brushstyle="NoBrush">
                <color alpha="128">
@@ -263,6 +317,22 @@ color: white;</string>
              </colorrole>
             </disabled>
            </palette>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;
+&lt;head&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;font color=black&gt;
+Previous Track
+&lt;/font&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</string>
+          </property>
+          <property name="whatsThis">
+           <string/>
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton
@@ -489,6 +559,19 @@ QPushButton:pressed
              </colorrole>
             </disabled>
            </palette>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;
+&lt;head&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;font color=black&gt;
+Stop
+&lt;/font&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</string>
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton
@@ -723,6 +806,19 @@ QPushButton:pressed
           </property>
           <property name="focusPolicy">
            <enum>Qt::StrongFocus</enum>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;
+&lt;head&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;font color=black&gt;
+Play
+&lt;/font&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</string>
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton
@@ -959,6 +1055,19 @@ QPushButton:pressed
             </disabled>
            </palette>
           </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;
+&lt;head&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;font color=black&gt;
+Pause
+&lt;/font&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</string>
+          </property>
           <property name="styleSheet">
            <string notr="true">QPushButton
 {
@@ -1185,6 +1294,19 @@ QPushButton:pressed
             </disabled>
            </palette>
           </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;
+&lt;head&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;font color=black&gt;
+Next Track
+&lt;/font&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</string>
+          </property>
           <property name="styleSheet">
            <string notr="true">QPushButton
 {
@@ -1296,6 +1418,19 @@ QSlider::sub-page:disabled
             <property name="enabled">
              <bool>true</bool>
             </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;
+&lt;head&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;font color=black&gt;
+Repeat Track
+&lt;/font&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</string>
+            </property>
             <property name="styleSheet">
              <string notr="true">QPushButton
 {
@@ -1331,6 +1466,19 @@ QPushButton:checked
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_Random">
+            <property name="toolTip">
+             <string>&lt;html&gt;
+&lt;head&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;font color=black&gt;
+Random Track
+&lt;/font&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</string>
+            </property>
             <property name="styleSheet">
              <string notr="true">QPushButton
 {
@@ -1366,6 +1514,19 @@ QPushButton:checked
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_fx">
+            <property name="toolTip">
+             <string>&lt;html&gt;
+&lt;head&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;font color=black&gt;
+Sound Effects
+&lt;/font&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</string>
+            </property>
             <property name="styleSheet">
              <string notr="true">QPushButton
 {
@@ -1394,7 +1555,17 @@ QPushButton:pressed
           <item>
            <widget class="QPushButton" name="pushButton_clearPlaylist">
             <property name="toolTip">
-             <string/>
+             <string>&lt;html&gt;
+&lt;head&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;font color=black&gt;
+Clear Playlist
+&lt;/font&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</string>
             </property>
             <property name="toolTipDuration">
              <number>-1</number>
