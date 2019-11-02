@@ -15,7 +15,7 @@ TrackWidget::TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime
     setContextMenuPolicy(Qt::CustomContextMenu);
 
     pMenuContextMenu = new QMenu(this);
-    pMenuContextMenu->setStyleSheet("QMenu::item:selected{background-color: rgb(89, 89, 89);}");
+    pMenuContextMenu->setStyleSheet("QMenu::item:selected\n{\n	background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(81, 0, 0, 255), stop:1 rgba(131, 19, 19, 255));\n}\n\n\nQMenu::separator\n{\n	background-color: rgb(50, 0, 0);\n	height: 2px;\n    margin-left: 10px; \n    margin-right: 5px;\n}");
 
         pActionMoveUp = new QAction  ("Move Up              W");
         connect(pActionMoveUp, &QAction::triggered, this, &TrackWidget::slotMoveUp);

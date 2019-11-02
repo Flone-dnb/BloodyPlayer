@@ -23,5 +23,9 @@
 	<file>fx_hover.png</file>
 	<file>GitHub-Mark-Light-Hover.png</file>
 	<file>GitHub-Mark-Light.png</file>
+	<file>dragndrop_slide.png</file>
+	<file>find_slide.png</file>
+	<file>repeat_slide.png</file>
+	<file>context_slide.png</file>
 </qresource>
 </RCC>

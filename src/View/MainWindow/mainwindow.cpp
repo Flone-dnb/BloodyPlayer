@@ -23,6 +23,7 @@
 #include "../src/View/VSTWindow/vstwindow.h"
 #include "../src/View/AboutWindow/aboutwindow.h"
 #include "../src/View/SearchWindow/searchwindow.h"
+#include "../src/View/TutorialWindows/WelcomeWindow/welcomewindow.h"
 #include "../src/globalparams.h"
 
 
@@ -346,6 +347,17 @@ bool MainWindow::isSystemReady()
     return bSystemReady;
 }
 
+void MainWindow::showTutorialWindow()
+{
+    WelcomeWindow* pWelcomeWindow = new WelcomeWindow(this);
+    pWelcomeWindow->setWindowModality(Qt::WindowModal);
+
+    connect(pWelcomeWindow, &WelcomeWindow::signalDoNotShowTutorialAgain, this, &MainWindow::slotDoNotShowTutorialAgain);
+    connect(pWelcomeWindow, &WelcomeWindow::signalEndTutorial,            this, &MainWindow::slotTutorialEnd);
+
+    pWelcomeWindow->show();
+}
+
 
 void MainWindow::on_actionOpen_triggered()
 {
@@ -448,6 +460,16 @@ void MainWindow::slotSearchFindNext()
 void MainWindow::slotSearchTextSet(QString keyword)
 {
     pController->searchTextSet (keyword.toStdWString());
+}
+
+void MainWindow::slotDoNotShowTutorialAgain()
+{
+    pController->doNotShowTutorialAgain();
+}
+
+void MainWindow::slotTutorialEnd()
+{
+    pController->tutorialEnd();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *ev)

@@ -32,7 +32,10 @@ public:
     AudioService(MainWindow* pMainWindow);
 
 
+    // Tutorial
 
+        void   doNotShowTutorialAgain();
+        void   tutorialEnd           ();
 
 
     // Main functions
@@ -107,7 +110,9 @@ private:
 
     // First and most important function of our system.
     // If this function fails, the application will terminate.
-    void   FMODinit        ();
+    bool   FMODinit        ();
+
+    void   showTutorial    ();
 
     // Functions for execution in a separete thread
     void   threadAddTracks (std::vector<wchar_t*>* paths, size_t iStart, size_t iStop, bool* done,  int* allCount,  int all);

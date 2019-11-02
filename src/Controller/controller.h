@@ -26,6 +26,10 @@ public:
     Controller(MainWindow* pMainWindow);
 
 
+    // Tutorial
+
+        void   doNotShowTutorialAgain();
+        void   tutorialEnd       ();
 
 
     // Main buttons

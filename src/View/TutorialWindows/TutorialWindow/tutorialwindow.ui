@@ -1,27 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SearchWindow</class>
- <widget class="QMainWindow" name="SearchWindow">
+ <class>TutorialWindow</class>
+ <widget class="QMainWindow" name="TutorialWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>341</width>
-    <height>219</height>
+    <width>1085</width>
+    <height>672</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Search</string>
+   <string>Tutorial</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(1,1,1,255), stop:1 rgba(22,22,22,255));
+   <string notr="true">background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(1,1,1,255), stop:1 rgba(24,24,24,255));
 
 color: white;</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="30,30,15,25">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="5,5,80,10">
     <item>
-     <widget class="QLabel" name="label">
+     <widget class="QLabel" name="label_title">
+      <property name="font">
+       <font>
+        <family>Segoe UI</family>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_desc">
       <property name="font">
        <font>
         <family>Segoe UI</family>
@@ -32,30 +51,23 @@ color: white;</string>
        <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
       </property>
       <property name="text">
-       <string>Search by Keyword:</string>
+       <string>TextLabel</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEdit">
-      <property name="font">
-       <font>
-        <family>Segoe UI</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">selection-background-color: rgb(155, 0, 0);</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLabel" name="label_matches">
-      <property name="font">
-       <font>
-        <family>Segoe UI</family>
-        <pointsize>8</pointsize>
-       </font>
+     <widget class="QLabel" name="label_image">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="styleSheet">
        <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
@@ -69,18 +81,28 @@ color: white;</string>
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="40,20,40">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="35,30,35">
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="pushButton_prev">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>50</height>
+         </size>
+        </property>
         <property name="font">
          <font>
           <family>Segoe UI</family>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="styleSheet">
@@ -106,7 +128,7 @@ QPushButton:hover
 }</string>
         </property>
         <property name="text">
-         <string>Find Previous</string>
+         <string>Back</string>
         </property>
        </widget>
       </item>
@@ -124,16 +146,23 @@ QPushButton:hover
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_2">
+       <widget class="QPushButton" name="pushButton_next">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>50</height>
+         </size>
+        </property>
         <property name="font">
          <font>
           <family>Segoe UI</family>
+          <pointsize>12</pointsize>
          </font>
         </property>
         <property name="styleSheet">
@@ -159,7 +188,7 @@ QPushButton:hover
 }</string>
         </property>
         <property name="text">
-         <string>Find Next</string>
+         <string>Next</string>
         </property>
        </widget>
       </item>
@@ -172,7 +201,7 @@ QPushButton:hover
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>341</width>
+     <width>1085</width>
      <height>30</height>
     </rect>
    </property>

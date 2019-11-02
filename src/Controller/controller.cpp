@@ -14,6 +14,16 @@ Controller::Controller(MainWindow* pMainWindow)
     bRandomTrack = false;
 }
 
+void Controller::doNotShowTutorialAgain()
+{
+    pAudioService->doNotShowTutorialAgain();
+}
+
+void Controller::tutorialEnd()
+{
+    pAudioService->tutorialEnd();
+}
+
 
 
 

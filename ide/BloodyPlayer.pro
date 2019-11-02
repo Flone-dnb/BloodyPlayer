@@ -35,6 +35,8 @@ SOURCES += \
         ../src/View/SearchWindow/searchwindow.cpp \
         ../src/View/TrackList/tracklist.cpp \
         ../src/View/TrackWidget/trackwidget.cpp \
+        ../src/View/TutorialWindows/TutorialWindow/tutorialwindow.cpp \
+        ../src/View/TutorialWindows/WelcomeWindow/welcomewindow.cpp \
         ../src/View/VSTWindow/vstwindow.cpp \
         ../src/View/WaitWindow/waitwindow.cpp \
         ../src/main.cpp \
@@ -51,6 +53,8 @@ HEADERS += \
         ../src/View/SearchWindow/searchwindow.h \
         ../src/View/TrackList/tracklist.h \
         ../src/View/TrackWidget/trackwidget.h \
+        ../src/View/TutorialWindows/TutorialWindow/tutorialwindow.h \
+        ../src/View/TutorialWindows/WelcomeWindow/welcomewindow.h \
         ../src/View/VSTWindow/vstwindow.h \
         ../src/View/WaitWindow/waitwindow.h \
         ../src/globalparams.h
@@ -62,6 +66,8 @@ FORMS += \
         ../src/View/SearchWindow/searchwindow.ui \
         ../src/View/TrackList/tracklist.ui \
         ../src/View/TrackWidget/trackwidget.ui \
+        ../src/View/TutorialWindows/TutorialWindow/tutorialwindow.ui \
+        ../src/View/TutorialWindows/WelcomeWindow/welcomewindow.ui \
         ../src/View/VSTWindow/vstwindow.ui \
         ../src/View/WaitWindow/waitwindow.ui
 

@@ -1,6 +1,4 @@
-﻿- Add a little (non-modal window) "Tutorial" (with pictures) on first startup: tell user to drag'n'drop, Ctrl + F, RMB to create repeat section, RMB on tracks, FX.
-And if user not finished th tutorial then show it again on next start. Or, if user checked "don't show again" don't show it again.
-- Speed up the process of adding the tracks.
+﻿- Speed up the process of adding the tracks.
 - When adding music, we need to add it in the same order in which it was in the folder.
 - Seems like with 'speed (by pitch)' effect we also need to increase mid-high frequencies on like 3-4 dB and maybe do the same thing with the low and the mid-low.
 - After the tracklist was cleared volume returns to the default value of 75%, we don't want that, don't change master volume when tracklist is clear and allow to change it if tracklist is clear.

@@ -14,7 +14,9 @@
 #include "../src/Model/Track/track.h"
 #include "../src/globalparams.h"
 
+// Other
 #include <windows.h>
+#include <shlobj.h>
 
 
 AudioService::AudioService(MainWindow* pMainWindow)
@@ -53,13 +55,80 @@ AudioService::AudioService(MainWindow* pMainWindow)
     fCurrentSpeedByTime  = 1.0f;
 
 
-    FMODinit();
+    if ( FMODinit() == false )
+    {
+        showTutorial();
+    }
+}
+
+void AudioService::doNotShowTutorialAgain()
+{
+    TCHAR my_documents[MAX_PATH];
+    HRESULT result = SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
+
+    if (result == S_OK)
+    {
+        std::wstring adressToSettings    = std::wstring(my_documents);
+        std::wstring adressToOldSettings = std::wstring(my_documents);
+        adressToSettings    += L"\\BloodyPlayerSettings.data";
+        adressToOldSettings += L"\\BloodyPlayerSettings_.data";
+
+        _wrename(adressToSettings.c_str(), adressToOldSettings.c_str());
+
+        std::ofstream settingsFileNew (adressToSettings, std::ios::binary);
+
+        char cNeverShowTutorialAgain = 1;
+        char cTutorialFinished       = 0;
+
+        settingsFileNew.write ( &cNeverShowTutorialAgain, sizeof(cNeverShowTutorialAgain) );
+        settingsFileNew.write ( &cTutorialFinished,       sizeof(cTutorialFinished)       );
+
+        settingsFileNew.close();
+
+        _wremove(adressToOldSettings.c_str());
+    }
+    else
+    {
+        pMainWindow->showMessageBox(true, "AudioService::doNotShowTutorialAgain::SHGetFolderPathW() failed.");
+    }
+}
+
+void AudioService::tutorialEnd()
+{
+    TCHAR my_documents[MAX_PATH];
+    HRESULT result = SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
+
+    if (result == S_OK)
+    {
+        std::wstring adressToSettings    = std::wstring(my_documents);
+        std::wstring adressToOldSettings = std::wstring(my_documents);
+        adressToSettings    += L"\\BloodyPlayerSettings.data";
+        adressToOldSettings += L"\\BloodyPlayerSettings_.data";
+
+        _wrename(adressToSettings.c_str(), adressToOldSettings.c_str());
+
+        std::ofstream settingsFileNew (adressToSettings, std::ios::binary);
+
+        char cNeverShowTutorialAgain = 0;
+        char cTutorialFinished       = 1;
+
+        settingsFileNew.write ( &cNeverShowTutorialAgain, sizeof(cNeverShowTutorialAgain) );
+        settingsFileNew.write ( &cTutorialFinished,       sizeof(cTutorialFinished)       );
+
+        settingsFileNew.close();
+
+        _wremove(adressToOldSettings.c_str());
+    }
+    else
+    {
+        pMainWindow->showMessageBox(true, "AudioService::doNotShowTutorialAgain::SHGetFolderPathW() failed.");
+    }
 }
 
 
 
 
-void AudioService::FMODinit()
+bool AudioService::FMODinit()
 {
     // FMOD initialization
     FMOD_RESULT result;
@@ -71,7 +140,7 @@ void AudioService::FMODinit()
         // Look main.cpp (isSystemReady() function)
         // app will be closed.
         pMainWindow->markAnError();
-        return;
+        return true;
     }
 
     result = pSystem->init(MAX_CHANNELS, FMOD_INIT_NORMAL, nullptr);
@@ -82,7 +151,7 @@ void AudioService::FMODinit()
         // Look main.cpp (isSystemReady() function)
         // app will be closed.
         pMainWindow->markAnError();
-        return;
+        return true;
     }
 
     result = pSystem->update();
@@ -93,7 +162,7 @@ void AudioService::FMODinit()
         // Look main.cpp (isSystemReady() function)
         // app will be closed.
         pMainWindow->markAnError();
-        return;
+        return true;
     }
 
 
@@ -163,6 +232,63 @@ void AudioService::FMODinit()
     }
 
     pMaster->setPan(0.0f);
+
+
+    return false;
+}
+
+void AudioService::showTutorial()
+{
+    TCHAR my_documents[MAX_PATH];
+    HRESULT result = SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
+
+    if (result == S_OK)
+    {
+        std::wstring adressToSettings = std::wstring(my_documents);
+        adressToSettings += L"\\BloodyPlayerSettings.data";
+
+        std::ifstream settingsFile (adressToSettings, std::ios::binary);
+
+        if ( settingsFile.is_open() )
+        {
+            // Check if tutorial finished
+
+            char cNeverShowTutorialAgain = 0;
+            char cTutorialFinished       = 0;
+
+            settingsFile.read ( &cNeverShowTutorialAgain, sizeof(cNeverShowTutorialAgain) );
+            settingsFile.read ( &cTutorialFinished,       sizeof(cTutorialFinished)       );
+
+            settingsFile.close();
+
+
+
+            if (cNeverShowTutorialAgain == 0 && cTutorialFinished == 0)
+            {
+                pMainWindow->showTutorialWindow();
+            }
+        }
+        else
+        {
+            // First time opened app
+
+            std::ofstream settingsFileNew (adressToSettings, std::ios::binary);
+
+            char cNeverShowTutorialAgain = 0;
+            char cTutorialFinished       = 0;
+
+            settingsFileNew.write ( &cNeverShowTutorialAgain, sizeof(cNeverShowTutorialAgain) );
+            settingsFileNew.write ( &cTutorialFinished,       sizeof(cTutorialFinished)       );
+
+            settingsFileNew.close();
+
+            pMainWindow->showTutorialWindow();
+        }
+    }
+    else
+    {
+        pMainWindow->showMessageBox(true, "AudioService::showTutorial::SHGetFolderPathW() failed.");
+    }
 }
 
 void AudioService::addTrack(const wchar_t *pFilePath)

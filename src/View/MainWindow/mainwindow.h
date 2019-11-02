@@ -94,6 +94,7 @@ public:
 
         void markAnError();
         bool isSystemReady();
+        void showTutorialWindow();
 
 
     // VST
@@ -175,6 +176,12 @@ public slots:
         void  slotSearchFindPrev  ();
         void  slotSearchFindNext  ();
         void  slotSearchTextSet   (QString keyword);
+
+
+    // Tutorial
+
+        void slotDoNotShowTutorialAgain();
+        void slotTutorialEnd();
 
 
 protected:
