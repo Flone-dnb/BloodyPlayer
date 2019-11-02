@@ -452,12 +452,23 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
             pMainWindow->removePlayingOnTrack(iCurrentlyPlayingTrackIndex);
         }
 
+
         // Play track
         if ( tracks[iTrackIndex]->playTrack(fCurrentVolume) )
         {
             bIsSomeTrackPlaying = true;
             bCurrentTrackPaused = false;
             iCurrentlyPlayingTrackIndex = iTrackIndex;
+
+            if (bRandomNextTrack)
+            {
+                vTracksHistory.push_back(tracks[iTrackIndex]);
+
+                if (vTracksHistory.size() > MAX_HISTORY_SIZE)
+                {
+                    vTracksHistory.erase( vTracksHistory.begin() );
+                }
+            }
         }
         else
         {
@@ -614,17 +625,52 @@ void AudioService::prevTrack()
 
     if ( tracks.size() > 0 )
     {
-        if (iCurrentlyPlayingTrackIndex == 0)
+        if (bRandomNextTrack)
         {
-            mtxTracksVec.unlock();
+            if (vTracksHistory.size() > 1)
+            {
+                size_t iTrackIndex = 0;
 
-            playTrack( tracks.size() - 1 );
+                Track* pPrevTrack = vTracksHistory[ vTracksHistory.size() - 2 ];
+
+                for (size_t i = 0; i < tracks.size(); i++)
+                {
+                    if (pPrevTrack == tracks[i])
+                    {
+                        iTrackIndex = i;
+                        break;
+                    }
+                }
+
+
+                mtxTracksVec.unlock();
+
+                vTracksHistory.pop_back();
+                vTracksHistory.pop_back();
+
+                playTrack ( iTrackIndex );
+            }
+            else
+            {
+                mtxTracksVec.unlock();
+
+                playTrack( iCurrentlyPlayingTrackIndex );
+            }
         }
         else
         {
-            mtxTracksVec.unlock();
+            if (iCurrentlyPlayingTrackIndex == 0)
+            {
+                mtxTracksVec.unlock();
 
-            playTrack(iCurrentlyPlayingTrackIndex - 1);
+                playTrack( tracks.size() - 1 );
+            }
+            else
+            {
+                mtxTracksVec.unlock();
+
+                playTrack(iCurrentlyPlayingTrackIndex - 1);
+            }
         }
     }
     else
@@ -678,6 +724,17 @@ void AudioService::removeTrack(size_t iTrackIndex)
             }
         }
 
+
+        // Erase from vTracksHistory
+        for (size_t i = 0; i < vTracksHistory.size(); i++)
+        {
+            if (vTracksHistory[i] == tracks[iTrackIndex])
+            {
+                vTracksHistory.erase ( vTracksHistory.begin() + i );
+                break;
+            }
+        }
+
         delete tracks[iTrackIndex];
         tracks.erase( tracks.begin() + iTrackIndex );
 
@@ -718,6 +775,9 @@ void AudioService::clearPlaylist()
     tracks.clear();
 
     fCurrentVolume = DEFAULT_VOLUME;
+
+
+    vTracksHistory.clear();
 
     mtxTracksVec.unlock();
 }
@@ -1216,6 +1276,8 @@ void AudioService::randomNextTrack()
         bRepeatTrack = false;
         pMainWindow->uncheckRepeatTrackButton();
     }
+
+    vTracksHistory.clear();
 }
 
 void AudioService::setVolume(float fNewVolume)

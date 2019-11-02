@@ -1,5 +1,4 @@
-﻿- Add a history of played tracks so the 'prev' button will get back to actually previous track even if 'random track' function is selected.
-- Speed up the process of adding the tracks.
+﻿- Speed up the process of adding the tracks.
 - When adding music, we need to add it in the same order in which it was in the folder.
 - Do something with color banding.
 - Seems like with 'speed (by pitch)' effect we also need to increase mid-high frequencies on like 3-4 dB and maybe do the same thing with the low and the mid-low.

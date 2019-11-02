@@ -178,11 +178,13 @@ private:
     bool              bMonitorTracks;
 
 
-    // Searcy
+    // Search
     std::vector<size_t> vSearchResult;
     size_t              iCurrentPosInSearchVec;
     bool                bFirstSearchAfterKeyChange;
 
 
+    // Tracks
     std::vector<Track*> tracks;
+    std::vector<Track*> vTracksHistory;
 };

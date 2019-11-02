@@ -5,5 +5,7 @@
 #define MONITOR_TRACK_INTERVAL_MS 200
 #define MAX_TIME_ERROR_MS 50
 
+#define MAX_HISTORY_SIZE 50
+
 // graph
 #define MAX_X_AXIS_VALUE 1000
