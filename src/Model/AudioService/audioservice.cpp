@@ -23,7 +23,7 @@ AudioService::AudioService(MainWindow* pMainWindow)
 
     this->pMainWindow    = pMainWindow;
     pSystem              = nullptr;
-    pRndGen              = new std::mt19937_64( static_cast<unsigned long long>(time(nullptr)) );
+    pRndGen              = new std::mt19937_64( std::random_device{}() );
     iCurrentlyDrawingTrackIndex = new size_t(0);
 
     bMonitorTracks      = false;
@@ -172,22 +172,8 @@ void AudioService::addTrack(const wchar_t *pFilePath)
 
 
     // Get track name
-    size_t iNameStartIndex = 0;
-    for (size_t i = wPathStr.size() - 1; i >= 1; i--)
-    {
-        if (wPathStr[i] == L'/' || wPathStr[i] == L'\\')
-        {
-            iNameStartIndex = i + 1;
-            break;
-        }
-    }
 
-    std::wstring trackName = L"";
-    for (size_t i = iNameStartIndex; i < wPathStr.size() - 4; i++)
-    {
-        trackName += wPathStr[i];
-    }
-    if (trackName.back() == L'.') trackName.pop_back();
+    std::wstring trackName = getTrackName(pFilePath);
 
 
 
@@ -266,6 +252,31 @@ void AudioService::addTrack(const wchar_t *pFilePath)
     }
 
     mtxThreadLoadAddTrack.unlock();
+}
+
+std::wstring AudioService::getTrackName(const wchar_t *pFilePath)
+{
+    std::wstring wPathStr(pFilePath);
+
+    size_t iNameStartIndex = 0;
+    for (size_t i = wPathStr.size() - 1; i >= 1; i--)
+    {
+        if (wPathStr[i] == L'/' || wPathStr[i] == L'\\')
+        {
+            iNameStartIndex = i + 1;
+            break;
+        }
+    }
+
+    std::wstring trackName = L"";
+    for (size_t i = iNameStartIndex; i < wPathStr.size() - 4; i++)
+    {
+        trackName += wPathStr[i];
+    }
+    if (trackName.back() == L'.') trackName.pop_back();
+
+
+    return trackName;
 }
 
 void AudioService::addTracks(std::vector<wchar_t*> paths)
@@ -353,11 +364,10 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
         delete allCount;
         pMainWindow->hideWaitWindow();
 
-        // Wait a little for all track widgets to show
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        if (tracks.size() > 0) pMainWindow->setFocusOnTrack(tracks.size() - 1);
-
         mtxTracksVec.unlock();
+
+        pMainWindow->showAllTracks();
+
         return;
     }
 
