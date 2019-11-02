@@ -61,6 +61,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::signalAddDataToGraph,      this, &MainWindow::slotAddDataToGraph);
     connect(this, &MainWindow::signalSetCurrentPos,       this, &MainWindow::slotSetCurrentPos);
     connect(this, &MainWindow::signalHideVSTWindow,       this, &MainWindow::slotHideVSTWindow);
+    connect(this, &MainWindow::signalSetRepeatPoint,      this, &MainWindow::slotSetRepeatPoint);
+    connect(this, &MainWindow::signalEraseRepeatSection,  this, &MainWindow::slotEraseRepeatSection);
 
     // Tracklist connect
     connect(ui->scrollArea, &TrackList::signalDrop, this, &MainWindow::slotDrop);
@@ -70,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Graph
     ui->widget_graph->addGraph();
     ui->widget_graph->xAxis->setRange(0, MAX_X_AXIS_VALUE);
-    ui->widget_graph->yAxis->setRange(0.0, 1.0);
+    ui->widget_graph->yAxis->setRange(0.0, MAX_Y_AXIS_VALUE);
 
     QPen pen;
     pen.setWidth(1);
@@ -89,14 +91,46 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->widget_graph, &QCustomPlot::mousePress, this, &MainWindow::slotClickOnGraph);
 
+
     // fill rect
     backgnd = new QCPItemRect(ui->widget_graph);
     backgnd->topLeft->setType(QCPItemPosition::ptAxisRectRatio);
     backgnd->topLeft->setCoords(0, 0);
     backgnd->bottomRight->setType(QCPItemPosition::ptAxisRectRatio);
-    backgnd->bottomRight->setCoords(0, 1);
-    backgnd->setBrush(QBrush(QColor(0, 0, 0, 130)));
+    backgnd->bottomRight->setCoords(0, MAX_Y_AXIS_VALUE);
+    backgnd->setBrush(QBrush(QColor(0, 0, 0, PLAYED_SECTION_ALPHA)));
     backgnd->setPen(Qt::NoPen);
+
+
+    backgndRight = new QCPItemRect(ui->widget_graph);
+    backgndRight->topLeft->setType(QCPItemPosition::ptAxisRectRatio);
+    backgndRight->topLeft->setCoords(0, 0);
+    backgndRight->bottomRight->setType(QCPItemPosition::ptAxisRectRatio);
+    backgndRight->bottomRight->setCoords(0, MAX_Y_AXIS_VALUE);
+    backgndRight->setBrush(QBrush(QColor(0, 0, 0, PLAYED_SECTION_ALPHA)));
+    backgndRight->setPen(Qt::NoPen);
+
+
+    // repeat left
+    repeatLeft = new QCPItemRect(ui->widget_graph);
+    repeatLeft->topLeft->setType(QCPItemPosition::ptAxisRectRatio);
+    repeatLeft->topLeft->setCoords(0, 0);
+    repeatLeft->bottomRight->setType(QCPItemPosition::ptAxisRectRatio);
+    repeatLeft->bottomRight->setCoords(0, MAX_Y_AXIS_VALUE);
+    repeatLeft->setBrush(QBrush(QColor(0, 0, 0, REPEAT_GRAYED_ALPHA)));
+    repeatLeft->setPen(Qt::NoPen);
+
+
+    // repeat right
+    repeatRight = new QCPItemRect(ui->widget_graph);
+    repeatRight->topLeft->setType(QCPItemPosition::ptAxisRectRatio);
+    repeatRight->topLeft->setCoords(0, 0);
+    repeatRight->bottomRight->setType(QCPItemPosition::ptAxisRectRatio);
+    repeatRight->bottomRight->setCoords(0, MAX_Y_AXIS_VALUE);
+
+    repeatRight->setBrush(QBrush(QColor(0, 0, 0, REPEAT_GRAYED_ALPHA)));
+    repeatRight->setPen(Qt::NoPen);
+
 
     // text
     pGraphTextTrackTime = new QCPItemText(ui->widget_graph);
@@ -255,6 +289,16 @@ void MainWindow::addDataToGraph(float* pData, unsigned int iSizeInSamples, unsig
 void MainWindow::setCurrentPos(double x, std::string time)
 {
     emit signalSetCurrentPos(x, time);
+}
+
+void MainWindow::setRepeatPoint(bool bFirstPoint, double x)
+{
+    emit signalSetRepeatPoint(bFirstPoint, x);
+}
+
+void MainWindow::eraseRepeatSection()
+{
+    emit signalEraseRepeatSection();
 }
 
 void MainWindow::setFocusOnTrack(size_t index)
@@ -590,9 +634,45 @@ void MainWindow::slotSetCurrentPos(double x, std::string time)
     ui->widget_graph->replot();
 }
 
+void MainWindow::slotSetRepeatPoint(bool bFirstPoint, double x)
+{
+    if (bFirstPoint)
+    {
+        repeatLeft->topLeft->setCoords(0, 0);
+        repeatLeft->bottomRight->setCoords(x, MAX_Y_AXIS_VALUE);
+    }
+    else
+    {
+        backgndRight->topLeft->setCoords(x, 0);
+        backgndRight->bottomRight->setCoords(1.0, MAX_Y_AXIS_VALUE);
+
+        repeatRight->topLeft->setCoords(x, 0);
+        repeatRight->bottomRight->setCoords(1.0, MAX_Y_AXIS_VALUE);
+    }
+}
+
+void MainWindow::slotEraseRepeatSection()
+{
+    repeatLeft->topLeft->setCoords(0, 0);
+    repeatLeft->bottomRight->setCoords(0, MAX_Y_AXIS_VALUE);
+
+    repeatRight->topLeft->setCoords(0, 0);
+    repeatRight->bottomRight->setCoords(0, MAX_Y_AXIS_VALUE);
+
+    backgndRight->topLeft->setCoords(0, 0);
+    backgndRight->bottomRight->setCoords(0, MAX_Y_AXIS_VALUE);
+}
+
 void MainWindow::slotClickOnGraph(QMouseEvent* ev)
 {
-    pController->setTrackPos( static_cast<unsigned int>(ui->widget_graph->xAxis->pixelToCoord(ev->pos().x())) );
+    if (ev->button() == Qt::MouseButton::LeftButton)
+    {
+       pController->setTrackPos( static_cast<unsigned int>(ui->widget_graph->xAxis->pixelToCoord(ev->pos().x())) );
+    }
+    else if (ev->button() == Qt::MouseButton::RightButton)
+    {
+        pController->setRepeatPoint( static_cast<unsigned int>(ui->widget_graph->xAxis->pixelToCoord(ev->pos().x())) );
+    }
 }
 
 void MainWindow::slotSetPan(float fPan)

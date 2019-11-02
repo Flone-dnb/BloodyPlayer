@@ -42,6 +42,11 @@ void Controller::setTrackPos(unsigned int graphPos)
     pAudioService->setTrackPos(graphPos);
 }
 
+void Controller::setRepeatPoint(unsigned int graphPos)
+{
+    pAudioService->setRepeatPoint(graphPos);
+}
+
 std::string Controller::getBloodyVersion()
 {
     return pAudioService->getBloodyVersion();

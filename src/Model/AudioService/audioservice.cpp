@@ -21,10 +21,12 @@ AudioService::AudioService(MainWindow* pMainWindow)
 {
     sBloodyVersion       = "1.16.1";
 
+
     this->pMainWindow    = pMainWindow;
     pSystem              = nullptr;
     pRndGen              = new std::mt19937_64( std::random_device{}() );
     iCurrentlyDrawingTrackIndex = new size_t(0);
+
 
     bMonitorTracks      = false;
     bIsSomeTrackPlaying = false;
@@ -32,6 +34,10 @@ AudioService::AudioService(MainWindow* pMainWindow)
     bRandomNextTrack    = false;
     bDrawing            = false;
     bCurrentTrackPaused = false;
+
+
+    cRepeatSectionState = 0;
+
 
     // FX
     pPitch        = nullptr;
@@ -45,6 +51,7 @@ AudioService::AudioService(MainWindow* pMainWindow)
     iCurrentlyPlayingTrackIndex = 0;
     fCurrentSpeedByPitch = 1.0f;
     fCurrentSpeedByTime  = 1.0f;
+
 
     FMODinit();
 }
@@ -469,6 +476,13 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
                     vTracksHistory.erase( vTracksHistory.begin() );
                 }
             }
+
+            if (cRepeatSectionState != 0)
+            {
+                pMainWindow->eraseRepeatSection();
+
+                cRepeatSectionState = 0;
+            }
         }
         else
         {
@@ -503,12 +517,26 @@ void AudioService::setTrackPos(unsigned int graphPos)
         // track->getMaxValueOnGraph() - 100%
         // graphPos                    - x%
 
-        // cast to unsigned long long to avoid overflow
         double fPosMult = graphPos / static_cast<double>(tracks[iCurrentlyPlayingTrackIndex]->getMaxValueOnGraph());
+        // cast to avoid overflow
         unsigned int iPosInMS = static_cast<unsigned int>(tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
-        if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iPosInMS) )
+
+        if (cRepeatSectionState == 2)
         {
-            pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+            if ( (iPosInMS > iFirstRepeatTimePos) && (iPosInMS < iSecondRepeatTimePos) )
+            {
+                if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iPosInMS) )
+                {
+                    pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                }
+            }
+        }
+        else
+        {
+            if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iPosInMS) )
+            {
+                pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+            }
         }
     }
 
@@ -517,6 +545,70 @@ void AudioService::setTrackPos(unsigned int graphPos)
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("AudioService::setTrackPos::FMOD::System::update() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+    }
+
+    mtxTracksVec.unlock();
+}
+
+void AudioService::setRepeatPoint(unsigned int graphPos)
+{
+    mtxTracksVec.lock();
+
+    if ( (tracks.size() > 0) && (bIsSomeTrackPlaying || bCurrentTrackPaused) )
+    {
+        // track->getMaxValueOnGraph() - 100%
+        // graphPos                    - x%
+
+        double fPosMult = graphPos / static_cast<double>(tracks[iCurrentlyPlayingTrackIndex]->getMaxValueOnGraph());
+
+        if (cRepeatSectionState == 0)
+        {
+            // Set the first point
+            pMainWindow->setRepeatPoint(true, fPosMult);
+
+            cRepeatSectionState = 1;
+
+            unsigned int iPosInMS = static_cast<unsigned int>(tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
+            iFirstRepeatTimePos = iPosInMS;
+
+
+            // Set track pos
+            if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() < iFirstRepeatTimePos )
+            {
+                if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iFirstRepeatTimePos) )
+                {
+                    pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                }
+            }
+        }
+        else if (cRepeatSectionState == 1)
+        {
+            // One point already on graph, set the second one
+            pMainWindow->setRepeatPoint(false, fPosMult);
+
+            // Done
+            cRepeatSectionState = 2;
+
+            unsigned int iPosInMS = static_cast<unsigned int>(tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
+            iSecondRepeatTimePos = iPosInMS;
+
+
+            // Set track pos
+            if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() > iSecondRepeatTimePos )
+            {
+                if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iFirstRepeatTimePos) )
+                {
+                    pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                }
+            }
+        }
+        else
+        {
+            // User pressed RMB again, erase section
+            pMainWindow->eraseRepeatSection();
+
+            cRepeatSectionState = 0;
+        }
     }
 
     mtxTracksVec.unlock();
@@ -1345,6 +1437,29 @@ void AudioService::monitorTrack()
             }
             else
             {
+                if (cRepeatSectionState == 2)
+                {
+                    if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() > iSecondRepeatTimePos - MAX_TIME_ERROR_MS )
+                    {
+                        for (float i = fCurrentVolume; i >= 0.0f; i-= 0.01f)
+                        {
+                            tracks[iCurrentlyPlayingTrackIndex]->setVolume(i);
+
+                            std::this_thread::sleep_for (std::chrono::milliseconds(2));
+                        }
+
+                        tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS (iFirstRepeatTimePos);
+
+                        for (float i = 0; i <= fCurrentVolume; i+= 0.01f)
+                        {
+                            tracks[iCurrentlyPlayingTrackIndex]->setVolume(i);
+
+                            std::this_thread::sleep_for (std::chrono::milliseconds(2));
+                        }
+                    }
+                }
+
+
                 // track->getLengthInMS()   - 1.0
                 // track->getPositionInMS() - x
 

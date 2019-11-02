@@ -53,6 +53,8 @@ signals:
 
         void     signalAddDataToGraph      (float* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
         void     signalSetCurrentPos       (double x,          std::string time);
+        void     signalSetRepeatPoint      (bool bFirstPoint, double x);
+        void     signalEraseRepeatSection  ();
         void     signalClearGraph          (bool stopTrack = false);
         void     signalSetXMaxToGraph      (unsigned int iMaxX);
 
@@ -105,6 +107,8 @@ public:
 
         void     addDataToGraph            (float* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
         void     setCurrentPos             (double x,          std::string time);
+        void     setRepeatPoint            (bool bFirstPoint, double x);
+        void     eraseRepeatSection        ();
         void     clearGraph                (bool stopTrack = false);
         void     setXMaxToGraph            (unsigned int iMaxX);
 
@@ -198,6 +202,8 @@ private slots:
 
         void  slotAddDataToGraph                   (float* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
         void  slotSetCurrentPos                    (double x,          std::string time);
+        void  slotSetRepeatPoint                   (bool bFirstPoint, double x);
+        void  slotEraseRepeatSection               ();
         void  slotClearGraph                       (bool stopTrack = false);
         void  slotSetXMaxToGraph                   (unsigned int iMaxX);
         void  slotClickOnGraph                     (QMouseEvent* ev);
@@ -273,6 +279,9 @@ private:
     QSystemTrayIcon* pTrayIcon;
     QCPItemText*     pGraphTextTrackTime;
     QCPItemRect*     backgnd;
+    QCPItemRect*     repeatLeft;
+    QCPItemRect*     repeatRight;
+    QCPItemRect*     backgndRight;
 
 
     std::mutex       mtxAddTrackWidget;

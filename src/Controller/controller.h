@@ -82,6 +82,7 @@ public:
         void    addTracks        (std::vector<wchar_t*> paths);
         void    setVolume        (float fNewVolume);
         void    setTrackPos      (unsigned int graphPos);
+        void    setRepeatPoint   (unsigned int graphPos);
 
 
     // Get

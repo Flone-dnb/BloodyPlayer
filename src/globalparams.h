@@ -9,3 +9,6 @@
 
 // graph
 #define MAX_X_AXIS_VALUE 1000
+#define MAX_Y_AXIS_VALUE 1.02
+#define PLAYED_SECTION_ALPHA 130
+#define REPEAT_GRAYED_ALPHA 120

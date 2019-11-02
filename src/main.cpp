@@ -1,4 +1,4 @@
-#include "../src/View/MainWindow/mainwindow.h"
+﻿#include "../src/View/MainWindow/mainwindow.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
@@ -8,11 +8,6 @@ int main(int argc, char *argv[])
 
     if (w.isSystemReady())
     {
-        // Hide maximize button
-        Qt::WindowFlags flags = w.windowFlags();
-        flags &= ~Qt::WindowMaximizeButtonHint;
-        w.setWindowFlags(flags);
-
         w.show();
 
         if (argc > 1)

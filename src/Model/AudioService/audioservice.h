@@ -89,6 +89,7 @@ public:
         void    addTracks            (std::vector<wchar_t*>  paths);
         void    setVolume            (float                  fNewVolume);
         void    setTrackPos          (unsigned int           graphPos);
+        void    setRepeatPoint       (unsigned int graphPos);
 
 
     // Get
@@ -155,6 +156,24 @@ private:
     bool              bDrawing;
 
 
+    // Search
+    std::vector<size_t> vSearchResult;
+    size_t              iCurrentPosInSearchVec;
+    bool                bFirstSearchAfterKeyChange;
+
+
+    // Tracks
+    std::vector<Track*> tracks;
+    std::vector<Track*> vTracksHistory;
+
+
+    // Repeat section
+    char              cRepeatSectionState;
+    unsigned int      iFirstRepeatTimePos;
+    unsigned int      iSecondRepeatTimePos;
+
+
+
     std::mutex        mtxTracksVec;
     std::mutex        mtxThreadLoadAddTrack;
     std::mutex        mtxLoadThreadDone;
@@ -176,15 +195,4 @@ private:
     bool              bRepeatTrack;
     bool              bRandomNextTrack;
     bool              bMonitorTracks;
-
-
-    // Search
-    std::vector<size_t> vSearchResult;
-    size_t              iCurrentPosInSearchVec;
-    bool                bFirstSearchAfterKeyChange;
-
-
-    // Tracks
-    std::vector<Track*> tracks;
-    std::vector<Track*> vTracksHistory;
 };
