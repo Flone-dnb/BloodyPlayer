@@ -28,7 +28,7 @@ class Track
 
 public:
 
-    Track(const wchar_t* pFilePath, MainWindow* pMainWindow, FMOD::System* pSystem);
+    Track(const wchar_t* pFilePath, const std::wstring& sTrackName, MainWindow* pMainWindow, FMOD::System* pSystem);
 
 
 
@@ -102,6 +102,7 @@ public:
 
         char           getPCMSamples          (char* pBuff,  unsigned int amountInBytes,  unsigned int *pActualRead, char* pPcmFormat);
         const wchar_t* getFilePath            ();
+        std::wstring&  getTrackName           ();
 
 
 
@@ -115,6 +116,10 @@ private:
 
         int tellBitRate      (bool bit1,  bool bit2,  bool bit3,  bool bit4);
         int tellSamplingRate (bool bit1,  bool bit2);
+
+    // Convert
+
+        std::wstring stringToWString (const std::string& str);
 
 
 
@@ -131,6 +136,7 @@ private:
     FMOD::System*  pSystem;
 
 
+    std::wstring   sTrackName;
     std::string    format;
     std::string    pcmFormat;
 

@@ -160,7 +160,7 @@ void AudioService::FMODinit()
 
 void AudioService::addTrack(const wchar_t *pFilePath)
 {
-    Track* pNewTrack = new Track(pFilePath, pMainWindow, pSystem);
+    Track* pNewTrack = new Track(pFilePath, getTrackName(pFilePath), pMainWindow, pSystem);
     if ( !pNewTrack->setupTrack() )
     {
         delete pNewTrack;
@@ -1112,6 +1112,90 @@ void AudioService::moveUp(size_t iTrackIndex)
     mtxTracksVec.unlock();
 }
 
+void AudioService::searchFindPrev()
+{
+    if (vSearchResult.size() > 0)
+    {
+        if (bFirstSearchAfterKeyChange == false)
+        {
+            if (iCurrentPosInSearchVec == 0)
+            {
+                iCurrentPosInSearchVec = vSearchResult.size() - 1;
+            }
+            else
+            {
+                iCurrentPosInSearchVec--;
+            }
+        }
+
+
+        if ( !(bFirstSearchAfterKeyChange == false && vSearchResult.size() == 1) ) // do not select again if matches == 1 && already selected
+        {
+            pMainWindow->setFocusOnTrack   ( vSearchResult[iCurrentPosInSearchVec] );
+            pMainWindow->searchSetSelected ( vSearchResult[iCurrentPosInSearchVec] );
+        }
+
+
+        bFirstSearchAfterKeyChange = false;
+    }
+}
+
+void AudioService::searchFindNext()
+{
+    if (vSearchResult.size() > 0)
+    {
+        if (bFirstSearchAfterKeyChange == false)
+        {
+            if (iCurrentPosInSearchVec == vSearchResult.size() - 1)
+            {
+                iCurrentPosInSearchVec = 0;
+            }
+            else
+            {
+                iCurrentPosInSearchVec++;
+            }
+        }
+
+
+        if ( !(bFirstSearchAfterKeyChange == false && vSearchResult.size() == 1) ) // do not select again if matches == 1 && already selected
+        {
+            pMainWindow->setFocusOnTrack   ( vSearchResult[iCurrentPosInSearchVec] );
+            pMainWindow->searchSetSelected ( vSearchResult[iCurrentPosInSearchVec] );
+        }
+
+
+        bFirstSearchAfterKeyChange = false;
+    }
+}
+
+void AudioService::searchTextSet(const std::wstring &sKeyword)
+{
+    mtxTracksVec.lock();
+
+
+    vSearchResult.clear();
+    iCurrentPosInSearchVec = 0;
+
+    if (sKeyword != L"")
+    {
+        for (size_t i = 0; i < tracks.size(); i++)
+        {
+            if ( findCaseInsensitive( tracks[i]->getTrackName(), const_cast<std::wstring&>(sKeyword)) != std::string::npos )
+            {
+                vSearchResult.push_back(i);
+            }
+        }
+    }
+
+    bFirstSearchAfterKeyChange = true;
+
+
+    mtxTracksVec.unlock();
+
+
+    pMainWindow->setSearchMatchCount (vSearchResult.size());
+}
+
 void AudioService::repeatTrack()
 {
     bRepeatTrack = !bRepeatTrack;
@@ -1478,6 +1562,17 @@ int AudioService::interpret24bitAsInt32(char byte0, char byte1, char byte2)
 {
     // copy-paste from stackoverflow
     return ( (byte0 << 24) | (byte1 << 16) | (byte2 << 8) ) >> 8;
+}
+
+size_t AudioService::findCaseInsensitive(std::wstring& sText, std::wstring& sKeyword)
+{
+    // All to lower case
+
+    std::transform(sText.begin(), sText.end(), sText.begin(), ::tolower);
+
+    std::transform(sKeyword.begin(), sKeyword.end(), sKeyword.begin(), ::tolower);
+
+    return sText.find(sKeyword);
 }
 
 void AudioService::threadAddTracks(std::vector<wchar_t*>* paths, size_t iStart, size_t iStop, bool* done, int* allCount, int all)

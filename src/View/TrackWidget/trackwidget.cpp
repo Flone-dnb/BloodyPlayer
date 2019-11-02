@@ -99,6 +99,11 @@ void TrackWidget::setNumber(size_t iNumber)
      trackIndex = iNumber - 1;
 }
 
+void TrackWidget::enableSelected()
+{
+    mousePressEvent(nullptr);
+}
+
 void TrackWidget::disablePlaying()
 {
     emit signalDisablePlaying();

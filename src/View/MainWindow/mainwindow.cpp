@@ -22,6 +22,7 @@
 #include "../src/View/FXWindow/fxwindow.h"
 #include "../src/View/VSTWindow/vstwindow.h"
 #include "../src/View/AboutWindow/aboutwindow.h"
+#include "../src/View/SearchWindow/searchwindow.h"
 #include "../src/globalparams.h"
 
 
@@ -150,7 +151,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::showMessageBox(bool errorBox, std::string text)
 {
-    emit signalShowMessageBox(errorBox, text);
+    emit signalShowMessageBox(errorBox, QString::fromStdString(text));
+}
+
+void MainWindow::showWMessageBox(bool errorBox, std::wstring text)
+{
+    emit signalShowMessageBox(errorBox, QString::fromStdWString(text));
 }
 
 void MainWindow::addNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime)
@@ -269,6 +275,16 @@ void MainWindow::hideWaitWindow()
     emit signalHideWaitWindow();
 }
 
+void MainWindow::setSearchMatchCount(size_t iMatches)
+{
+    emit signalSearchMatchCount (iMatches);
+}
+
+void MainWindow::searchSetSelected(size_t iTrackIndex)
+{
+    tracks[iTrackIndex]->enableSelected();
+}
+
 void MainWindow::setProgress(int value)
 {
     emit signalSetProgress(value);
@@ -375,6 +391,21 @@ void MainWindow::slotShowWindow()
     showNormal();
 }
 
+void MainWindow::slotSearchFindPrev()
+{
+    pController->searchFindPrev ();
+}
+
+void MainWindow::slotSearchFindNext()
+{
+    pController->searchFindNext ();
+}
+
+void MainWindow::slotSearchTextSet(QString keyword)
+{
+    pController->searchTextSet (keyword.toStdWString());
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *ev)
 {
     if (ev->key() == Qt::Key_Delete)
@@ -389,6 +420,18 @@ void MainWindow::keyPressEvent(QKeyEvent *ev)
     {
         slotMoveUp();
     }
+    else if (ev->modifiers() == Qt::KeyboardModifier::ControlModifier && ev->key() == Qt::Key_F)
+    {
+        SearchWindow* pSearchWindow = new SearchWindow (this);
+        pSearchWindow->setWindowModality(Qt::WindowModal);
+
+        connect (pSearchWindow, &SearchWindow::findPrev,             this,          &MainWindow::slotSearchFindPrev);
+        connect (pSearchWindow, &SearchWindow::findNext,             this,          &MainWindow::slotSearchFindNext);
+        connect (pSearchWindow, &SearchWindow::searchTextChanged,    this,          &MainWindow::slotSearchTextSet);
+        connect (this,          &MainWindow::signalSearchMatchCount, pSearchWindow, &SearchWindow::searchMatchCount);
+
+        pSearchWindow->show();
+    }
 }
 
 void MainWindow::hideEvent(QHideEvent *ev)
@@ -398,15 +441,15 @@ void MainWindow::hideEvent(QHideEvent *ev)
     ev->ignore();
 }
 
-void MainWindow::slotShowMessageBox(bool errorBox, std::string text)
+void MainWindow::slotShowMessageBox(bool errorBox, QString text)
 {
     if (errorBox)
     {
-        QMessageBox::warning(nullptr, "Error", QString::fromStdString(text));
+        QMessageBox::warning(nullptr, "Error", text);
     }
     else
     {
-        QMessageBox::information(nullptr, "Information", QString::fromStdString(text));
+        QMessageBox::information(nullptr, "Information", text);
     }
 }
 

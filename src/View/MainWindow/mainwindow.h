@@ -64,12 +64,17 @@ signals:
         void     signalHideVSTWindow       ();
 
 
+    // Search
+
+        void     signalSearchMatchCount    (size_t iMatches);
+
+
     // Other
 
         void     signalAddNewTrack         (std::wstring trackName,  std::wstring trackInfo,  std::string trackTime);
         void     signalShowAllTracks       ();
         void     signalSetTrack            (size_t iTrackIndex,      bool bClear = false);
-        void     signalShowMessageBox      (bool errorBox,           std::string text);
+        void     signalShowMessageBox      (bool errorBox,           QString text);
         void     signalSetNumber           (size_t iNumber);
 
 
@@ -116,11 +121,18 @@ public:
         void     hideWaitWindow            ();
 
 
+    // Search
+
+        void     setSearchMatchCount       (size_t iMatches);
+        void     searchSetSelected         (size_t iTrackIndex);
+
+
     // Other
 
         void     addNewTrack               (std::wstring trackName,  std::wstring trackInfo,  std::string trackTime);
         void     showAllTracks             ();
         void     showMessageBox            (bool errorBox,           std::string text);
+        void     showWMessageBox           (bool errorBox,           std::wstring text);
         void     setPlayingOnTrack         (size_t iTrackIndex,      bool bClear = false);
         void     removePlayingOnTrack      (size_t iTrackIndex);
         void     uncheckRandomTrackButton  ();
@@ -136,23 +148,35 @@ public slots:
 
     // Context menu on TrackWidget
     // This is also called from keyPressEvent().
-    void slotMoveUp();
-    void slotMoveDown();
-    void deleteSelectedTrack();
 
-    void slotTrackSelected(size_t iTrackIndex);
-    void slotClickedOnTrack(size_t trackIndex);
-    void slotDrop(QStringList paths);
+        void  slotMoveUp          ();
+        void  slotMoveDown        ();
+        void  deleteSelectedTrack ();
+
+
+    // Tracklist
+
+        void  slotTrackSelected   (size_t iTrackIndex);
+        void  slotClickedOnTrack  (size_t trackIndex);
+        void  slotDrop            (QStringList paths);
+
 
     // Tray icon
-    void slotShowWindow();
 
+        void  slotShowWindow      ();
+
+
+    // Search Window
+
+        void  slotSearchFindPrev  ();
+        void  slotSearchFindNext  ();
+        void  slotSearchTextSet   (QString keyword);
 
 
 protected:
 
-    void keyPressEvent(QKeyEvent* ev);
-    void hideEvent(QHideEvent* ev);
+    void  keyPressEvent           (QKeyEvent* ev);
+    void  hideEvent               (QHideEvent* ev);
 
 
 
@@ -233,7 +257,7 @@ private slots:
         void  slotAddNewTrack                      (std::wstring trackName,  std::wstring trackInfo,  std::string trackTime);
         void  slotShowAllTracks                    ();
         void  slotSetTrack                         (size_t iTrackIndex,      bool bClear = false);
-        void  slotShowMessageBox                   (bool errorBox,           std::string text);
+        void  slotShowMessageBox                   (bool errorBox,           QString text);
         void  slotSetNumber                        (size_t iNumber);
 
 

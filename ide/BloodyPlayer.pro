@@ -32,6 +32,7 @@ SOURCES += \
         ../src/Model/Track/track.cpp \
         ../src/View/AboutWindow/aboutwindow.cpp \
         ../src/View/FXWindow/fxwindow.cpp \
+        ../src/View/SearchWindow/searchwindow.cpp \
         ../src/View/TrackList/tracklist.cpp \
         ../src/View/TrackWidget/trackwidget.cpp \
         ../src/View/VSTWindow/vstwindow.cpp \
@@ -47,6 +48,7 @@ HEADERS += \
         ../src/View/AboutWindow/aboutwindow.h \
         ../src/View/FXWindow/fxwindow.h \
         ../src/View/MainWindow/mainwindow.h \
+        ../src/View/SearchWindow/searchwindow.h \
         ../src/View/TrackList/tracklist.h \
         ../src/View/TrackWidget/trackwidget.h \
         ../src/View/VSTWindow/vstwindow.h \
@@ -57,6 +59,7 @@ FORMS += \
         ../src/View/AboutWindow/aboutwindow.ui \
         ../src/View/FXWindow/fxwindow.ui \
         ../src/View/MainWindow/mainwindow.ui \
+        ../src/View/SearchWindow/searchwindow.ui \
         ../src/View/TrackList/tracklist.ui \
         ../src/View/TrackWidget/trackwidget.ui \
         ../src/View/VSTWindow/vstwindow.ui \

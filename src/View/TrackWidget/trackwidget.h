@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <QWidget>
 
@@ -32,6 +32,7 @@ public:
 
     void setPlaying();
     void setNumber(size_t iNumber);
+    void enableSelected();
     void disablePlaying();
     void disableSelected();
 

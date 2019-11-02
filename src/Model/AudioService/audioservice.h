@@ -37,11 +37,11 @@ public:
 
     // Main functions
 
-        void   playTrack             (size_t iTrackIndex,           bool bDontLockMutex = false);
-        void   nextTrack             (bool bDontLockMutex = false,  bool bRandomNextTrack = false);
-        void   pauseTrack            ();
-        void   stopTrack             ();
-        void   prevTrack             ();
+        void    playTrack            (size_t iTrackIndex,           bool bDontLockMutex = false);
+        void    nextTrack            (bool bDontLockMutex = false,  bool bRandomNextTrack = false);
+        void    pauseTrack           ();
+        void    stopTrack            ();
+        void    prevTrack            ();
 
 
     // Buttons under the volume slider
@@ -62,6 +62,13 @@ public:
         void    removeTrack          (size_t    iTrackIndex);
         void    moveDown             (size_t    iTrackIndex);
         void    moveUp               (size_t    iTrackIndex);
+
+
+    // Search
+
+        void    searchFindPrev       ();
+        void    searchFindNext       ();
+        void    searchTextSet        (const std::wstring& sKeyword);
 
 
     // FX
@@ -104,6 +111,7 @@ private:
     // Functions for execution in a separete thread
     void   threadAddTracks (std::vector<wchar_t*>* paths, size_t iStart, size_t iStop, bool* done,  int* allCount,  int all);
     void   addTrack        (const wchar_t* pFilePath);
+        std::wstring getTrackName  (const wchar_t* pFilePath);
 
     // Will switch to next track if one's ended
     void   monitorTrack    ();
@@ -115,6 +123,9 @@ private:
         float* rawBytesToPCM16_0_1   (char* pBuffer, unsigned int iBufferSizeInBytes);
         float* rawBytesToPCM24_0_1   (char* pBuffer, unsigned int iBufferSizeInBytes);
         int    interpret24bitAsInt32 (char byte0, char byte1, char byte2);
+
+    // Used in search()
+        size_t findCaseInsensitive(std::wstring& sText, std::wstring& sKeyword);
 
 
 
@@ -167,7 +178,10 @@ private:
     bool              bMonitorTracks;
 
 
-
+    // Searcy
+    std::vector<size_t> vSearchResult;
+    size_t              iCurrentPosInSearchVec;
+    bool                bFirstSearchAfterKeyChange;
 
 
     std::vector<Track*> tracks;

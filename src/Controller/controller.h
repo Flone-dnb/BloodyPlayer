@@ -57,6 +57,13 @@ public:
         void    saveTracklist    (std::wstring pathToTracklist);
 
 
+    // Search
+
+        void    searchFindPrev   ();
+        void    searchFindNext   ();
+        void    searchTextSet    (const std::wstring& sKeyword);
+
+
     // FX
 
         void    setPan           (float    fPan);

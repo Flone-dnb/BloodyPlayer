@@ -1,20 +1,25 @@
 ﻿#include "track.h"
 
+// STL
 #include <fstream>
 #include <vector>
+#include <codecvt>
 
+// Custom
 #include "../src/View/MainWindow/mainwindow.h"
 #include "../ext/FMOD/inc/fmod.hpp"
 #include "../ext/FMOD/inc/fmod_errors.h"
 #include "../src/globalparams.h"
 
+// Other
 #include <windows.h>
 
-Track::Track(const wchar_t* pFilePath, MainWindow *pMainWindow, FMOD::System* pSystem)
+Track::Track(const wchar_t* pFilePath, const std::wstring& sTrackName, MainWindow *pMainWindow, FMOD::System* pSystem)
 {
     pChannel          = nullptr;
     pSound            = nullptr;
     this->pFilePath   = pFilePath;
+    this->sTrackName  = sTrackName;
 
     this->pMainWindow = pMainWindow;
     this->pSystem     = pSystem;
@@ -48,7 +53,9 @@ bool Track::setupTrack()
     result = pSystem->createStream(filePathInUTF8, FMOD_DEFAULT | FMOD_LOOP_OFF | FMOD_ACCURATETIME, nullptr, &pSound);
     if (result)
     {
-        pMainWindow->showMessageBox( true, std::string("Track::setTrack::FMOD::System::createStream() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pMainWindow->showWMessageBox( true, std::wstring(L"Track::setupTrack::FMOD::System::createStream() failed.\n\n"
+                                                       "Can't load the file \"" + std::wstring(pFilePath) + L"\".\n\n"
+                                                       "Error: ") + stringToWString(std::string(FMOD_ErrorString(result))) );
         return false;
     }
 
@@ -59,7 +66,7 @@ bool Track::setupTrack()
     result = pSound->getFormat(&type, &formatType, nullptr, nullptr);
     if (result)
     {
-        pMainWindow->showMessageBox( true, std::string("Track::setTrack::FMOD::Sound::getFormat() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        pMainWindow->showMessageBox( true, std::string("Track::setupTrack::FMOD::Sound::getFormat() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
         return false;
     }
 
@@ -212,6 +219,11 @@ bool Track::releaseDummySound()
 const wchar_t* Track::getFilePath()
 {
     return pFilePath;
+}
+
+std::wstring &Track::getTrackName()
+{
+    return sTrackName;
 }
 
 unsigned int Track::getMaxValueOnGraph()
@@ -1045,7 +1057,13 @@ int Track::tellSamplingRate(bool bit1, bool bit2)
     else if (bitString == "01") return 48000;
     else if (bitString == "10") return 32000;
 
-    return -1;
+         return -1;
+}
+
+std::wstring Track::stringToWString(const std::string &str)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
+    return convert.from_bytes(str);
 }
 
 

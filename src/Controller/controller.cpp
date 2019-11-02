@@ -98,6 +98,21 @@ void Controller::saveTracklist(std::wstring pathToTracklist)
     pAudioService->saveTracklist(pathToTracklist);
 }
 
+void Controller::searchFindPrev()
+{
+    pAudioService->searchFindPrev ();
+}
+
+void Controller::searchFindNext()
+{
+    pAudioService->searchFindNext ();
+}
+
+void Controller::searchTextSet(const std::wstring &sKeyword)
+{
+    pAudioService->searchTextSet (sKeyword);
+}
+
 void Controller::setPan(float fPan)
 {
     pAudioService->setPan(fPan);
