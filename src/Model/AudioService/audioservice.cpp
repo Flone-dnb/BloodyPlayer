@@ -21,7 +21,7 @@
 
 AudioService::AudioService(MainWindow* pMainWindow)
 {
-    sBloodyVersion       = "1.16.1";
+    sBloodyVersion       = "1.17.2";
 
 
     this->pMainWindow    = pMainWindow;
