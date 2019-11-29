@@ -1,4 +1,5 @@
-﻿- Close SeachWindow on Esc or when focus is lost.
+﻿- Can't press 'Stop' when paused.
+- Close SeachWindow on Esc or when focus is lost.
 - If the end of the repeat bound is at the end of the track crash will appear.
 - Fix: Pressing "Play" when repeat section is set will reset the repeat section.
 - Speed up the getBitrate() function.
