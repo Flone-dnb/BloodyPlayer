@@ -783,7 +783,7 @@ void AudioService::stopTrack()
 
     mtxTracksVec.lock();
 
-    if ( (tracks.size() > 0) && (bIsSomeTrackPlaying) )
+    if ( (tracks.size() > 0) && (bIsSomeTrackPlaying || bCurrentTrackPaused) )
     {
         tracks[iCurrentlyPlayingTrackIndex]->stopTrack();
         bIsSomeTrackPlaying = false;
