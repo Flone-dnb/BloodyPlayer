@@ -78,6 +78,7 @@ signals:
         void     signalSetTrack            (size_t iTrackIndex,      bool bClear = false);
         void     signalShowMessageBox      (bool errorBox,           QString text);
         void     signalSetNumber           (size_t iNumber);
+        void     signalSetTrackBitrate     (size_t iNumber, QString sBitrate);
 
 
 
@@ -143,6 +144,7 @@ public:
         void     uncheckRandomTrackButton  ();
         void     uncheckRepeatTrackButton  ();
         void     clearCurrentPlaylist      ();
+        void     setTrackBitrate           (size_t iNumber, std::string sBitrate);
 
 
 
@@ -207,8 +209,8 @@ private slots:
 
     // Oscillogram
 
-        void  slotAddDataToGraph                   (float* pData,  unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
-        void  slotSetCurrentPos                    (double x,          std::string time);
+        void  slotAddDataToGraph                   (float* pData,     unsigned int iSizeInSamples,  unsigned int iSamplesInOne);
+        void  slotSetCurrentPos                    (double x,         std::string time);
         void  slotSetRepeatPoint                   (bool bFirstPoint, double x);
         void  slotEraseRepeatSection               ();
         void  slotClearGraph                       (bool stopTrack = false);
@@ -272,6 +274,8 @@ private slots:
         void  slotSetTrack                         (size_t iTrackIndex,      bool bClear = false);
         void  slotShowMessageBox                   (bool errorBox,           QString text);
         void  slotSetNumber                        (size_t iNumber);
+        void  slotSetTrackBitrate                  (size_t iNumber, QString sBitrate);
+        void  slotUpdateTrackInfo                  (size_t iTrackIndex);
 
 
 private:

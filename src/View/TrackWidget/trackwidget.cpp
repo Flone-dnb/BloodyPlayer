@@ -92,6 +92,25 @@ void TrackWidget::setPlaying()
     emit signalSetPlaying();
 }
 
+void TrackWidget::setBitrate(QString sBitrate)
+{
+    int iPos = trackInfo .indexOf("hz, ");
+
+    if (iPos != -1)
+    {
+        QString sNewInfo = trackInfo .left(iPos + 4);
+        sNewInfo += sBitrate;
+        sNewInfo += " kbit/s, ";
+        sNewInfo += trackInfo .right( trackInfo .size() - iPos - 4 );
+
+        trackInfo = sNewInfo;
+
+        ui ->label_TrackInfo ->setText(sNewInfo);
+
+        emit signalUpdateTrackInfo(trackIndex);
+    }
+}
+
 void TrackWidget::setNumber(size_t iNumber)
 {
      ui->label_No->setText( QString::number(iNumber) );

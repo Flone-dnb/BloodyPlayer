@@ -110,20 +110,20 @@ private:
 
     // First and most important function of our system.
     // If this function fails, the application will terminate.
-    bool   FMODinit        ();
+        bool   FMODinit        ();
 
-    void   showTutorial    ();
+        void   showTutorial    ();
 
     // Functions for execution in a separete thread
-    void   threadAddTracks (std::vector<wchar_t*>* paths, size_t iStart, size_t iStop, bool* done,  int* allCount,  int all);
-    void   addTrack        (const wchar_t* pFilePath);
+        void   threadAddTracks (std::vector<wchar_t*>* paths, size_t iStart, size_t iStop, bool* done,  int* allCount,  int all);
+        void   addTrack        (const wchar_t* pFilePath);
         std::wstring getTrackName  (const wchar_t* pFilePath);
 
     // Will switch to next track if one's ended
-    void   monitorTrack    ();
+        void   monitorTrack    ();
 
     // Will draw the oscillogram for the current track
-    void   drawGraph       (size_t* iTrackIndex);
+        void   drawGraph       (size_t* iTrackIndex);
 
     // Used in drawGraph()
         float* rawBytesToPCM16_0_1   (char* pBuffer, unsigned int iBufferSizeInBytes);
@@ -132,6 +132,9 @@ private:
 
     // Used in search()
         size_t findCaseInsensitive(std::wstring& sText, std::wstring& sKeyword);
+
+    // Used in addTracks()
+        void   calcBitrate     ();
 
 
 

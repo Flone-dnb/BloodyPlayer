@@ -322,17 +322,6 @@ void AudioService::addTrack(const wchar_t *pFilePath)
     trackInfo += L", ";
     trackInfo += std::to_wstring( static_cast<int>(pNewTrack->getFrequency()) );
     trackInfo += L"hz";
-    if (pNewTrack->getFormat() == "MP3")
-    {
-        int bitrate;
-        bool ok = pNewTrack->getBitRate(&bitrate);
-        if (ok)
-        {
-            trackInfo += L", ";
-            trackInfo += std::to_wstring(bitrate);
-            trackInfo += L" kbit/s";
-        }
-    }
     int channels, bits;
     if (pNewTrack->getChannelsAndBits(&channels, &bits))
     {
@@ -545,12 +534,17 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
     if (!bDontLockMutex) mtxTracksVec.lock();
 
 
+    size_t iOldPlayingTrackIndex = iCurrentlyPlayingTrackIndex;
+    bool   bFirstTrack           = false;
+
     if ( iTrackIndex < tracks.size() )
     {
         if ( ((bCurrentTrackPaused == false) && (bIsSomeTrackPlaying == false)) || (iTrackIndex != iCurrentlyPlayingTrackIndex) )
         {
             // If I'm correct then (bCurrentTrackPaused == false) && (bIsSomeTrackPlaying == false) should happend only when
             // we play first track after player's started.
+
+            bFirstTrack = true;
 
             if (bDrawing)
             {
@@ -595,7 +589,7 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
             bIsSomeTrackPlaying  = true;
             bCurrentTrackPaused  = false;
 
-            size_t iOldPlayingTrackIndex = iCurrentlyPlayingTrackIndex;
+
             iCurrentlyPlayingTrackIndex  = iTrackIndex;
 
 
@@ -657,6 +651,19 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
     }
 
     if (!bDontLockMutex) mtxTracksVec.unlock();
+
+
+
+    if ( (bFirstTrack) )
+    {
+        if ( (tracks[iCurrentlyPlayingTrackIndex] ->isBitrateCalculated() == false)
+             &&
+             (tracks[iCurrentlyPlayingTrackIndex] ->getFormat() == "MP3") )
+        {
+            std::thread tCalcBitrate(&AudioService::calcBitrate, this);
+            tCalcBitrate .detach();
+        }
+    }
 }
 
 void AudioService::setTrackPos(unsigned int graphPos)
@@ -1904,6 +1911,23 @@ size_t AudioService::findCaseInsensitive(std::wstring& sText, std::wstring& sKey
     std::transform(sKeyword.begin(), sKeyword.end(), sKeyword.begin(), ::tolower);
 
     return sText.find(sKeyword);
+}
+
+void AudioService::calcBitrate()
+{
+    mtxTracksVec .lock();
+
+    int iBitrate = 0;
+
+    bool bResult = tracks[iCurrentlyPlayingTrackIndex] ->getBitRate(&iBitrate);
+
+    if (bResult)
+    {
+        pMainWindow ->setTrackBitrate(iCurrentlyPlayingTrackIndex, std::to_string(iBitrate));
+    }
+
+
+    mtxTracksVec .unlock();
 }
 
 void AudioService::threadAddTracks(std::vector<wchar_t*>* paths, size_t iStart, size_t iStop, bool* done, int* allCount, int all)

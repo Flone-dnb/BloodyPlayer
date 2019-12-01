@@ -25,12 +25,14 @@ signals:
     void signalSetPlaying();
     void signalDisablePlaying();
     void signalSelected(size_t iTrackIndex);
+    void signalUpdateTrackInfo(size_t iTrackIndex);
 
 public:
 
     explicit TrackWidget(QString TrackName, QString TrackInfo, QString TrackTime, QWidget *parent = nullptr);
 
     void setPlaying();
+    void setBitrate(QString sBitrate);
     void setNumber(size_t iNumber);
     void enableSelected();
     void disablePlaying();

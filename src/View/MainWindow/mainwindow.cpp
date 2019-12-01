@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::signalHideVSTWindow,       this, &MainWindow::slotHideVSTWindow);
     connect(this, &MainWindow::signalSetRepeatPoint,      this, &MainWindow::slotSetRepeatPoint);
     connect(this, &MainWindow::signalEraseRepeatSection,  this, &MainWindow::slotEraseRepeatSection);
+    connect(this, &MainWindow::signalSetTrackBitrate,     this, &MainWindow::slotSetTrackBitrate);
 
     // Tracklist connect
     connect(ui->scrollArea, &TrackList::signalDrop, this, &MainWindow::slotDrop);
@@ -253,6 +254,11 @@ void MainWindow::clearCurrentPlaylist()
         ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
         ui->horizontalSlider->setEnabled(false);
     }
+}
+
+void MainWindow::setTrackBitrate(size_t iNumber, std::string sBitrate)
+{
+    emit signalSetTrackBitrate(iNumber, QString::fromStdString(sBitrate));
 }
 
 HWND MainWindow::getVSTWindowHWND()
@@ -524,16 +530,33 @@ void MainWindow::slotSetNumber(size_t iNumber)
     tracks[iNumber]->setNumber(iNumber+1);
 }
 
+void MainWindow::slotSetTrackBitrate(size_t iNumber, QString sBitrate)
+{
+    tracks[iNumber]->setBitrate(sBitrate);
+}
+
+void MainWindow::slotUpdateTrackInfo(size_t iTrackIndex)
+{
+    mtxAddTrackWidget .lock();
+
+    ui ->label_TrackInfo ->setText( tracks[iTrackIndex] ->trackInfo );
+
+    mtxAddTrackWidget .unlock();
+}
+
 void MainWindow::slotAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime)
 {
     mtxAddTrackWidget.lock();
 
-    TrackWidget* pNewTrack = new TrackWidget( QString::fromStdWString(trackName), QString::fromStdWString(trackInfo), QString::fromStdString(trackTime) );
-    connect(pNewTrack, &TrackWidget::signalDoubleClick, this, &MainWindow::slotClickedOnTrack);
-    connect(pNewTrack, &TrackWidget::signalSelected,    this, &MainWindow::slotTrackSelected);
-    connect(pNewTrack, &TrackWidget::signalDelete,      this, &MainWindow::deleteSelectedTrack);
-    connect(pNewTrack, &TrackWidget::signalMoveUp,      this, &MainWindow::slotMoveUp);
-    connect(pNewTrack, &TrackWidget::signalMoveDown,    this, &MainWindow::slotMoveDown);
+    TrackWidget* pNewTrack = new TrackWidget( QString::fromStdWString(trackName), QString::fromStdWString(trackInfo),
+                                              QString::fromStdString(trackTime) );
+
+    connect(pNewTrack, &TrackWidget::signalDoubleClick,     this, &MainWindow::slotClickedOnTrack);
+    connect(pNewTrack, &TrackWidget::signalSelected,        this, &MainWindow::slotTrackSelected);
+    connect(pNewTrack, &TrackWidget::signalDelete,          this, &MainWindow::deleteSelectedTrack);
+    connect(pNewTrack, &TrackWidget::signalMoveUp,          this, &MainWindow::slotMoveUp);
+    connect(pNewTrack, &TrackWidget::signalMoveDown,        this, &MainWindow::slotMoveDown);
+    connect(pNewTrack, &TrackWidget::signalUpdateTrackInfo, this, &MainWindow::slotUpdateTrackInfo);
 
     pNewTrack->setVisible(false);
     ui->verticalLayout_Tracks->addWidget(pNewTrack);
@@ -940,6 +963,8 @@ void MainWindow::on_pushButton_clearPlaylist_clicked()
 {
     if (tracks.size() > 0)
     {
+        mtxAddTrackWidget .lock();
+
         pController->clearPlaylist();
 
         for (size_t i = 0; i < tracks.size(); i++)
@@ -955,6 +980,8 @@ void MainWindow::on_pushButton_clearPlaylist_clicked()
 
         ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
         ui->horizontalSlider->setEnabled(false);
+
+        mtxAddTrackWidget .unlock();
     }
 }
 

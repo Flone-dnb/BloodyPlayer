@@ -90,6 +90,7 @@ public:
         float          getFrequency           ();
         bool           getChannelsAndBits     (int* channels,     int* bits);
         bool           getBitRate             (int* bitrate);
+        bool           isBitrateCalculated    ();
 
 
         // State
@@ -153,4 +154,5 @@ private:
 
 
     bool           bPaused;
+    bool           bBitrateCalculated;
 };

@@ -27,6 +27,7 @@ Track::Track(const wchar_t* pFilePath, const std::wstring& sTrackName, MainWindo
     iMaxValueOnGraph  = 0;
 
     bPaused           = false;
+    bBitrateCalculated= false;
 
     fSpeedByFreq = 1.0f;
     fSpeedByTime = 1.0f;
@@ -945,6 +946,8 @@ bool Track::getBitRate(int *bitrate)
 
         *bitrate = bitrates[iAverageBitrateIndex][0];
 
+        bBitrateCalculated = true;
+
         return true;
     }
     else
@@ -952,6 +955,11 @@ bool Track::getBitRate(int *bitrate)
         // Can't open file
         return false;
     }
+}
+
+bool Track::isBitrateCalculated()
+{
+    return bBitrateCalculated;
 }
 
 long long Track::getFileSizeInBytes()
