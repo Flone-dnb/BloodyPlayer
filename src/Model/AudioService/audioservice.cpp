@@ -586,12 +586,18 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
         }
 
 
+        bool         bOldTrackWasPaused = bCurrentTrackPaused;
+        unsigned int iTrackOldPos       = tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS();
+
         // Play track
         if ( tracks[iTrackIndex]->playTrack(fCurrentVolume) )
         {
-            bIsSomeTrackPlaying = true;
-            bCurrentTrackPaused = false;
-            iCurrentlyPlayingTrackIndex = iTrackIndex;
+            bIsSomeTrackPlaying  = true;
+            bCurrentTrackPaused  = false;
+
+            size_t iOldPlayingTrackIndex = iCurrentlyPlayingTrackIndex;
+            iCurrentlyPlayingTrackIndex  = iTrackIndex;
+
 
             if (bRandomNextTrack)
             {
@@ -603,11 +609,30 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
                 }
             }
 
-            if (cRepeatSectionState != 0)
+
+            if ( (cRepeatSectionState != 0) && (iCurrentlyPlayingTrackIndex != iOldPlayingTrackIndex) )
             {
                 pMainWindow->eraseRepeatSection();
 
                 cRepeatSectionState = 0;
+            }
+            else if ( (cRepeatSectionState != 0) && (iCurrentlyPlayingTrackIndex == iOldPlayingTrackIndex) )
+            {
+                if (bOldTrackWasPaused)
+                {
+                    if ( tracks[iTrackIndex]->getPositionInMS() >= iFirstRepeatTimePos )
+                    {
+                        tracks[iTrackIndex]->setPositionInMS(iTrackOldPos);
+                    }
+                    else
+                    {
+                        tracks[iTrackIndex]->setPositionInMS(iFirstRepeatTimePos);
+                    }
+                }
+                else
+                {
+                    tracks[iTrackIndex]->setPositionInMS(iFirstRepeatTimePos);
+                }
             }
         }
         else
