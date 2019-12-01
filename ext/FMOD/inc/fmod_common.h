@@ -58,7 +58,7 @@ typedef unsigned long long         FMOD_PORT_INDEX;
 /*
     FMOD constants
 */
-#define FMOD_VERSION    0x00020005                     /* 0xaaaabbcc -> aaaa = product version, bb = major version, cc = minor version.*/
+#define FMOD_VERSION    0x00020006                     /* 0xaaaabbcc -> aaaa = product version, bb = major version, cc = minor version.*/
 
 typedef unsigned int FMOD_DEBUG_FLAGS;
 #define FMOD_DEBUG_LEVEL_NONE                       0x00000000
@@ -428,6 +428,7 @@ typedef enum FMOD_SOUND_TYPE
     FMOD_SOUND_TYPE_MEDIA_FOUNDATION,
     FMOD_SOUND_TYPE_MEDIACODEC,
     FMOD_SOUND_TYPE_FADPCM,
+    FMOD_SOUND_TYPE_OPUS,
 
     FMOD_SOUND_TYPE_MAX,
     FMOD_SOUND_TYPE_FORCEINT = 65536
