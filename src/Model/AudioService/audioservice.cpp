@@ -734,22 +734,29 @@ void AudioService::setRepeatPoint(unsigned int graphPos)
         }
         else if (cRepeatSectionState == 1)
         {
-            // One point already on graph, set the second one
-            pMainWindow->setRepeatPoint(false, fPosMult);
-
-            // Done
-            cRepeatSectionState = 2;
-
             unsigned int iPosInMS = static_cast<unsigned int>(tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
             iSecondRepeatTimePos = iPosInMS;
 
-
-            // Set track pos
-            if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() > iSecondRepeatTimePos )
+            if ( iPosInMS
+                 < (tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() - MAX_SECOND_REPEAT_BOUND_FROM_END_MS) )
             {
-                if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iFirstRepeatTimePos) )
+                if ( iPosInMS > iFirstRepeatTimePos + MAX_SECOND_REPEAT_BOUND_FROM_END_MS )
                 {
-                    pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                    // One point already on graph, set the second one
+                    pMainWindow->setRepeatPoint(false, fPosMult);
+
+                    // Done
+                    cRepeatSectionState = 2;
+
+
+                    // Set track pos
+                    if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() > iSecondRepeatTimePos )
+                    {
+                        if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iFirstRepeatTimePos) )
+                        {
+                            pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                        }
+                    }
                 }
             }
         }
@@ -1554,11 +1561,7 @@ void AudioService::monitorTrack()
 
         if (bIsSomeTrackPlaying)
         {
-            if (
-                    (tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() >= (tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() - MAX_TIME_ERROR_MS))
-                    &&
-                    (tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() <= (tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() + MAX_TIME_ERROR_MS))
-                )
+            if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() >= (tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() - MAX_TIME_ERROR_MS) )
             {
                 // The track is ended, play next
                 tracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
@@ -1569,7 +1572,7 @@ void AudioService::monitorTrack()
                     pMainWindow->showMessageBox(true, std::string("AudioService::monitorTrack::FMOD::System::update() failed. Error: ") + FMOD_ErrorString(result));
                 }
 
-                if (bRepeatTrack)
+                if (bRepeatTrack || cRepeatSectionState == 1)
                 {
                     // Or not
                     playTrack(iCurrentlyPlayingTrackIndex, true);
@@ -1590,13 +1593,13 @@ void AudioService::monitorTrack()
             {
                 if (cRepeatSectionState == 2)
                 {
-                    if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() > iSecondRepeatTimePos - MAX_TIME_ERROR_MS )
+                    if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() >= iSecondRepeatTimePos - MAX_TIME_ERROR_MS )
                     {
                         for (float i = fCurrentVolume; i >= 0.0f; i-= 0.01f)
                         {
                             tracks[iCurrentlyPlayingTrackIndex]->setVolume(i);
 
-                            std::this_thread::sleep_for (std::chrono::milliseconds(2));
+                            std::this_thread::sleep_for (std::chrono::milliseconds(TRANSITION_SLEEP_MS));
                         }
 
                         tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS (iFirstRepeatTimePos);
@@ -1605,7 +1608,7 @@ void AudioService::monitorTrack()
                         {
                             tracks[iCurrentlyPlayingTrackIndex]->setVolume(i);
 
-                            std::this_thread::sleep_for (std::chrono::milliseconds(2));
+                            std::this_thread::sleep_for (std::chrono::milliseconds(TRANSITION_SLEEP_MS));
                         }
                     }
                 }

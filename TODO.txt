@@ -1,5 +1,4 @@
-﻿- If the end of the repeat bound is at the end of the track crash will appear.
-- Speed up the getBitrate() function.
+﻿- Speed up the getBitrate() function.
 - Speed up the process of adding the tracks.
 - When adding music, we need to add it in the same order in which it was in the folder.
 - Seems like with 'speed (by pitch)' effect we also need to increase mid-high frequencies on like 3-4 dB and maybe do the same thing with the low and the mid-low.
