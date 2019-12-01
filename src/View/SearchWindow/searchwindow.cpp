@@ -57,6 +57,10 @@ void SearchWindow::keyPressEvent(QKeyEvent *ev)
     {
         findNext();
     }
+    else if (ev->key() == Qt::Key_Escape)
+    {
+        close();
+    }
 }
 
 SearchWindow::~SearchWindow()
