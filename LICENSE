@@ -21,7 +21,7 @@ freely, subject to the following restrictions:
 
 -------------------------------------------------------------------------------------
 
-Bloody Player uses FMOD, it's license is shown below:
+Bloody Player uses FMOD, its license is shown below:
 
                                 FMOD END USER LICENCE AGREEMENT
                                 ===============================
@@ -148,7 +148,7 @@ of FMOD Studio and FMOD Engine software (FMOD).
 
 -------------------------------------------------------------------------------------
 
-Bloody Player uses QCustomPlot, it's license is shown below:
+Bloody Player uses QCustomPlot, its license is shown below:
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -828,7 +828,7 @@ Public License instead of this License.  But first, please read
 
 ------------------------------------------------------------------------------
 
-Bloody Player uses Catch2, it's license is shown below:
+Bloody Player uses Catch2, its license is shown below:
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
