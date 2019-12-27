@@ -74,6 +74,9 @@ FORMS += \
 LIBS += -L"$$_PRO_FILE_PWD_/../ext/FMOD/lib/x64"
 
 
+INCLUDEPATH += "../src"
+
+
 win32
 {
     RC_FILE += ../res/rec_file.rc
@@ -81,6 +84,11 @@ win32
 }
 
 RESOURCES += ../res/qt_rec_file.qrc
+
+# For tests
+#TEMPLATE = lib
+#CONFIG += staticlib
+
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

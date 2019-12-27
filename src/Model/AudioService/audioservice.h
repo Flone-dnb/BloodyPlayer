@@ -15,7 +15,6 @@
 
 
 
-
 class MainWindow;
 class Track;
 
@@ -41,7 +40,7 @@ public:
     // Main functions
 
         void    playTrack            (size_t iTrackIndex,           bool bDontLockMutex = false);
-        void    nextTrack            (bool bDontLockMutex = false,  bool bRandomNextTrack = false);
+        void    nextTrack            (bool bDontLockMutex = false,  bool bRandomNextTrackLocal = false);
         void    pauseTrack           ();
         void    stopTrack            ();
         void    prevTrack            ();
@@ -97,9 +96,18 @@ public:
 
     // Get
 
-        std::string  getBloodyVersion     ();
-        size_t       getPlayingTrackIndex (bool& bSomeTrackIsPlaying);
+        std::string   getBloodyVersion     ();
+        size_t        getPlayingTrackIndex (bool& bSomeTrackIsPlaying);
 
+
+    // For testing
+
+        FMOD::System* getFMODSystem        ();
+        Track*        getCurrentTrack      ();
+        size_t        getTracksCount       ();
+        bool          isFMODStarted        ();
+        bool          isSomeTrackIsPlaying ();
+        bool          isCurrentTrackPaused ();
 
 
 
@@ -121,6 +129,8 @@ private:
 
     // Will switch to next track if one's ended
         void   monitorTrack    ();
+        bool   isCurrentTrackEnded();
+        void   switchToOtherTrack();
 
     // Will draw the oscillogram for the current track
         void   drawGraph       (size_t* iTrackIndex);
@@ -203,4 +213,5 @@ private:
     bool              bRepeatTrack;
     bool              bRandomNextTrack;
     bool              bMonitorTracks;
+    bool              bFMODStarted;
 };

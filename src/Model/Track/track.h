@@ -74,7 +74,7 @@ public:
 
         std::string    getCurrentTime         ();
         unsigned int   getLengthInMS          ();
-        unsigned int   getPositionInMS        ();
+        unsigned int   getPositionInMS        (bool* bError = nullptr);
         unsigned int   getPositionInPCMBytes  ();
 
 

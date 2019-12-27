@@ -6,10 +6,10 @@
 #include <codecvt>
 
 // Custom
-#include "../src/View/MainWindow/mainwindow.h"
+#include "View/MainWindow/mainwindow.h"
+#include "globalparams.h"
 #include "../ext/FMOD/inc/fmod.hpp"
 #include "../ext/FMOD/inc/fmod_errors.h"
-#include "../src/globalparams.h"
 
 // Other
 #include <windows.h>
@@ -18,6 +18,7 @@ Track::Track(const wchar_t* pFilePath, const std::wstring& sTrackName, MainWindo
 {
     pChannel          = nullptr;
     pSound            = nullptr;
+    pDummySound       = nullptr;
     this->pFilePath   = pFilePath;
     this->sTrackName  = sTrackName;
 
@@ -213,6 +214,8 @@ bool Track::releaseDummySound()
         pMainWindow->showMessageBox( true, std::string("Track::releaseDummySound::FMOD::Sound::release() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
         return false;
     }
+
+    pDummySound = nullptr;
 
     return true;
 }
@@ -430,7 +433,7 @@ bool Track::reCreateTrack(float fVolume)
     if (pChannel != nullptr)
     {
         result = pChannel->stop();
-        if (result)
+        if ( (result != FMOD_ERR_INVALID_HANDLE) && (result != FMOD_OK) )
         {
             pMainWindow->showMessageBox( true, std::string("Track::reCreateTrack::FMOD::Channel::stop() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
         }
@@ -589,7 +592,7 @@ unsigned int Track::getLengthInPCMbytes()
     }
 }
 
-unsigned int Track::getPositionInMS()
+unsigned int Track::getPositionInMS(bool* bError)
 {
     // This function returns the current position of the track in milliseconds.
 
@@ -601,8 +604,20 @@ unsigned int Track::getPositionInMS()
         result = pChannel->getPosition(&pos, FMOD_TIMEUNIT_MS);
         if (result)
         {
-            pMainWindow->showMessageBox( true, std::string("Track::getPositionInMS::FMOD::Channel::getPosition() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
-            return 0;
+            if (result == FMOD_ERR_INVALID_HANDLE)
+            {
+                if (bError)
+                {
+                    *bError = true;
+                }
+
+                return 0;
+            }
+            else
+            {
+                pMainWindow->showMessageBox( true, std::string("Track::getPositionInMS::FMOD::Channel::getPosition() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+                return 0;
+            }
         }
 
         return pos;
@@ -1084,7 +1099,12 @@ Track::~Track()
 {
     FMOD_RESULT result;
 
-    if (pChannel != nullptr)
+    if (pDummySound)
+    {
+        delete pDummySound;
+    }
+
+    if (pChannel)
     {
         result = pChannel->stop();
         if (result)
@@ -1099,7 +1119,7 @@ Track::~Track()
         }
     }
 
-    if (pSound != nullptr)
+    if (pSound)
     {
         result = pSound->release();
         if (result)

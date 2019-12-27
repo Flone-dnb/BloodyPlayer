@@ -16,15 +16,15 @@
 #include <thread>
 
 // Custom
-#include "../src/Controller/controller.h"
-#include "../src/View/TrackWidget/trackwidget.h"
-#include "../src/View/WaitWindow/waitwindow.h"
-#include "../src/View/FXWindow/fxwindow.h"
-#include "../src/View/VSTWindow/vstwindow.h"
-#include "../src/View/AboutWindow/aboutwindow.h"
-#include "../src/View/SearchWindow/searchwindow.h"
-#include "../src/View/TutorialWindows/WelcomeWindow/welcomewindow.h"
-#include "../src/globalparams.h"
+#include "Controller/controller.h"
+#include "View/TrackWidget/trackwidget.h"
+#include "View/WaitWindow/waitwindow.h"
+#include "View/FXWindow/fxwindow.h"
+#include "View/VSTWindow/vstwindow.h"
+#include "View/AboutWindow/aboutwindow.h"
+#include "View/SearchWindow/searchwindow.h"
+#include "View/TutorialWindows/WelcomeWindow/welcomewindow.h"
+#include "globalparams.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -214,13 +214,20 @@ void MainWindow::setPlayingOnTrack(size_t iTrackIndex, bool bClear)
 {
     if (bClear)
     {
+        mtxAddTrackWidget .lock();
+        mtxAddTrackWidget .unlock();
+
         emit signalSetTrack(iTrackIndex, true);
     }
     else
     {
+        mtxAddTrackWidget .lock();
+
         tracks[iTrackIndex]->setPlaying();
 
         ui->scrollArea->ensureWidgetVisible(tracks[iTrackIndex]);
+
+        mtxAddTrackWidget .unlock();
 
         emit signalSetTrack(iTrackIndex);
     }
@@ -240,6 +247,8 @@ void MainWindow::clearCurrentPlaylist()
 {
     if (tracks.size() > 0)
     {
+        mtxAddTrackWidget .lock();
+
         for (size_t i = 0; i < tracks.size(); i++)
         {
             delete tracks[i];
@@ -253,12 +262,46 @@ void MainWindow::clearCurrentPlaylist()
 
         ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
         ui->horizontalSlider->setEnabled(false);
+
+        mtxAddTrackWidget .unlock();
     }
 }
 
 void MainWindow::setTrackBitrate(size_t iNumber, std::string sBitrate)
 {
     emit signalSetTrackBitrate(iNumber, QString::fromStdString(sBitrate));
+}
+
+size_t MainWindow::getTracksCount()
+{
+    size_t iCount = 0;
+
+    mtxAddTrackWidget .lock();
+
+    iCount = tracks .size();
+
+    mtxAddTrackWidget .unlock();
+
+    return iCount;
+}
+
+size_t MainWindow::getTracksCountOnScreen()
+{
+    size_t iVisibleTracks = 0;
+
+    mtxAddTrackWidget .lock();
+
+    for (size_t i = 0; i < tracks .size(); i++)
+    {
+        if ( tracks[i] ->isVisible() )
+        {
+            iVisibleTracks++;
+        }
+    }
+
+    mtxAddTrackWidget .unlock();
+
+    return iVisibleTracks;
 }
 
 HWND MainWindow::getVSTWindowHWND()
@@ -310,10 +353,11 @@ void MainWindow::eraseRepeatSection()
 
 void MainWindow::setFocusOnTrack(size_t index)
 {
-    // Wait a little for all track widgets to show
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+    mtxAddTrackWidget .lock();
 
     ui->scrollArea->ensureWidgetVisible(tracks[index], 50, 50);
+
+    mtxAddTrackWidget .unlock();
 }
 
 void MainWindow::showWaitWindow(std::string text)
@@ -575,13 +619,17 @@ void MainWindow::slotAddNewTrack(std::wstring trackName, std::wstring trackInfo,
 
 void MainWindow::slotShowAllTracks()
 {
+    mtxAddTrackWidget .lock();
+
     for (size_t i = 0; i < tracks.size(); i++)
     {
         tracks[i]->setVisible(true);
     }
 
-    std::thread focus(&MainWindow::setFocusOnTrack, this, tracks.size() - 1);
-    focus.detach();
+    mtxAddTrackWidget .unlock();
+
+//    std::thread focus(&MainWindow::setFocusOnTrack, this, tracks.size() - 1);
+//    focus.detach();
 }
 
 void MainWindow::slotShowWaitWindow(QString text)
@@ -1047,6 +1095,9 @@ void MainWindow::on_actionOpen_2_triggered()
 
 MainWindow::~MainWindow()
 {
+    mtxAddTrackWidget .lock();
+    mtxAddTrackWidget .unlock();
+
     if (pVSTWindow) delete pVSTWindow;
     delete pFXWindow;
 

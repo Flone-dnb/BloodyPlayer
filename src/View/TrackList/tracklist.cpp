@@ -1,7 +1,5 @@
-#include "tracklist.h"
+﻿#include "tracklist.h"
 #include "ui_tracklist.h"
-
-#include "../src/View/WaitWindow/waitwindow.h"
 
 #include <QDropEvent>
 #include <QDir>
@@ -14,8 +12,6 @@ TrackList::TrackList(QWidget *parent) :
 {
     ui->setupUi(this);
     setAcceptDrops(true);
-    pWaitWindow = new WaitWindow(this);
-    pWaitWindow->setWindowModality(Qt::WindowModality::WindowModal);
 }
 
 void TrackList::addDirectory(QString path)
@@ -23,15 +19,12 @@ void TrackList::addDirectory(QString path)
     QStringList list;
     list.push_back(path);
 
-    pWaitWindow->show();
     QStringList filteredPaths = filterPaths(list);
 
     if (filteredPaths.size() > 0)
     {
         emit signalDrop(filteredPaths);
     }
-
-    pWaitWindow->hide();
 }
 
 void TrackList::dragEnterEvent(QDragEnterEvent *event)
@@ -113,15 +106,12 @@ void TrackList::dropEvent(QDropEvent *event)
 
         QStringList filteredPaths;
 
-        pWaitWindow->show();
         filteredPaths = filterPaths(pathList);
 
         if (filteredPaths.size() > 0)
         {
             emit signalDrop(filteredPaths);
         }
-
-        pWaitWindow->hide();
     }
 }
 
@@ -186,6 +176,5 @@ QStringList TrackList::filterPaths(QStringList paths)
 
 TrackList::~TrackList()
 {
-    delete pWaitWindow;
     delete ui;
 }

@@ -147,6 +147,12 @@ public:
         void     setTrackBitrate           (size_t iNumber, std::string sBitrate);
 
 
+    // GET functions
+
+        size_t   getTracksCount            ();
+        size_t   getTracksCountOnScreen    ();
+
+
 
 
     ~MainWindow();

@@ -4,7 +4,7 @@
 #include <thread>
 
 // Custom
-#include "../src/Model/AudioService/audioservice.h"
+#include "Model/AudioService/audioservice.h"
 
 Controller::Controller(MainWindow* pMainWindow)
 {
@@ -105,7 +105,9 @@ void Controller::moveUp(size_t iTrackIndex)
 
 void Controller::openTracklist(std::wstring pathToTracklist, bool bClearCurrent)
 {
-    pAudioService->openTracklist(pathToTracklist, bClearCurrent);
+    std::thread addThread(&AudioService::openTracklist, pAudioService, pathToTracklist, bClearCurrent);
+    addThread.detach();
+    //pAudioService->openTracklist(pathToTracklist, bClearCurrent);
 }
 
 void Controller::saveTracklist(std::wstring pathToTracklist)
@@ -193,7 +195,6 @@ size_t Controller::getPlaingTrackIndex(bool& bSomeTrackIsPlaying)
 {
     return pAudioService->getPlayingTrackIndex(bSomeTrackIsPlaying);
 }
-
 
 
 

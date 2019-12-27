@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // Qt
 #include <QScrollArea>
@@ -15,7 +15,6 @@ namespace Ui
 
 class QDragEnterEvent;
 class QDropEvent;
-class WaitWindow;
 class QKeyEvent;
 
 
@@ -50,7 +49,5 @@ private:
     QStringList filterPaths(QStringList paths);
 
 
-
-    WaitWindow* pWaitWindow;
     Ui::TrackList *ui;
 };
