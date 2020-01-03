@@ -1,3 +1,8 @@
+// This file is part of the Bloody Player.
+// Copyright Aleksandr "Flone" Tretyakov (github.com/Flone-dnb).
+// Licensed under the ZLib license.
+// Refer to the LICENSE file included.
+
 #include "vstwindow.h"
 #include "ui_vstwindow.h"
 

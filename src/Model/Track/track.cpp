@@ -1,4 +1,9 @@
-﻿#include "track.h"
+﻿// This file is part of the Bloody Player.
+// Copyright Aleksandr "Flone" Tretyakov (github.com/Flone-dnb).
+// Licensed under the ZLib license.
+// Refer to the LICENSE file included.
+
+#include "track.h"
 
 // STL
 #include <fstream>

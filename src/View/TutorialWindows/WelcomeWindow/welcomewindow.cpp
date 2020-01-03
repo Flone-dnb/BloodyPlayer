@@ -1,4 +1,9 @@
-﻿#include "welcomewindow.h"
+﻿// This file is part of the Bloody Player.
+// Copyright Aleksandr "Flone" Tretyakov (github.com/Flone-dnb).
+// Licensed under the ZLib license.
+// Refer to the LICENSE file included.
+
+#include "welcomewindow.h"
 #include "ui_welcomewindow.h"
 
 // Qt
