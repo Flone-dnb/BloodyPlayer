@@ -1414,7 +1414,7 @@ QPushButton:pressed
         <item>
          <widget class="QSlider" name="horizontalSlider">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="styleSheet">
            <string notr="true">QSlider::handle
@@ -1780,8 +1780,8 @@ border-radius: 25px;</string>
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>1157</width>
-         <height>431</height>
+         <width>1165</width>
+         <height>444</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -1822,7 +1822,7 @@ border-radius: 25px;</string>
      <x>0</x>
      <y>0</y>
      <width>1185</width>
-     <height>33</height>
+     <height>28</height>
     </rect>
    </property>
    <property name="font">

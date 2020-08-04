@@ -1,10 +1,8 @@
 ﻿- Played tracks history should work all the time, not only when 'random track' is on.
 - When adding music, we need to add it in the same order in which it was in the folder.
-- Seems like with 'speed (by pitch)' effect we also need to increase mid-high frequencies on like 3-4 dB and maybe do the same thing with the low and the mid-low.
-- After the tracklist was cleared volume returns to the default value of 75%, we don't want that, don't change master volume when tracklist is clear and allow to change it if tracklist is clear.
-- Add winsock2 and make 'Check for Updates' button in menu (see https://stackoverflow.com/questions/39931347/simple-http-get-with-winsock and https://github.com/VioletGiraffe/github-releases-autoupdater).
 - With winsock2 create a server and if another audio file is being opened a new instance of Player will check if one is running and if true then this new track will be sent to currently running instance. 
-- Make better icons for buttons.
+- (?) Add winsock2 and make 'Check for Updates' button -> in settings add "Update server address".
 - Add gain (fader) DSP.
 - Add multi-band EQ.
 - On every startup check if the Player is associated with the audio formats in windows and if not then ask to associate.
+- Seems like with 'speed (by pitch)' effect we also need to increase mid-high frequencies on like 3-4 dB and maybe do the same thing with the low and the mid-low.

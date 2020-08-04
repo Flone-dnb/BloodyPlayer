@@ -155,7 +155,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     iCurrentXPosOnGraph = 0;
 
-    // 3%
     minPosOnGraphForText = MAX_X_AXIS_VALUE * 3 / 100;
     minPosOnGraphForText /= static_cast<double>(MAX_X_AXIS_VALUE);
     maxPosOnGraphForText = MAX_X_AXIS_VALUE * 97 / 100;
@@ -265,8 +264,8 @@ void MainWindow::clearCurrentPlaylist()
 
         slotClearGraph();
 
-        ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
-        ui->horizontalSlider->setEnabled(false);
+        //ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
+        //ui->horizontalSlider->setEnabled(false);
 
         mtxAddTrackWidget .unlock();
     }
@@ -614,10 +613,10 @@ void MainWindow::slotAddNewTrack(std::wstring trackName, std::wstring trackInfo,
     pNewTrack->setNumber( tracks.size() );
     //pNewTrack->show();
 
-    if (tracks.size() == 1)
-    {
-        ui->horizontalSlider->setEnabled(true);
-    }
+//    if (tracks.size() == 1)
+//    {
+//        ui->horizontalSlider->setEnabled(true);
+//    }
 
     mtxAddTrackWidget.unlock();
 }
@@ -681,16 +680,19 @@ void MainWindow::slotAddDataToGraph(float* pData, unsigned int iSizeInSamples, u
     QVector<double> x;
     QVector<double> y;
 
-    unsigned int sampleInOne = iSamplesInOne;
+    // Here we need to show only 'iSamplesInOne' samples out of all 'iSizeInSamples'.
 
-    for (unsigned int i = 0; i < iSizeInSamples - (2 * sampleInOne - 1); i+= (2 * sampleInOne))
+    //                                            here '2' because 2 channels (TODO: get rid of this constant value),
+    //                                            and '-1' because we read two values in one cycle.
+    for (unsigned int i = 0; i < iSizeInSamples - (2 * iSamplesInOne - 1); i+= (2 * iSamplesInOne))
     {
         x.push_back( static_cast<double>(iCurrentXPosOnGraph) );
         iCurrentXPosOnGraph++;
 
         float iSample = -1.0f;
 
-        for (unsigned int j = 0; j < (2 * sampleInOne); j+= 2)
+        // Average all 'iSamplesInOne' samples in one sample.
+        for (unsigned int j = 0; j < (2 * iSamplesInOne); j+= 2)
         {
             float iSample1 = (pData[i + j] + pData[i + j + 1]) / 2;
 
@@ -901,8 +903,8 @@ void MainWindow::deleteSelectedTrack()
 
         if (tracks.size() == 0)
         {
-            ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
-            ui->horizontalSlider->setEnabled(false);
+            //ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
+            //ui->horizontalSlider->setEnabled(false);
 
             ui->label_TrackName->setText( "Track Name" );
             ui->label_TrackInfo->setText( "Track Info" );
@@ -1031,8 +1033,8 @@ void MainWindow::on_pushButton_clearPlaylist_clicked()
 
         slotClearGraph();
 
-        ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
-        ui->horizontalSlider->setEnabled(false);
+        //ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
+        //ui->horizontalSlider->setEnabled(false);
 
         mtxAddTrackWidget .unlock();
     }

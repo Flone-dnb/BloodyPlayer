@@ -1081,7 +1081,7 @@ void AudioService::clearPlaylist()
     }
     tracks.clear();
 
-    fCurrentVolume = DEFAULT_VOLUME;
+    //fCurrentVolume = DEFAULT_VOLUME;
 
 
     vTracksHistory.clear();
@@ -1595,8 +1595,9 @@ void AudioService::setVolume(float fNewVolume)
     if (tracks.size() > 0)
     {
         tracks[iCurrentlyPlayingTrackIndex]->setVolume(fNewVolume);
-        fCurrentVolume = fNewVolume;
     }
+
+    fCurrentVolume = fNewVolume;
 
     mtxTracksVec.unlock();
 }
@@ -1967,9 +1968,9 @@ float *AudioService::rawBytesToPCM16_0_1(char *pBuffer, unsigned int iBufferSize
         std::memcpy(reinterpret_cast<char*>(&iSampleL),     &pBuffer[i],     1);
         std::memcpy(reinterpret_cast<char*>(&iSampleL) + 1, &pBuffer[i + 1], 1);
 
-        unsigned short int iSampleLUnsigned = static_cast<unsigned short int> (iSampleL + SHRT_MIN);
+        unsigned short int iSampleLUnsigned = static_cast<unsigned short int> (iSampleL + USHRT_MAX / 2.0f);
 
-        pSamples[iPosInSamples] = static_cast<float>( iSampleLUnsigned / pow(2, 16) );
+        pSamples[iPosInSamples] = static_cast<float>(iSampleLUnsigned) / USHRT_MAX;
         iPosInSamples++;
 
 
@@ -1979,9 +1980,9 @@ float *AudioService::rawBytesToPCM16_0_1(char *pBuffer, unsigned int iBufferSize
         std::memcpy(reinterpret_cast<char*>(&iSampleR),     &pBuffer[i + 2], 1);
         std::memcpy(reinterpret_cast<char*>(&iSampleR) + 1, &pBuffer[i + 3], 1);
 
-        unsigned short int iSampleRUnsigned = static_cast<unsigned short int> (iSampleR + SHRT_MIN);
+        unsigned short int iSampleRUnsigned = static_cast<unsigned short int> (iSampleR + USHRT_MAX / 2.0f);
 
-        pSamples[iPosInSamples] = static_cast<float>( iSampleRUnsigned / pow(2, 16) );
+        pSamples[iPosInSamples] = static_cast<float>(iSampleRUnsigned) / USHRT_MAX;
         iPosInSamples++;
     }
 
