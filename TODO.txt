@@ -1,5 +1,4 @@
-﻿- Played tracks history should work all the time, not only when 'random track' is on.
-- When adding music, we need to add it in the same order in which it was in the folder.
+﻿- When adding music, we need to add it in the same order in which it was in the folder.
 - With winsock2 create a server and if another audio file is being opened a new instance of Player will check if one is running and if true then this new track will be sent to currently running instance. 
 - (?) Add winsock2 and make 'Check for Updates' button -> in settings add "Update server address".
 - Add gain (fader) DSP.

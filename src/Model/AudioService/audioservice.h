@@ -186,7 +186,7 @@ private:
 
 
     // Tracks
-    std::vector<Track*> tracks;
+    std::vector<Track*> vTracks;
     std::vector<Track*> vTracksHistory;
 
 

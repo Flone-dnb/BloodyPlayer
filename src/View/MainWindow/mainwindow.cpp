@@ -36,7 +36,12 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    bSystemReady = false;
+
     ui->setupUi(this);
+
+    pController = new Controller(this);
+
     ui->verticalLayout_Tracks->setAlignment( Qt::AlignTop );
     ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
     ui->label_volume->setText("Volume: " + QString::number(DEFAULT_VOLUME*100) + "%");
@@ -180,8 +185,6 @@ MainWindow::MainWindow(QWidget *parent) :
     pVSTWindow->setWindowModality(Qt::WindowModality::WindowModal);
     connect(pVSTWindow, &VSTWindow::unloadVST, this, &MainWindow::slotUnloadVST);
     connect(pVSTWindow, &VSTWindow::updateAudio, this, &MainWindow::slotUpdate);
-
-    pController = new Controller(this);
 }
 
 

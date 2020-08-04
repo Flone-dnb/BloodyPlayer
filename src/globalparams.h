@@ -7,7 +7,7 @@
 
 // defaults
 #define MAX_CHANNELS 2000
-#define DEFAULT_VOLUME 0.75f
+#define DEFAULT_VOLUME 0.8f
 
 #define MONITOR_TRACK_INTERVAL_MS 200
 #define MAX_TIME_ERROR_MS 80

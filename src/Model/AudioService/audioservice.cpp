@@ -365,11 +365,11 @@ void AudioService::addTrack(const wchar_t *pFilePath)
     mtxThreadLoadAddTrack.lock();
 
 
-    tracks.push_back(pNewTrack);
+    vTracks.push_back(pNewTrack);
 
     pMainWindow->addNewTrack(trackName, trackInfo, trackTime);
 
-    if (tracks.size() == 1)
+    if (vTracks.size() == 1)
     {
         bMonitorTracks = true;
         std::thread monitor(&AudioService::monitorTrack, this);
@@ -417,9 +417,9 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
     mtxTracksVec.lock();
 
     // Remove some of the tracks if we exceed MAX_CHANNELS (i.e. max amount of tracks)
-    if (paths.size() + tracks.size() > MAX_CHANNELS)
+    if (paths.size() + vTracks.size() > MAX_CHANNELS)
     {
-        size_t removeCount = paths.size() + tracks.size() - MAX_CHANNELS;
+        size_t removeCount = paths.size() + vTracks.size() - MAX_CHANNELS;
 
         for (size_t i = 0; i < removeCount; i++)
         {
@@ -538,14 +538,14 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
     do
     {
         std::this_thread::sleep_for( std::chrono::milliseconds(WAIT_FOR_UI_IN_MS) );
-    } while ( pMainWindow ->getTracksCount() != tracks .size() );
+    } while ( pMainWindow->getTracksCount() != vTracks.size() );
 
-    pMainWindow ->showAllTracks();
+    pMainWindow->showAllTracks();
 
     // Wait to show all tracks
     std::this_thread::sleep_for( std::chrono::milliseconds(500) );
 
-    pMainWindow ->setFocusOnTrack( tracks .size() - 1 );
+    pMainWindow->setFocusOnTrack( vTracks.size() - 1 );
 
     mtxTracksVec.unlock();
 }
@@ -560,7 +560,7 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
     size_t iOldPlayingTrackIndex = iCurrentlyPlayingTrackIndex;
     bool   bFirstTrack           = false;
 
-    if ( iTrackIndex < tracks.size() )
+    if ( iTrackIndex < vTracks.size() )
     {
         if ( ((bCurrentTrackPaused == false) && (bIsSomeTrackPlaying == false)) || (iTrackIndex != iCurrentlyPlayingTrackIndex) )
         {
@@ -593,7 +593,7 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
 
             if ( isCurrentTrackEnded() )
             {
-                tracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
+                vTracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
             }
         }
 
@@ -602,23 +602,23 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
         {
             if (iTrackIndex != iCurrentlyPlayingTrackIndex)
             {
-                tracks[iCurrentlyPlayingTrackIndex]->stopTrack();
+                vTracks[iCurrentlyPlayingTrackIndex]->stopTrack();
                 pMainWindow->removePlayingOnTrack(iCurrentlyPlayingTrackIndex);
             }
         }
         else if (bCurrentTrackPaused && (iTrackIndex != iCurrentlyPlayingTrackIndex))
         {
-            tracks[iCurrentlyPlayingTrackIndex]->stopTrack();
+            vTracks[iCurrentlyPlayingTrackIndex]->stopTrack();
             pMainWindow->removePlayingOnTrack(iCurrentlyPlayingTrackIndex);
         }
 
 
         bool         bOldTrackWasPaused = bCurrentTrackPaused;
-        unsigned int iTrackOldPos       = tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS();
+        unsigned int iTrackOldPos       = vTracks[iCurrentlyPlayingTrackIndex]->getPositionInMS();
 
 
         // Play track
-        if ( tracks[iTrackIndex]->playTrack(fCurrentVolume) )
+        if ( vTracks[iTrackIndex]->playTrack(fCurrentVolume) )
         {
             bIsSomeTrackPlaying  = true;
             bCurrentTrackPaused  = false;
@@ -627,15 +627,16 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
             iCurrentlyPlayingTrackIndex  = iTrackIndex;
 
 
-            if (bRandomNextTrack)
-            {
-                vTracksHistory.push_back(tracks[iTrackIndex]);
 
-                if (vTracksHistory.size() > MAX_HISTORY_SIZE)
-                {
-                    vTracksHistory.erase( vTracksHistory.begin() );
-                }
+            // Add to history.
+
+            vTracksHistory.push_back(vTracks[iTrackIndex]);
+
+            if (vTracksHistory.size() > MAX_HISTORY_SIZE)
+            {
+                vTracksHistory.erase( vTracksHistory.begin() );
             }
+
 
 
             if ( (cRepeatSectionState != 0) && (iCurrentlyPlayingTrackIndex != iOldPlayingTrackIndex) )
@@ -648,18 +649,18 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
             {
                 if (bOldTrackWasPaused)
                 {
-                    if ( tracks[iTrackIndex]->getPositionInMS() >= iFirstRepeatTimePos )
+                    if ( vTracks[iTrackIndex]->getPositionInMS() >= iFirstRepeatTimePos )
                     {
-                        tracks[iTrackIndex]->setPositionInMS(iTrackOldPos);
+                        vTracks[iTrackIndex]->setPositionInMS(iTrackOldPos);
                     }
                     else
                     {
-                        tracks[iTrackIndex]->setPositionInMS(iFirstRepeatTimePos);
+                        vTracks[iTrackIndex]->setPositionInMS(iFirstRepeatTimePos);
                     }
                 }
                 else
                 {
-                    tracks[iTrackIndex]->setPositionInMS(iFirstRepeatTimePos);
+                    vTracks[iTrackIndex]->setPositionInMS(iFirstRepeatTimePos);
                 }
             }
         }
@@ -690,9 +691,9 @@ void AudioService::playTrack(size_t iTrackIndex, bool bDontLockMutex)
 
     if ( (bFirstTrack) )
     {
-        if ( (tracks[iCurrentlyPlayingTrackIndex] ->isBitrateCalculated() == false)
+        if ( (vTracks[iCurrentlyPlayingTrackIndex] ->isBitrateCalculated() == false)
              &&
-             (tracks[iCurrentlyPlayingTrackIndex] ->getFormat() == "MP3") )
+             (vTracks[iCurrentlyPlayingTrackIndex] ->getFormat() == "MP3") )
         {
             std::thread tCalcBitrate(&AudioService::calcBitrate, this);
             tCalcBitrate .detach();
@@ -704,30 +705,30 @@ void AudioService::setTrackPos(unsigned int graphPos)
 {
     mtxTracksVec.lock();
 
-    if ( (tracks.size() > 0) && (bIsSomeTrackPlaying || bCurrentTrackPaused) )
+    if ( (vTracks.size() > 0) && (bIsSomeTrackPlaying || bCurrentTrackPaused) )
     {
         // track->getMaxValueOnGraph() - 100%
         // graphPos                    - x%
 
-        double fPosMult = graphPos / static_cast<double>(tracks[iCurrentlyPlayingTrackIndex]->getMaxValueOnGraph());
+        double fPosMult = graphPos / static_cast<double>(vTracks[iCurrentlyPlayingTrackIndex]->getMaxValueOnGraph());
         // cast to avoid overflow
-        unsigned int iPosInMS = static_cast<unsigned int>(tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
+        unsigned int iPosInMS = static_cast<unsigned int>(vTracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
 
         if (cRepeatSectionState == 2)
         {
             if ( (iPosInMS > iFirstRepeatTimePos) && (iPosInMS < iSecondRepeatTimePos) )
             {
-                if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iPosInMS) )
+                if ( vTracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iPosInMS) )
                 {
-                    pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                    pMainWindow->setCurrentPos(fPosMult, vTracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
                 }
             }
         }
         else
         {
-            if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iPosInMS) )
+            if ( vTracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iPosInMS) )
             {
-                pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                pMainWindow->setCurrentPos(fPosMult, vTracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
             }
         }
     }
@@ -746,12 +747,12 @@ void AudioService::setRepeatPoint(unsigned int graphPos)
 {
     mtxTracksVec.lock();
 
-    if ( (tracks.size() > 0) && (bIsSomeTrackPlaying || bCurrentTrackPaused) )
+    if ( (vTracks.size() > 0) && (bIsSomeTrackPlaying || bCurrentTrackPaused) )
     {
         // track->getMaxValueOnGraph() - 100%
         // graphPos                    - x%
 
-        double fPosMult = graphPos / static_cast<double>(tracks[iCurrentlyPlayingTrackIndex]->getMaxValueOnGraph());
+        double fPosMult = graphPos / static_cast<double>(vTracks[iCurrentlyPlayingTrackIndex]->getMaxValueOnGraph());
 
         if (cRepeatSectionState == 0)
         {
@@ -760,26 +761,26 @@ void AudioService::setRepeatPoint(unsigned int graphPos)
 
             cRepeatSectionState = 1;
 
-            unsigned int iPosInMS = static_cast<unsigned int>(tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
+            unsigned int iPosInMS = static_cast<unsigned int>(vTracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
             iFirstRepeatTimePos = iPosInMS;
 
 
             // Set track pos
-            if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() < iFirstRepeatTimePos )
+            if ( vTracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() < iFirstRepeatTimePos )
             {
-                if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iFirstRepeatTimePos) )
+                if ( vTracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iFirstRepeatTimePos) )
                 {
-                    pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                    pMainWindow->setCurrentPos(fPosMult, vTracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
                 }
             }
         }
         else if (cRepeatSectionState == 1)
         {
-            unsigned int iPosInMS = static_cast<unsigned int>(tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
+            unsigned int iPosInMS = static_cast<unsigned int>(vTracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() * fPosMult);
             iSecondRepeatTimePos = iPosInMS;
 
             if ( iPosInMS
-                 < (tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() - MAX_SECOND_REPEAT_BOUND_FROM_END_MS) )
+                 < (vTracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() - MAX_SECOND_REPEAT_BOUND_FROM_END_MS) )
             {
                 if ( iPosInMS > iFirstRepeatTimePos + MAX_SECOND_REPEAT_BOUND_FROM_END_MS )
                 {
@@ -791,11 +792,11 @@ void AudioService::setRepeatPoint(unsigned int graphPos)
 
 
                     // Set track pos
-                    if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() > iSecondRepeatTimePos )
+                    if ( vTracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() > iSecondRepeatTimePos )
                     {
-                        if ( tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iFirstRepeatTimePos) )
+                        if ( vTracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iFirstRepeatTimePos) )
                         {
-                            pMainWindow->setCurrentPos(fPosMult, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                            pMainWindow->setCurrentPos(fPosMult, vTracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
                         }
                     }
                 }
@@ -824,14 +825,14 @@ void AudioService::pauseTrack()
 
     mtxTracksVec.lock();
 
-    if ( tracks.size() > 0 )
+    if ( vTracks.size() > 0 )
     {
         if ( isCurrentTrackEnded() )
         {
-            tracks[iCurrentlyPlayingTrackIndex] ->reCreateTrack(fCurrentVolume);
+            vTracks[iCurrentlyPlayingTrackIndex] ->reCreateTrack(fCurrentVolume);
         }
 
-        if ( tracks[iCurrentlyPlayingTrackIndex]->pauseTrack() )
+        if ( vTracks[iCurrentlyPlayingTrackIndex]->pauseTrack() )
         {
             if (bIsSomeTrackPlaying)
             {
@@ -862,9 +863,9 @@ void AudioService::stopTrack()
 
     mtxTracksVec.lock();
 
-    if ( (tracks.size() > 0) && (bIsSomeTrackPlaying || bCurrentTrackPaused) )
+    if ( (vTracks.size() > 0) && (bIsSomeTrackPlaying || bCurrentTrackPaused) )
     {
-        tracks[iCurrentlyPlayingTrackIndex]->stopTrack();
+        vTracks[iCurrentlyPlayingTrackIndex]->stopTrack();
         bIsSomeTrackPlaying = false;
         bCurrentTrackPaused = true;
         pMainWindow->clearGraph(true);
@@ -879,20 +880,20 @@ void AudioService::nextTrack(bool bDontLockMutex, bool bRandomNextTrackLocal)
 
     if (!bDontLockMutex) mtxTracksVec.lock();
 
-    if ( tracks.size() > 0 )
+    if ( vTracks.size() > 0 )
     {
         if ( isCurrentTrackEnded() )
         {
-            tracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
+            vTracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
         }
 
         if (bRandomNextTrackLocal)
         {
             size_t iNewTrackIndex = iCurrentlyPlayingTrackIndex;
 
-            if (tracks.size() != 1)
+            if (vTracks.size() != 1)
             {
-                std::uniform_int_distribution<> uid(0, static_cast<int>(tracks.size()) - 1);
+                std::uniform_int_distribution<> uid(0, static_cast<int>(vTracks.size()) - 1);
 
                 do
                 {
@@ -905,7 +906,7 @@ void AudioService::nextTrack(bool bDontLockMutex, bool bRandomNextTrackLocal)
         }
         else
         {
-            if (iCurrentlyPlayingTrackIndex == (tracks.size() - 1))
+            if (iCurrentlyPlayingTrackIndex == (vTracks.size() - 1))
             {
                 playTrack(0, true);
             }
@@ -925,59 +926,41 @@ void AudioService::prevTrack()
 
     mtxTracksVec.lock();
 
-    if ( tracks.size() > 0 )
+    if ( vTracks.size() > 0 )
     {
         if ( isCurrentTrackEnded() )
         {
-            tracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
+            vTracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
         }
 
-        if (bRandomNextTrack)
+        if (vTracksHistory.size() > 1)
         {
-            if (vTracksHistory.size() > 1)
+            size_t iTrackIndex = 0;
+
+            Track* pPrevTrack = vTracksHistory[ vTracksHistory.size() - 2 ];
+
+            for (size_t i = 0; i < vTracks.size(); i++)
             {
-                size_t iTrackIndex = 0;
-
-                Track* pPrevTrack = vTracksHistory[ vTracksHistory.size() - 2 ];
-
-                for (size_t i = 0; i < tracks.size(); i++)
+                if (pPrevTrack == vTracks[i])
                 {
-                    if (pPrevTrack == tracks[i])
-                    {
-                        iTrackIndex = i;
-                        break;
-                    }
+                    iTrackIndex = i;
+                    break;
                 }
-
-
-                mtxTracksVec.unlock();
-
-                vTracksHistory.pop_back();
-                vTracksHistory.pop_back();
-
-                playTrack ( iTrackIndex );
             }
-            else
-            {
-                mtxTracksVec.unlock();
 
-                playTrack( iCurrentlyPlayingTrackIndex );
-            }
+
+            mtxTracksVec.unlock();
+
+            vTracksHistory.pop_back();
+            vTracksHistory.pop_back();
+
+            playTrack ( iTrackIndex );
         }
         else
         {
-            if (iCurrentlyPlayingTrackIndex == 0)
-            {
-                mtxTracksVec.unlock();
+            mtxTracksVec.unlock();
 
-                playTrack( tracks.size() - 1 );
-            }
-            else
-            {
-                mtxTracksVec.unlock();
-
-                playTrack(iCurrentlyPlayingTrackIndex - 1);
-            }
+            playTrack( iCurrentlyPlayingTrackIndex );
         }
     }
     else
@@ -992,11 +975,11 @@ void AudioService::removeTrack(size_t iTrackIndex)
 
     mtxTracksVec.lock();
 
-    if ( iTrackIndex < tracks.size() )
+    if ( iTrackIndex < vTracks.size() )
     {
         mtxGetCurrentDrawingIndex.lock();
 
-        if ( tracks.size() == 0)
+        if ( vTracks.size() == 0)
         {
             bMonitorTracks      = false;
             bIsSomeTrackPlaying = false;
@@ -1035,15 +1018,15 @@ void AudioService::removeTrack(size_t iTrackIndex)
         // Erase from vTracksHistory
         for (size_t i = 0; i < vTracksHistory.size(); i++)
         {
-            if (vTracksHistory[i] == tracks[iTrackIndex])
+            if (vTracksHistory[i] == vTracks[iTrackIndex])
             {
                 vTracksHistory.erase ( vTracksHistory.begin() + i );
                 break;
             }
         }
 
-        delete tracks[iTrackIndex];
-        tracks.erase( tracks.begin() + iTrackIndex );
+        delete vTracks[iTrackIndex];
+        vTracks.erase( vTracks.begin() + iTrackIndex );
 
         FMOD_RESULT result;
         result = pSystem->update();
@@ -1075,11 +1058,11 @@ void AudioService::clearPlaylist()
 
     iCurrentlyPlayingTrackIndex = 0;
 
-    for (size_t i = 0; i < tracks.size(); i++)
+    for (size_t i = 0; i < vTracks.size(); i++)
     {
-        delete tracks[i];
+        delete vTracks[i];
     }
-    tracks.clear();
+    vTracks.clear();
 
     //fCurrentVolume = DEFAULT_VOLUME;
 
@@ -1097,12 +1080,12 @@ void AudioService::saveTracklist(std::wstring pathToTracklist)
 
     std::ofstream tracklistFile(pathToTracklist, std::ios::binary);
 
-    short iTrackCount = static_cast<short>(tracks.size());
+    short iTrackCount = static_cast<short>(vTracks.size());
     tracklistFile.write(reinterpret_cast<char*>(&iTrackCount), 2);
 
-    for (size_t i = 0; i < tracks.size(); i++)
+    for (size_t i = 0; i < vTracks.size(); i++)
     {
-        std::wstring trackPath( tracks[i]->getFilePath() );
+        std::wstring trackPath( vTracks[i]->getFilePath() );
         short iPathSize = static_cast<short>(trackPath.size()) * 2;
 
         // Write path size
@@ -1165,7 +1148,7 @@ void AudioService::setPan(float fPan)
 {
     mtxTracksVec.lock();
 
-    if (tracks.size() > 0)
+    if (vTracks.size() > 0)
     {
         FMOD::ChannelGroup* pMaster;
         pSystem->getMasterChannelGroup(&pMaster);
@@ -1200,11 +1183,11 @@ void AudioService::setSpeedByPitch(float fSpeed)
 
     fCurrentSpeedByPitch = fSpeed;
 
-    if (tracks.size() > 0)
+    if (vTracks.size() > 0)
     {
-        for (size_t i = 0; i < tracks.size(); i++)
+        for (size_t i = 0; i < vTracks.size(); i++)
         {
-            tracks[i]->setSpeedByFreq(fSpeed);
+            vTracks[i]->setSpeedByFreq(fSpeed);
         }
     }
 
@@ -1219,11 +1202,11 @@ void AudioService::setSpeedByTime(float fSpeed)
 
     fCurrentSpeedByTime = fSpeed;
 
-    if (tracks.size() > 0)
+    if (vTracks.size() > 0)
     {
-        for (size_t i = 0; i < tracks.size(); i++)
+        for (size_t i = 0; i < vTracks.size(); i++)
         {
-            tracks[i]->setSpeedByTime(fSpeed);
+            vTracks[i]->setSpeedByTime(fSpeed);
         }
     }
 
@@ -1379,11 +1362,11 @@ void AudioService::moveDown(size_t iTrackIndex)
 
     mtxGetCurrentDrawingIndex.lock();
 
-    if (iTrackIndex == tracks.size() - 1)
+    if (iTrackIndex == vTracks.size() - 1)
     {
-        Track* pTemp = tracks[iTrackIndex];
-        tracks.pop_back();
-        tracks.insert( tracks.begin(), pTemp );
+        Track* pTemp = vTracks[iTrackIndex];
+        vTracks.pop_back();
+        vTracks.insert( vTracks.begin(), pTemp );
 
         if (bIsSomeTrackPlaying)
         {
@@ -1401,9 +1384,9 @@ void AudioService::moveDown(size_t iTrackIndex)
     }
     else
     {
-        Track* pTemp = tracks[iTrackIndex + 1];
-        tracks[iTrackIndex + 1] = tracks[iTrackIndex];
-        tracks[iTrackIndex] = pTemp;
+        Track* pTemp = vTracks[iTrackIndex + 1];
+        vTracks[iTrackIndex + 1] = vTracks[iTrackIndex];
+        vTracks[iTrackIndex] = pTemp;
 
         if (bIsSomeTrackPlaying)
         {
@@ -1436,16 +1419,16 @@ void AudioService::moveUp(size_t iTrackIndex)
 
     if (iTrackIndex == 0)
     {
-        Track* pTemp = tracks[iTrackIndex];
-        tracks.erase( tracks.begin() );
-        tracks.push_back( pTemp );
+        Track* pTemp = vTracks[iTrackIndex];
+        vTracks.erase( vTracks.begin() );
+        vTracks.push_back( pTemp );
 
         if (bIsSomeTrackPlaying)
         {
             if (iTrackIndex == iCurrentlyPlayingTrackIndex)
             {
-                iCurrentlyPlayingTrackIndex = tracks.size() - 1;
-                *iCurrentlyDrawingTrackIndex = tracks.size() - 1;
+                iCurrentlyPlayingTrackIndex = vTracks.size() - 1;
+                *iCurrentlyDrawingTrackIndex = vTracks.size() - 1;
             }
             else
             {
@@ -1456,9 +1439,9 @@ void AudioService::moveUp(size_t iTrackIndex)
     }
     else
     {
-        Track* pTemp = tracks[iTrackIndex - 1];
-        tracks[iTrackIndex - 1] = tracks[iTrackIndex];
-        tracks[iTrackIndex] = pTemp;
+        Track* pTemp = vTracks[iTrackIndex - 1];
+        vTracks[iTrackIndex - 1] = vTracks[iTrackIndex];
+        vTracks[iTrackIndex] = pTemp;
 
         if (bIsSomeTrackPlaying)
         {
@@ -1546,9 +1529,9 @@ void AudioService::searchTextSet(const std::wstring &sKeyword)
 
     if (sKeyword != L"")
     {
-        for (size_t i = 0; i < tracks.size(); i++)
+        for (size_t i = 0; i < vTracks.size(); i++)
         {
-            if ( findCaseInsensitive( tracks[i]->getTrackName(), const_cast<std::wstring&>(sKeyword)) != std::string::npos )
+            if ( findCaseInsensitive( vTracks[i]->getTrackName(), const_cast<std::wstring&>(sKeyword)) != std::string::npos )
             {
                 vSearchResult.push_back(i);
             }
@@ -1584,17 +1567,15 @@ void AudioService::randomNextTrack()
         bRepeatTrack = false;
         pMainWindow->uncheckRepeatTrackButton();
     }
-
-    vTracksHistory.clear();
 }
 
 void AudioService::setVolume(float fNewVolume)
 {
     mtxTracksVec.lock();
 
-    if (tracks.size() > 0)
+    if (vTracks.size() > 0)
     {
-        tracks[iCurrentlyPlayingTrackIndex]->setVolume(fNewVolume);
+        vTracks[iCurrentlyPlayingTrackIndex]->setVolume(fNewVolume);
     }
 
     fCurrentVolume = fNewVolume;
@@ -1639,7 +1620,7 @@ Track *AudioService::getCurrentTrack()
 
     if ( bCurrentTrackPaused == false && bIsSomeTrackPlaying )
     {
-        return tracks[ iCurrentlyPlayingTrackIndex ];
+        return vTracks[ iCurrentlyPlayingTrackIndex ];
     }
     else
     {
@@ -1652,7 +1633,7 @@ size_t AudioService::getTracksCount()
     mtxTracksVec .lock();
     mtxTracksVec .unlock();
 
-    return tracks .size();
+    return vTracks .size();
 }
 
 void AudioService::monitorTrack()
@@ -1671,20 +1652,20 @@ void AudioService::monitorTrack()
             {
                 if (cRepeatSectionState == 2)
                 {
-                    if ( tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() >= iSecondRepeatTimePos - MAX_TIME_ERROR_MS )
+                    if ( vTracks[iCurrentlyPlayingTrackIndex]->getPositionInMS() >= iSecondRepeatTimePos - MAX_TIME_ERROR_MS )
                     {
                         for (float i = fCurrentVolume; i >= 0.0f; i-= 0.01f)
                         {
-                            tracks[iCurrentlyPlayingTrackIndex]->setVolume(i);
+                            vTracks[iCurrentlyPlayingTrackIndex]->setVolume(i);
 
                             std::this_thread::sleep_for (std::chrono::milliseconds(TRANSITION_SLEEP_MS));
                         }
 
-                        tracks[iCurrentlyPlayingTrackIndex]->setPositionInMS (iFirstRepeatTimePos);
+                        vTracks[iCurrentlyPlayingTrackIndex]->setPositionInMS (iFirstRepeatTimePos);
 
                         for (float i = 0; i <= fCurrentVolume; i+= 0.01f)
                         {
-                            tracks[iCurrentlyPlayingTrackIndex]->setVolume(i);
+                            vTracks[iCurrentlyPlayingTrackIndex]->setVolume(i);
 
                             std::this_thread::sleep_for (std::chrono::milliseconds(TRANSITION_SLEEP_MS));
                         }
@@ -1695,9 +1676,9 @@ void AudioService::monitorTrack()
                 // track->getLengthInMS()   - 1.0
                 // track->getPositionInMS() - x
 
-                double x = static_cast<double>(tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS()) / tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS();
+                double x = static_cast<double>(vTracks[iCurrentlyPlayingTrackIndex]->getPositionInMS()) / vTracks[iCurrentlyPlayingTrackIndex]->getLengthInMS();
 
-                pMainWindow->setCurrentPos(x, tracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                pMainWindow->setCurrentPos(x, vTracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
             }
         }
 
@@ -1713,7 +1694,7 @@ bool AudioService::isCurrentTrackEnded()
 {
     bool bError = false;
 
-    unsigned int iCurrentTimeInMS = tracks[iCurrentlyPlayingTrackIndex]->getPositionInMS(&bError);
+    unsigned int iCurrentTimeInMS = vTracks[iCurrentlyPlayingTrackIndex]->getPositionInMS(&bError);
 
     if (bError)
     {
@@ -1721,7 +1702,7 @@ bool AudioService::isCurrentTrackEnded()
         return true;
     }
 
-    if ( iCurrentTimeInMS >= (tracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() - MAX_TIME_ERROR_MS) )
+    if ( iCurrentTimeInMS >= (vTracks[iCurrentlyPlayingTrackIndex]->getLengthInMS() - MAX_TIME_ERROR_MS) )
     {
         return true;
     }
@@ -1737,7 +1718,7 @@ void AudioService::switchToOtherTrack()
 
     // The track is ended
     // Play next
-    tracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
+    vTracks[iCurrentlyPlayingTrackIndex]->reCreateTrack(fCurrentVolume);
 
     FMOD_RESULT result = pSystem->update();
     if (result)
@@ -1795,27 +1776,27 @@ void AudioService::drawGraph(size_t* iTrackIndex)
 
 
     // here we do: 3000 * (tracks[iTrackIndex]->getLengthInMS() / 1000) / 6000, but we can replace this with just:
-    iOnlySamplesInOneRead = tracks[*iTrackIndex]->getLengthInMS() * 3 / 6000;
+    iOnlySamplesInOneRead = vTracks[*iTrackIndex]->getLengthInMS() * 3 / 6000;
     if (iOnlySamplesInOneRead == 0) iOnlySamplesInOneRead = 1;
 
 
     // Set max on graph
-    std::string format = tracks[*iTrackIndex]->getPCMFormat();
+    std::string format = vTracks[*iTrackIndex]->getPCMFormat();
     unsigned int iTempMax;
     if (format == "PCM16")
     {
-        iTempMax = tracks[*iTrackIndex]->getLengthInPCMbytes() / 4 / iOnlySamplesInOneRead;
+        iTempMax = vTracks[*iTrackIndex]->getLengthInPCMbytes() / 4 / iOnlySamplesInOneRead;
     }
     else
     {
-        iTempMax = tracks[*iTrackIndex]->getLengthInPCMbytes() / 6 / iOnlySamplesInOneRead;
+        iTempMax = vTracks[*iTrackIndex]->getLengthInPCMbytes() / 6 / iOnlySamplesInOneRead;
     }
 
     pMainWindow->setXMaxToGraph(iTempMax);
-    tracks[*iTrackIndex]->setMaxPosInGraph(iTempMax);
+    vTracks[*iTrackIndex]->setMaxPosInGraph(iTempMax);
 
 
-    tracks[*iTrackIndex]->createDummySound();
+    vTracks[*iTrackIndex]->createDummySound();
     mtxGetCurrentDrawingIndex.unlock();
 
     // Buffer Size = 2 MB
@@ -1836,7 +1817,7 @@ void AudioService::drawGraph(size_t* iTrackIndex)
 
         mtxGetCurrentDrawingIndex.lock();
 
-        result = tracks[*iTrackIndex]->getPCMSamples(pSamplesBuffer, iBufferSize, &iActuallyReadBytes, &pcmFormat);
+        result = vTracks[*iTrackIndex]->getPCMSamples(pSamplesBuffer, iBufferSize, &iActuallyReadBytes, &pcmFormat);
 
         mtxGetCurrentDrawingIndex.unlock();
 
@@ -1932,10 +1913,10 @@ void AudioService::drawGraph(size_t* iTrackIndex)
     if (bDrawing)
     {
         pMainWindow->setXMaxToGraph(iGraphMax);
-        tracks[*iTrackIndex]->setMaxPosInGraph(iGraphMax);
+        vTracks[*iTrackIndex]->setMaxPosInGraph(iGraphMax);
     }
 
-    tracks[*iTrackIndex]->releaseDummySound();
+    vTracks[*iTrackIndex]->releaseDummySound();
 
 
 
@@ -2044,7 +2025,7 @@ void AudioService::calcBitrate()
 
     int iBitrate = 0;
 
-    bool bResult = tracks[iCurrentlyPlayingTrackIndex] ->getBitRate(&iBitrate);
+    bool bResult = vTracks[iCurrentlyPlayingTrackIndex] ->getBitRate(&iBitrate);
 
     if (bResult)
     {
@@ -2130,11 +2111,11 @@ AudioService::~AudioService()
 
     FMOD_RESULT result;
 
-    for (size_t i = 0; i < tracks.size(); i++)
+    for (size_t i = 0; i < vTracks.size(); i++)
     {
-        delete tracks[i];
+        delete vTracks[i];
     }
-    tracks.clear();
+    vTracks.clear();
 
     result = pSystem->release();
     if (result)
