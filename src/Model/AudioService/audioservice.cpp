@@ -28,7 +28,7 @@
 
 AudioService::AudioService(MainWindow* pMainWindow)
 {
-    sBloodyVersion       = "1.17.5";
+    sBloodyVersion       = BLOODY_PLAYER_VERSION;
 
 
     this ->pMainWindow   = pMainWindow;
