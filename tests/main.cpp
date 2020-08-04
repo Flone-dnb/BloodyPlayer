@@ -11,6 +11,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
     const int res = Catch::Session().run(argc, argv);
     std::system("pause");
 
