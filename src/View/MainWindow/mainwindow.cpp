@@ -692,24 +692,88 @@ void MainWindow::slotAddDataToGraph(float* pData, unsigned int iSizeInSamples, u
         x.push_back( static_cast<double>(iCurrentXPosOnGraph) );
         iCurrentXPosOnGraph++;
 
-        float iSample = -1.0f;
+        float fSamplePlus = -1.0f;
+        float fSampleMinus = 1.0f;
+        bool bPlusFirst = false;
 
         // Average all 'iSamplesInOne' samples in one sample.
         for (unsigned int j = 0; j < (2 * iSamplesInOne); j+= 2)
         {
-            float iSample1 = (pData[i + j] + pData[i + j + 1]) / 2;
-
-            if (iSample < 0.0f)
+            // L + R channels.
+            float fSample1 = 0.0f;
+            if (abs(pData[i + j]) < abs(pData[i + j + 1]))
             {
-                iSample = iSample1;
+                fSample1 = pData[i + j];
             }
             else
             {
-                iSample = (iSample + iSample1) / 2;
+                fSample1 = pData[i + j + 1];
+                //fSample1 = (pData[i + j] + pData[i + j + 1]) / 2;
             }
+
+            if (j == 0)
+            {
+                if (fSample1 > 0.0f)
+                {
+                    bPlusFirst = true;
+                }
+                else
+                {
+                    bPlusFirst = false;
+                }
+            }
+
+            if (fSample1 > 0.0f)
+            {
+                if (fSample1 > fSamplePlus)
+                {
+                    fSamplePlus = fSample1;
+                }
+            }
+            else
+            {
+                if (fSample1 < fSampleMinus)
+                {
+                    fSampleMinus = fSample1;
+                }
+            }
+
+
+//            if (fSample < 0.0f)
+//            {
+//                fSample = fSample1;
+//            }
+//            else
+//            {
+//                fSample = (fSample + fSample1) / 2;
+//            }
         }
 
-        y.push_back( static_cast<double>(iSample) );
+        fSamplePlus *= 0.5f;
+        fSamplePlus = 0.5f + fSamplePlus;
+
+        fSampleMinus *= 0.5f;
+        fSampleMinus += 0.5f;
+
+        if (bPlusFirst)
+        {
+            y.push_back( static_cast<double>(fSamplePlus) );
+
+//            x.push_back( static_cast<double>(iCurrentXPosOnGraph) );
+//            iCurrentXPosOnGraph++;
+
+//            y.push_back( static_cast<double>(fSampleMinus) );
+        }
+        else
+        {
+            y.push_back( static_cast<double>(fSampleMinus) );
+
+//            x.push_back( static_cast<double>(iCurrentXPosOnGraph) );
+//            iCurrentXPosOnGraph++;
+
+//            y.push_back( static_cast<double>(fSamplePlus) );
+        }
+
     }
 
     ui->widget_graph->graph(0)->addData(x, y, true);

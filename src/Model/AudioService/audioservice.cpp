@@ -1776,7 +1776,8 @@ void AudioService::drawGraph(size_t* iTrackIndex)
 
 
     // here we do: 3000 * (tracks[iTrackIndex]->getLengthInMS() / 1000) / 6000, but we can replace this with just:
-    iOnlySamplesInOneRead = vTracks[*iTrackIndex]->getLengthInMS() * 3 / 6000;
+    //iOnlySamplesInOneRead = vTracks[*iTrackIndex]->getLengthInMS() * 3 / 6000;
+    iOnlySamplesInOneRead = vTracks[*iTrackIndex]->getLengthInMS() / 2000;
     if (iOnlySamplesInOneRead == 0) iOnlySamplesInOneRead = 1;
 
 
@@ -1949,9 +1950,10 @@ float *AudioService::rawBytesToPCM16_0_1(char *pBuffer, unsigned int iBufferSize
         std::memcpy(reinterpret_cast<char*>(&iSampleL),     &pBuffer[i],     1);
         std::memcpy(reinterpret_cast<char*>(&iSampleL) + 1, &pBuffer[i + 1], 1);
 
-        unsigned short int iSampleLUnsigned = static_cast<unsigned short int> (iSampleL + USHRT_MAX / 2.0f);
+        //unsigned short int iSampleLUnsigned = static_cast<unsigned short int> (iSampleL + USHRT_MAX / 2.0f);
 
-        pSamples[iPosInSamples] = static_cast<float>(iSampleLUnsigned) / USHRT_MAX;
+        //pSamples[iPosInSamples] = static_cast<float>(iSampleLUnsigned) / USHRT_MAX;
+        pSamples[iPosInSamples] = static_cast<float>(iSampleL) / SHRT_MAX;
         iPosInSamples++;
 
 
@@ -1961,9 +1963,10 @@ float *AudioService::rawBytesToPCM16_0_1(char *pBuffer, unsigned int iBufferSize
         std::memcpy(reinterpret_cast<char*>(&iSampleR),     &pBuffer[i + 2], 1);
         std::memcpy(reinterpret_cast<char*>(&iSampleR) + 1, &pBuffer[i + 3], 1);
 
-        unsigned short int iSampleRUnsigned = static_cast<unsigned short int> (iSampleR + USHRT_MAX / 2.0f);
+        //unsigned short int iSampleRUnsigned = static_cast<unsigned short int> (iSampleR + USHRT_MAX / 2.0f);
 
-        pSamples[iPosInSamples] = static_cast<float>(iSampleRUnsigned) / USHRT_MAX;
+        //pSamples[iPosInSamples] = static_cast<float>(iSampleRUnsigned) / USHRT_MAX;
+        pSamples[iPosInSamples] = static_cast<float>(iSampleR) / SHRT_MAX;
         iPosInSamples++;
     }
 
@@ -1976,25 +1979,26 @@ float *AudioService::rawBytesToPCM24_0_1(char *pBuffer, unsigned int iBufferSize
 
     size_t iPosInSamples = 0;
 
-    // 8388607 is 2^24 / 2
-    int iMin24BitSigned = 8388608;
+    int iPow2To24 = pow(2, 24);
 
     for (size_t i = 0; i < iBufferSizeInBytes; i += 6)
     {
         int iSampleL = interpret24bitAsInt32 (pBuffer[i + 2], pBuffer[i + 1], pBuffer[i]);
 
-        unsigned int iSampleLUnsigned = static_cast<unsigned int> (iSampleL + iMin24BitSigned);
+        //unsigned int iSampleLUnsigned = static_cast<unsigned int> (iSampleL + iMin24BitSigned);
 
-        pSamples[iPosInSamples] = static_cast<float>(iSampleLUnsigned / pow(2, 24));
+        //pSamples[iPosInSamples] = static_cast<float>(iSampleLUnsigned / pow(2, 24));
+        pSamples[iPosInSamples] = static_cast<float>(iSampleL) / iPow2To24;
         iPosInSamples++;
 
 
 
         int iSampleR = interpret24bitAsInt32 (pBuffer[i + 5], pBuffer[i + 4], pBuffer[i + 3]);
 
-        unsigned int iSampleRUnsigned = static_cast<unsigned int> (iSampleR + iMin24BitSigned);
+        //unsigned int iSampleRUnsigned = static_cast<unsigned int> (iSampleR + iMin24BitSigned);
 
-        pSamples[iPosInSamples] = static_cast<float>(iSampleRUnsigned / pow(2, 24));
+        //pSamples[iPosInSamples] = static_cast<float>(iSampleRUnsigned / pow(2, 24));
+        pSamples[iPosInSamples] = static_cast<float>(iSampleR) / iPow2To24;
         iPosInSamples++;
     }
 
