@@ -75,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::signalSetRepeatPoint,      this, &MainWindow::slotSetRepeatPoint);
     connect(this, &MainWindow::signalEraseRepeatSection,  this, &MainWindow::slotEraseRepeatSection);
     connect(this, &MainWindow::signalSetTrackBitrate,     this, &MainWindow::slotSetTrackBitrate);
+    connect(this, &MainWindow::signalClearPlaylist,       this, &MainWindow::slotClearPlaylist);
 
     // Tracklist connect
     connect(ui->scrollArea, &TrackList::signalDrop, this, &MainWindow::slotDrop);
@@ -252,26 +253,12 @@ void MainWindow::uncheckRepeatTrackButton()
 
 void MainWindow::clearCurrentPlaylist()
 {
-    if (tracks.size() > 0)
-    {
-        mtxAddTrackWidget .lock();
+    std::promise<bool> promiseResult;
+    std::future<bool> future = promiseResult.get_future();
 
-        for (size_t i = 0; i < tracks.size(); i++)
-        {
-            delete tracks[i];
-        }
-        tracks.clear();
+    emit signalClearPlaylist(&promiseResult);
 
-        ui->label_TrackName->setText( "Track Name" );
-        ui->label_TrackInfo->setText( "Track Info" );
-
-        slotClearGraph();
-
-        //ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
-        //ui->horizontalSlider->setEnabled(false);
-
-        mtxAddTrackWidget .unlock();
-    }
+    future.get();
 }
 
 void MainWindow::setTrackBitrate(size_t iNumber, std::string sBitrate)
@@ -593,6 +580,32 @@ void MainWindow::slotUpdateTrackInfo(size_t iTrackIndex)
     ui ->label_TrackInfo ->setText( tracks[iTrackIndex] ->trackInfo );
 
     mtxAddTrackWidget .unlock();
+}
+
+void MainWindow::slotClearPlaylist(std::promise<bool>* pPromiseResult)
+{
+    if (tracks.size() > 0)
+    {
+        mtxAddTrackWidget .lock();
+
+        for (size_t i = 0; i < tracks.size(); i++)
+        {
+            delete tracks[i];
+        }
+        tracks.clear();
+
+        ui->label_TrackName->setText( "Track Name" );
+        ui->label_TrackInfo->setText( "Track Info" );
+
+        slotClearGraph();
+
+        //ui->horizontalSlider->setValue(static_cast<int>(DEFAULT_VOLUME*100));
+        //ui->horizontalSlider->setEnabled(false);
+
+        mtxAddTrackWidget .unlock();
+    }
+
+    pPromiseResult->set_value(false);
 }
 
 void MainWindow::slotAddNewTrack(std::wstring trackName, std::wstring trackInfo, std::string trackTime)

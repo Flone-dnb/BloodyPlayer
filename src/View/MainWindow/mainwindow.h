@@ -15,7 +15,7 @@
 #include <string>
 #include <mutex>
 #include <vector>
-
+#include <future>
 
 
 
@@ -84,6 +84,7 @@ signals:
         void     signalShowMessageBox      (bool errorBox,           QString text);
         void     signalSetNumber           (size_t iNumber);
         void     signalSetTrackBitrate     (size_t iNumber, QString sBitrate);
+        void     signalClearPlaylist       (std::promise<bool>* pPromiseResult);
 
 
 
@@ -287,6 +288,7 @@ private slots:
         void  slotSetNumber                        (size_t iNumber);
         void  slotSetTrackBitrate                  (size_t iNumber, QString sBitrate);
         void  slotUpdateTrackInfo                  (size_t iTrackIndex);
+        void  slotClearPlaylist                    (std::promise<bool>* pPromiseResult);
 
 
 private:
