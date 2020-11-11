@@ -1,6 +1,5 @@
 ﻿- When adding music, we need to add it in the same order in which it was in the folder.
-- With winsock2 create a server and if another audio file is being opened a new instance of Player will check if one is running and if true then this new track will be sent to currently running instance. 
-- (?) Add winsock2 and make 'Check for Updates' button -> in settings add "Update server address".
+- With winsock2 create a server and if another audio file is being opened a new instance of Player will check if one is running and if true then this new track will be sent to currently running instance.
 - Add gain (fader) DSP.
 - Add multi-band EQ.
 - On every startup check if the Player is associated with the audio formats in windows and if not then ask to associate.
