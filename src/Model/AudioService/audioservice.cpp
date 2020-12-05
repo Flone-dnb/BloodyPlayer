@@ -1011,6 +1011,9 @@ void AudioService::removeTrack(size_t iTrackIndex)
                 bCurrentTrackPaused = false;
                 iCurrentlyPlayingTrackIndex = 0;
 
+                pMainWindow->eraseRepeatSection();
+                cRepeatSectionState = 0;
+
                 // Clear Track Name and Track Info
                 pMainWindow->setPlayingOnTrack(0, true);
 
@@ -1075,6 +1078,10 @@ void AudioService::clearPlaylist()
     vTracks.clear();
 
     //fCurrentVolume = DEFAULT_VOLUME;
+
+
+    pMainWindow->eraseRepeatSection();
+    cRepeatSectionState = 0;
 
 
     vTracksHistory.clear();
