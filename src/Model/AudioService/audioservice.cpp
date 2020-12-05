@@ -724,6 +724,16 @@ void AudioService::setTrackPos(unsigned int graphPos)
                 }
             }
         }
+        else if (cRepeatSectionState == 1)
+        {
+            if ( iPosInMS > iFirstRepeatTimePos )
+            {
+                if ( vTracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iPosInMS) )
+                {
+                    pMainWindow->setCurrentPos(fPosMult, vTracks[iCurrentlyPlayingTrackIndex]->getCurrentTime());
+                }
+            }
+        }
         else
         {
             if ( vTracks[iCurrentlyPlayingTrackIndex]->setPositionInMS(iPosInMS) )
