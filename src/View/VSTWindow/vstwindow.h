@@ -26,7 +26,9 @@ public:
 
     explicit VSTWindow(QWidget *parent = nullptr);
 
+#if _WIN32
     HWND getVSTWidgetHandle();
+#endif
 
     ~VSTWindow();
 

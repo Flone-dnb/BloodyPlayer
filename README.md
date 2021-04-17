@@ -12,3 +12,9 @@ Features:<br>
 - <b>Tracklist management</b>. Move tracks in the tracklist or delete some of them by right-clicking on the track or using hotkeys.<br>
 - <b>Search</b>. Use Ctrl + F to open the search window to search for the desired track in the tracklist.<br>
 - <b>"Repeat Track" / "Random Track"</b>. Use buttons under the volume slider to set "Repeat Track" / "Random Track" functions.<br>
+
+# Build
+Install FMOD libs then build using Qt.<br>
+Debian:<br>
+1. Follow https://wiki.debian.org/FMOD and istall FMOD libs to /usr/local/lib.
+2. Build using Qt.

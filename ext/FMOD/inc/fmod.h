@@ -1,6 +1,6 @@
 /* ======================================================================================== */
 /* FMOD Core API - C header file.                                                           */
-/* Copyright (c), Firelight Technologies Pty, Ltd. 2004-2020.                               */
+/* Copyright (c), Firelight Technologies Pty, Ltd. 2004-2021.                               */
 /*                                                                                          */
 /* Use this header in conjunction with fmod_common.h (which contains all the constants /    */
 /* callbacks) to develop using the C interface                                              */
@@ -102,6 +102,7 @@ FMOD_RESULT F_API FMOD_System_GetVersion                (FMOD_SYSTEM *system, un
 FMOD_RESULT F_API FMOD_System_GetOutputHandle           (FMOD_SYSTEM *system, void **handle);
 FMOD_RESULT F_API FMOD_System_GetChannelsPlaying        (FMOD_SYSTEM *system, int *channels, int *realchannels);
 FMOD_RESULT F_API FMOD_System_GetCPUUsage               (FMOD_SYSTEM *system, float *dsp, float *stream, float *geometry, float *update, float *total);
+FMOD_RESULT F_API FMOD_System_GetCPUUsageEx             (FMOD_SYSTEM *system, float *convolutionThread1, float *convolutionThread2);
 FMOD_RESULT F_API FMOD_System_GetFileUsage              (FMOD_SYSTEM *system, long long *sampleBytesRead, long long *streamBytesRead, long long *otherBytesRead);
 
 /* Sound/DSP/Channel/FX creation and retrieval. */

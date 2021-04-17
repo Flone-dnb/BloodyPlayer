@@ -23,10 +23,12 @@ VSTWindow::VSTWindow(QWidget *parent) :
     setCentralWidget(ui->widget);
 }
 
+#if _WIN32
 HWND VSTWindow::getVSTWidgetHandle()
 {
     return reinterpret_cast<HWND>(ui->widget->winId());
 }
+#endif
 
 
 

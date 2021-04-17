@@ -28,8 +28,11 @@
 #include "View/VSTWindow/vstwindow.h"
 #include "View/AboutWindow/aboutwindow.h"
 #include "View/SearchWindow/searchwindow.h"
-#include "View/TutorialWindows/WelcomeWindow/welcomewindow.h"
 #include "globalparams.h"
+
+#if _WIN32
+using std::memcpy;
+#endif
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -71,7 +74,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, &MainWindow::signalSetXMaxToGraph,      this, &MainWindow::slotSetXMaxToGraph);
     connect(this, &MainWindow::signalAddDataToGraph,      this, &MainWindow::slotAddDataToGraph);
     connect(this, &MainWindow::signalSetCurrentPos,       this, &MainWindow::slotSetCurrentPos);
+#if _WIN32
     connect(this, &MainWindow::signalHideVSTWindow,       this, &MainWindow::slotHideVSTWindow);
+#endif
     connect(this, &MainWindow::signalSetRepeatPoint,      this, &MainWindow::slotSetRepeatPoint);
     connect(this, &MainWindow::signalEraseRepeatSection,  this, &MainWindow::slotEraseRepeatSection);
     connect(this, &MainWindow::signalSetTrackBitrate,     this, &MainWindow::slotSetTrackBitrate);
@@ -175,17 +180,24 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(pFXWindow, &FXWindow::signalChangeSpeedByTime,  this, &MainWindow::slotSetSpeedByTime);
     connect(pFXWindow, &FXWindow::signalChangeReverbVolume, this, &MainWindow::slotSetReverbVolume);
     connect(pFXWindow, &FXWindow::signalChangeEchoVolume,   this, &MainWindow::slotSetEchoVolume);
+#if _WIN32
     connect(pFXWindow, &FXWindow::signalOpenVST,            this, &MainWindow::slotLoadVST);
     connect(pFXWindow, &FXWindow::signalShowVST,            this, &MainWindow::slotShowVST);
+#endif
     connect(this, &MainWindow::signalShowAllTracks,         this, &MainWindow::slotShowAllTracks);
     connect(this, &MainWindow::signalResetAll,              pFXWindow, &FXWindow::slotResetAll);
+#if _WIN32
     connect(this, &MainWindow::signalSetVSTName,            pFXWindow, &FXWindow::slotSetVSTName);
+#endif
 
+    pVSTWindow = nullptr;
+#if _WIN32
     // VSTWindow
     pVSTWindow = new VSTWindow(this);
     pVSTWindow->setWindowModality(Qt::WindowModality::WindowModal);
     connect(pVSTWindow, &VSTWindow::unloadVST, this, &MainWindow::slotUnloadVST);
     connect(pVSTWindow, &VSTWindow::updateAudio, this, &MainWindow::slotUpdate);
+#endif
 }
 
 
@@ -298,6 +310,7 @@ size_t MainWindow::getTracksCountOnScreen()
     return iVisibleTracks;
 }
 
+#if _WIN32
 HWND MainWindow::getVSTWindowHWND()
 {
     return pVSTWindow->getVSTWidgetHandle();
@@ -314,6 +327,7 @@ void MainWindow::hideVSTWindow()
 {
     emit signalHideVSTWindow();
 }
+#endif
 
 void MainWindow::clearGraph(bool stopTrack)
 {
@@ -391,17 +405,6 @@ bool MainWindow::isSystemReady()
     return bSystemReady;
 }
 
-void MainWindow::showTutorialWindow()
-{
-    WelcomeWindow* pWelcomeWindow = new WelcomeWindow(this);
-    pWelcomeWindow->setWindowModality(Qt::WindowModal);
-
-    connect(pWelcomeWindow, &WelcomeWindow::signalDoNotShowTutorialAgain, this, &MainWindow::slotDoNotShowTutorialAgain);
-    connect(pWelcomeWindow, &WelcomeWindow::signalEndTutorial,            this, &MainWindow::slotTutorialEnd);
-
-    pWelcomeWindow->show();
-}
-
 
 void MainWindow::on_actionOpen_triggered()
 {
@@ -409,15 +412,11 @@ void MainWindow::on_actionOpen_triggered()
 
     if (files.size() > 0)
     {
-        std::vector<wchar_t*> localPaths;
+        std::vector<std::wstring> localPaths;
 
         for (int i = 0; i < files.size(); i++)
         {
-            wchar_t* pPath = new wchar_t[ static_cast<size_t>(files[i].size()) * 2 + 2 ];
-            std::memset( pPath, 0, static_cast<size_t>(files[i].size()) * 2 + 2 );
-            std::memcpy( pPath, files[i].toStdWString().c_str(), static_cast<size_t>(files[i].size() * 2) );
-
-            localPaths.push_back( pPath );
+            localPaths.push_back(files[i].toStdWString());
         }
 
         pController->addTracks(localPaths);
@@ -469,15 +468,11 @@ void MainWindow::slotClickedOnTrack(size_t trackIndex)
 
 void MainWindow::slotDrop(QStringList paths)
 {
-    std::vector<wchar_t*> localPaths;
+    std::vector<std::wstring> localPaths;
 
     for (int i = 0; i < paths.size(); i++)
     {
-        wchar_t* pPath = new wchar_t[ static_cast<size_t>(paths[i].size()) * 2 + 2 ];
-        std::memset( pPath, 0, static_cast<size_t>(paths[i].size()) * 2 + 2 );
-        std::memcpy( pPath, paths[i].toStdWString().c_str(), static_cast<size_t>(paths[i].size() * 2) );
-
-        localPaths.push_back( pPath );
+        localPaths.push_back(paths[i].toStdWString());
     }
 
     pController->addTracks(localPaths);
@@ -504,16 +499,6 @@ void MainWindow::slotSearchFindNext()
 void MainWindow::slotSearchTextSet(QString keyword)
 {
     pController->searchTextSet (keyword.toStdWString());
-}
-
-void MainWindow::slotDoNotShowTutorialAgain()
-{
-    pController->doNotShowTutorialAgain();
-}
-
-void MainWindow::slotTutorialEnd()
-{
-    pController->tutorialEnd();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *ev)
@@ -885,6 +870,7 @@ void MainWindow::slotSetEchoVolume(float fEchoVolume)
     pController->setEchoVolume(fEchoVolume);
 }
 
+#if _WIN32
 void MainWindow::slotLoadVST(wchar_t *pPath)
 {
     pController->loadVSTPlugin(pPath);
@@ -902,6 +888,7 @@ void MainWindow::slotUnloadVST()
 
     emit signalSetVSTName("NULL");
 }
+#endif
 
 void MainWindow::slotUpdate()
 {
@@ -924,6 +911,7 @@ void MainWindow::slotSetTrack(size_t iTrackIndex, bool bClear)
     }
 }
 
+#if _WIN32
 void MainWindow::slotHideVSTWindow()
 {
     if (pVSTWindow)
@@ -931,6 +919,7 @@ void MainWindow::slotHideVSTWindow()
         pVSTWindow->hide();
     }
 }
+#endif
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
 {

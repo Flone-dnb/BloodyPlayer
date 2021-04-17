@@ -31,12 +31,6 @@ public:
     Controller(MainWindow* pMainWindow);
 
 
-    // Tutorial
-
-        void   doNotShowTutorialAgain();
-        void   tutorialEnd       ();
-
-
     // Main buttons
 
         void    playTrack        (size_t iTrackIndex);
@@ -81,14 +75,16 @@ public:
         void    setSpeedByTime   (float    fSpeed);
         void    setReverbVolume  (float    fVolume);
         void    setEchoVolume    (float    fEchoVolume);
+#if _WIN32
         void    loadVSTPlugin    (wchar_t* pPathToDll);
         void    unloadVSTPlugin  ();
+#endif
         void    systemUpdate     ();
 
 
     // Set
 
-        void    addTracks        (std::vector<wchar_t*> paths);
+        void    addTracks        (const std::vector<std::wstring>& paths);
         void    setVolume        (float fNewVolume);
         void    setTrackPos      (unsigned int graphPos);
         void    setRepeatPoint   (unsigned int graphPos);

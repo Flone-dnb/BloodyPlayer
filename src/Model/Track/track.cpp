@@ -17,14 +17,22 @@
 #include "../ext/FMOD/inc/fmod_errors.h"
 
 // Other
+#if _WIN32
 #include <windows.h>
+#endif
 
-Track::Track(const wchar_t* pFilePath, const std::wstring& sTrackName, MainWindow *pMainWindow, FMOD::System* pSystem)
+#if __linux__
+#define MAX_PATH 255
+#include <cmath>
+#include <locale>
+#endif
+
+Track::Track(const std::wstring& sFilePath, const std::wstring& sTrackName, MainWindow *pMainWindow, FMOD::System* pSystem)
 {
     pChannel          = nullptr;
     pSound            = nullptr;
     pDummySound       = nullptr;
-    this->pFilePath   = pFilePath;
+    this->sFilePath   = sFilePath;
     this->sTrackName  = sTrackName;
 
     this->pMainWindow = pMainWindow;
@@ -51,17 +59,25 @@ bool Track::setupTrack()
     // wchar_t is 16 bits and holds UTF-16 code units
     // FMOD accepts UTF-8 strings
     // convert wchar_t* (UTF-16) to char* (UTF-8)
+#if _WIN32
     char filePathInUTF8[MAX_PATH];
-    WideCharToMultiByte(CP_UTF8, 0, pFilePath, -1, filePathInUTF8, sizeof(filePathInUTF8), nullptr, nullptr);
+    WideCharToMultiByte(CP_UTF8, 0, sFilePath.c_str(), -1, filePathInUTF8, sizeof(filePathInUTF8), nullptr, nullptr);
+#else
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+    auto out = utf8_conv.to_bytes(sFilePath);
+#endif
 
 
     FMOD_RESULT result;
-
+#if _WIN32
     result = pSystem->createStream(filePathInUTF8, FMOD_DEFAULT | FMOD_LOOP_OFF | FMOD_ACCURATETIME, nullptr, &pSound);
+#else
+    result = pSystem->createStream(out.c_str(), FMOD_DEFAULT | FMOD_LOOP_OFF | FMOD_ACCURATETIME, nullptr, &pSound);
+#endif
     if (result)
     {
         pMainWindow->showWMessageBox( true, std::wstring(L"Track::setupTrack::FMOD::System::createStream() failed.\n\n"
-                                                       "Can't load the file \"" + std::wstring(pFilePath) + L"\".\n\n"
+                                                       "Can't load the file \"" + sFilePath + L"\".\n\n"
                                                        "Error: ") + stringToWString(std::string(FMOD_ErrorString(result))) );
         return false;
     }
@@ -121,13 +137,22 @@ bool Track::createDummySound()
     // wchar_t is 16 bits and holds UTF-16 code units
     // FMOD accepts UTF-8 strings
     // convert wchar_t* (UTF-16) to char* (UTF-8)
+#if _WIN32
     char filePathInUTF8[MAX_PATH];
-    WideCharToMultiByte(CP_UTF8, 0, pFilePath, -1, filePathInUTF8, sizeof(filePathInUTF8), nullptr, nullptr);
+    WideCharToMultiByte(CP_UTF8, 0, sFilePath.c_str(), -1, filePathInUTF8, sizeof(filePathInUTF8), nullptr, nullptr);
+#else
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+    auto out = utf8_conv.to_bytes(sFilePath);
+#endif
 
 
     FMOD_RESULT result;
 
+#if _WIN32
     result = pSystem->createStream(filePathInUTF8, FMOD_DEFAULT, nullptr, &pDummySound);
+#else
+    result = pSystem->createStream(out.c_str(), FMOD_DEFAULT, nullptr, &pDummySound);
+#endif
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("Track::createDummySound::FMOD::System::createStream() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
@@ -227,7 +252,7 @@ bool Track::releaseDummySound()
 
 const wchar_t* Track::getFilePath()
 {
-    return pFilePath;
+    return sFilePath.c_str();
 }
 
 std::wstring &Track::getTrackName()
@@ -715,7 +740,14 @@ bool Track::getBitRate(int *bitrate)
 
 
     // Open selected file in binary mode
-    std::ifstream mp3File (pFilePath, std::ios::binary);
+#if _WIN32
+    std::ifstream mp3File (sFilePath, std::ios::binary);
+#else
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+    auto out = utf8_conv.to_bytes(sFilePath);
+
+    std::ifstream mp3File (out, std::ios::binary);
+#endif
 
     if (mp3File.is_open())
     {
@@ -987,7 +1019,14 @@ long long Track::getFileSizeInBytes()
     // This function returns tracks file size in bytes.
 
     // Open selected file in binary mode
-    std::ifstream mp3File (pFilePath, std::ios::binary);
+#if _WIN32
+    std::ifstream mp3File (sFilePath, std::ios::binary);
+#else
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+    auto out = utf8_conv.to_bytes(sFilePath);
+
+    std::ifstream mp3File (out, std::ios::binary);
+#endif
 
     if (mp3File.is_open())
     {
@@ -1132,6 +1171,4 @@ Track::~Track()
             pMainWindow->showMessageBox( true, std::string("~Track::FMOD::Sound::release() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
         }
     }
-
-    if (pFilePath) delete[] pFilePath;
 }

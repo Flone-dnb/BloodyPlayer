@@ -33,7 +33,7 @@ class Track
 
 public:
 
-    Track(const wchar_t* pFilePath, const std::wstring& sTrackName, MainWindow* pMainWindow, FMOD::System* pSystem);
+    Track(const std::wstring& sFilePath, const std::wstring& sTrackName, MainWindow* pMainWindow, FMOD::System* pSystem);
 
 
 
@@ -147,7 +147,7 @@ private:
     std::string    pcmFormat;
 
 
-    const wchar_t* pFilePath;
+    std::wstring   sFilePath;
 
 
     unsigned int   iMaxValueOnGraph;

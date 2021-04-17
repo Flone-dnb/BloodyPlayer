@@ -20,10 +20,17 @@
 #include "../ext/FMOD/inc/fmod_errors.h"
 
 // Other
+#if _WIN32
 #include <windows.h>
 #include <shlobj.h>
-
 #pragma comment(lib, "Shell32.lib") // for <shlobj.h>
+#endif
+
+#if __linux__
+#define MAX_PATH 255
+#include <locale>
+#include <codecvt>
+#endif
 
 
 AudioService::AudioService(MainWindow* pMainWindow)
@@ -62,79 +69,8 @@ AudioService::AudioService(MainWindow* pMainWindow)
     fCurrentSpeedByPitch = 1.0f;
     fCurrentSpeedByTime  = 1.0f;
 
-
-    if ( FMODinit() == false )
-    {
-        showTutorial();
-    }
+    FMODinit();
 }
-
-void AudioService::doNotShowTutorialAgain()
-{
-    TCHAR my_documents[MAX_PATH];
-    HRESULT result = SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
-
-    if (result == S_OK)
-    {
-        std::wstring adressToSettings    = std::wstring(my_documents);
-        std::wstring adressToOldSettings = std::wstring(my_documents);
-        adressToSettings    += L"\\BloodyPlayerSettings.data";
-        adressToOldSettings += L"\\BloodyPlayerSettings_.data";
-
-        _wrename(adressToSettings.c_str(), adressToOldSettings.c_str());
-
-        std::ofstream settingsFileNew (adressToSettings, std::ios::binary);
-
-        char cNeverShowTutorialAgain = 1;
-        char cTutorialFinished       = 0;
-
-        settingsFileNew.write ( &cNeverShowTutorialAgain, sizeof(cNeverShowTutorialAgain) );
-        settingsFileNew.write ( &cTutorialFinished,       sizeof(cTutorialFinished)       );
-
-        settingsFileNew.close();
-
-        _wremove(adressToOldSettings.c_str());
-    }
-    else
-    {
-        pMainWindow->showMessageBox(true, "AudioService::doNotShowTutorialAgain::SHGetFolderPathW() failed.");
-    }
-}
-
-void AudioService::tutorialEnd()
-{
-    TCHAR my_documents[MAX_PATH];
-    HRESULT result = SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
-
-    if (result == S_OK)
-    {
-        std::wstring adressToSettings    = std::wstring(my_documents);
-        std::wstring adressToOldSettings = std::wstring(my_documents);
-        adressToSettings    += L"\\BloodyPlayerSettings.data";
-        adressToOldSettings += L"\\BloodyPlayerSettings_.data";
-
-        _wrename(adressToSettings.c_str(), adressToOldSettings.c_str());
-
-        std::ofstream settingsFileNew (adressToSettings, std::ios::binary);
-
-        char cNeverShowTutorialAgain = 0;
-        char cTutorialFinished       = 1;
-
-        settingsFileNew.write ( &cNeverShowTutorialAgain, sizeof(cNeverShowTutorialAgain) );
-        settingsFileNew.write ( &cTutorialFinished,       sizeof(cTutorialFinished)       );
-
-        settingsFileNew.close();
-
-        _wremove(adressToOldSettings.c_str());
-    }
-    else
-    {
-        pMainWindow->showMessageBox(true, "AudioService::doNotShowTutorialAgain::SHGetFolderPathW() failed.");
-    }
-}
-
-
-
 
 bool AudioService::FMODinit()
 {
@@ -246,76 +182,22 @@ bool AudioService::FMODinit()
     return false;
 }
 
-void AudioService::showTutorial()
+bool AudioService::addTrack(const std::wstring& sFilePath)
 {
-    TCHAR my_documents[MAX_PATH];
-    HRESULT result = SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, my_documents);
-
-    if (result == S_OK)
-    {
-        std::wstring adressToSettings = std::wstring(my_documents);
-        adressToSettings += L"\\BloodyPlayerSettings.data";
-
-        std::ifstream settingsFile (adressToSettings, std::ios::binary);
-
-        if ( settingsFile.is_open() )
-        {
-            // Check if tutorial finished
-
-            char cNeverShowTutorialAgain = 0;
-            char cTutorialFinished       = 0;
-
-            settingsFile.read ( &cNeverShowTutorialAgain, sizeof(cNeverShowTutorialAgain) );
-            settingsFile.read ( &cTutorialFinished,       sizeof(cTutorialFinished)       );
-
-            settingsFile.close();
-
-
-
-            if (cNeverShowTutorialAgain == 0 && cTutorialFinished == 0)
-            {
-                pMainWindow->showTutorialWindow();
-            }
-        }
-        else
-        {
-            // First time opened app
-
-            std::ofstream settingsFileNew (adressToSettings, std::ios::binary);
-
-            char cNeverShowTutorialAgain = 0;
-            char cTutorialFinished       = 0;
-
-            settingsFileNew.write ( &cNeverShowTutorialAgain, sizeof(cNeverShowTutorialAgain) );
-            settingsFileNew.write ( &cTutorialFinished,       sizeof(cTutorialFinished)       );
-
-            settingsFileNew.close();
-
-            pMainWindow->showTutorialWindow();
-        }
-    }
-    else
-    {
-        pMainWindow->showMessageBox(true, "AudioService::showTutorial::SHGetFolderPathW() failed.");
-    }
-}
-
-void AudioService::addTrack(const wchar_t *pFilePath)
-{
-    Track* pNewTrack = new Track(pFilePath, getTrackName(pFilePath), pMainWindow, pSystem);
+    Track* pNewTrack = new Track(sFilePath, getTrackName(sFilePath), pMainWindow, pSystem);
     if ( !pNewTrack->setupTrack() )
     {
         delete pNewTrack;
-        return;
+        return true;
     }
 
-    std::wstring wPathStr(pFilePath);
+    std::wstring wPathStr(sFilePath);
 
 
 
     // Get track name
 
-    std::wstring trackName = getTrackName(pFilePath);
+    std::wstring trackName = getTrackName(sFilePath);
 
 
 
@@ -362,7 +244,7 @@ void AudioService::addTrack(const wchar_t *pFilePath)
     pNewTrack->setSpeedByFreq(fCurrentSpeedByPitch);
     pNewTrack->setSpeedByTime(fCurrentSpeedByTime);
 
-    mtxThreadLoadAddTrack.lock();
+    std::lock_guard<std::mutex> lock(mtxThreadLoadAddTrack);
 
 
     vTracks.push_back(pNewTrack);
@@ -380,12 +262,13 @@ void AudioService::addTrack(const wchar_t *pFilePath)
     if (result)
     {
         pMainWindow->showMessageBox( true, std::string("AudioService::addTrack::FMOD::System::update() failed. Error: ") + std::string(FMOD_ErrorString(result)) );
+        return true;
     }
 
-    mtxThreadLoadAddTrack.unlock();
+    return false;
 }
 
-std::wstring AudioService::getTrackName(const wchar_t *pFilePath)
+std::wstring AudioService::getTrackName(const std::wstring& pFilePath)
 {
     std::wstring wPathStr(pFilePath);
 
@@ -410,7 +293,7 @@ std::wstring AudioService::getTrackName(const wchar_t *pFilePath)
     return trackName;
 }
 
-void AudioService::addTracks(std::vector<wchar_t*> paths)
+void AudioService::addTracks(std::vector<std::wstring> paths)
 {
     // This function adds tracks by using private 'threadAddTracks()' and 'addTrack()' functions.
 
@@ -423,7 +306,6 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
 
         for (size_t i = 0; i < removeCount; i++)
         {
-            delete[] paths.back();
             paths.pop_back();
         }
 
@@ -441,9 +323,7 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
 
     // Get amount of CPU threads
     // In every CPU thread we will add tracks
-    SYSTEM_INFO info;
-    GetSystemInfo(&info);
-    size_t threads = info.dwNumberOfProcessors;
+    size_t threads = std::thread::hardware_concurrency();
 
     std::vector<bool*> threadsDoneFlags;
     int* allCount = new int(0);
@@ -468,7 +348,7 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
                 iStop = i;
 
                 threadsDoneFlags.push_back(new bool(false));
-                std::thread t (&AudioService::threadAddTracks, this, &paths, iStart, iStop, threadsDoneFlags.back(), allCount, static_cast<int>(paths.size()));
+                std::thread t (&AudioService::threadAddTracks, this, paths, iStart, iStop, threadsDoneFlags.back(), allCount, static_cast<int>(paths.size()));
                 t.detach();
 
                 iCurrentPos = 0;
@@ -480,7 +360,7 @@ void AudioService::addTracks(std::vector<wchar_t*> paths)
             iStop = paths.size() - 1;
 
             threadsDoneFlags.push_back(new bool(false));
-            std::thread t (&AudioService::threadAddTracks, this, &paths, iStart, iStop, threadsDoneFlags.back(), allCount, static_cast<int>(paths.size()));
+            std::thread t (&AudioService::threadAddTracks, this, paths, iStart, iStop, threadsDoneFlags.back(), allCount, static_cast<int>(paths.size()));
             t.detach();
         }
     }
@@ -1091,19 +971,24 @@ void AudioService::clearPlaylist()
 
 void AudioService::saveTracklist(std::wstring pathToTracklist)
 {
-    mtxTracksVec.lock();
+    std::lock_guard<std::mutex> lock(mtxTracksVec);
 
-    //pMainWindow->showWaitWindow("Saving...");
-
+#if _WIN32
     std::ofstream tracklistFile(pathToTracklist, std::ios::binary);
+#else
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+    auto out = utf8_conv.to_bytes(pathToTracklist);
+
+    std::ofstream tracklistFile (out, std::ios::binary);
+#endif
 
     short iTrackCount = static_cast<short>(vTracks.size());
-    tracklistFile.write(reinterpret_cast<char*>(&iTrackCount), 2);
+    tracklistFile.write(reinterpret_cast<char*>(&iTrackCount), sizeof(short));
 
     for (size_t i = 0; i < vTracks.size(); i++)
     {
         std::wstring trackPath( vTracks[i]->getFilePath() );
-        short iPathSize = static_cast<short>(trackPath.size()) * 2;
+        short iPathSize = static_cast<short>(trackPath.size() * sizeof(wchar_t));
 
         // Write path size
         tracklistFile.write(reinterpret_cast<char*>(&iPathSize), sizeof(iPathSize));
@@ -1112,10 +997,6 @@ void AudioService::saveTracklist(std::wstring pathToTracklist)
     }
 
     tracklistFile.close();
-
-    //pMainWindow->hideWaitWindow();
-
-    mtxTracksVec.unlock();
 }
 
 void AudioService::openTracklist(std::wstring pathToTracklist, bool bClearCurrent)
@@ -1126,34 +1007,42 @@ void AudioService::openTracklist(std::wstring pathToTracklist, bool bClearCurren
         clearPlaylist();
     }
 
+#if _WIN32
     std::ifstream tracklistFile(pathToTracklist, std::ios::binary);
+#else
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+    auto out = utf8_conv.to_bytes(pathToTracklist);
+
+    std::ifstream tracklistFile (out, std::ios::binary);
+#endif
+
     if (tracklistFile.is_open())
     {
         mtxTracksVec.lock();
 
         short iTrackPathSize = 0;
-        std::vector<wchar_t*> newTracks;
+        std::vector<std::wstring> newTracks;
 
         short iTrackCount = 0;
-        tracklistFile.read(reinterpret_cast<char*>(&iTrackCount), 2);
+        tracklistFile.read(reinterpret_cast<char*>(&iTrackCount), sizeof(iTrackCount));
 
         for (short i = 0; i < iTrackCount; i++)
         {
-            tracklistFile.read(reinterpret_cast<char*>(&iTrackPathSize), 2);
+            tracklistFile.read(reinterpret_cast<char*>(&iTrackPathSize), sizeof(iTrackPathSize));
 
-            wchar_t* pNewTrack = new wchar_t[static_cast<size_t>(iTrackPathSize + 2)];
-            memset(pNewTrack, 0, static_cast<size_t>(iTrackPathSize + 2));
+            wchar_t* pNewTrack = new wchar_t[static_cast<size_t>(iTrackPathSize + sizeof(wchar_t))];
+            memset(pNewTrack, 0, static_cast<size_t>(iTrackPathSize + sizeof(wchar_t)));
 
             tracklistFile.read(reinterpret_cast<char*>(pNewTrack), iTrackPathSize);
-            newTracks.push_back(pNewTrack);
+            newTracks.push_back(std::wstring(pNewTrack));
+
+            delete[] pNewTrack;
         }
 
         tracklistFile.close();
         mtxTracksVec.unlock();
 
         addTracks(newTracks);
-        //std::thread addThread(&AudioService::addTracks, this, newTracks);
-        //addThread.detach();
     }
     else
     {
@@ -1279,6 +1168,7 @@ void AudioService::setEchoVolume(float fEchoVolume)
     }
 }
 
+#if _WIN32
 void AudioService::loadVSTPlugin(wchar_t *pPathToDll)
 {
     // wchar_t is 16 bits and holds UTF-16 code units
@@ -1367,6 +1257,7 @@ void AudioService::unloadVSTPlugin()
         pMainWindow->hideVSTWindow();
     }
 }
+#endif
 
 void AudioService::systemUpdate()
 {
@@ -1964,8 +1855,8 @@ float *AudioService::rawBytesToPCM16_0_1(char *pBuffer, unsigned int iBufferSize
     {
         short int iSampleL = 0;
 
-        std::memcpy(reinterpret_cast<char*>(&iSampleL),     &pBuffer[i],     1);
-        std::memcpy(reinterpret_cast<char*>(&iSampleL) + 1, &pBuffer[i + 1], 1);
+        memcpy(reinterpret_cast<char*>(&iSampleL),     &pBuffer[i],     1);
+        memcpy(reinterpret_cast<char*>(&iSampleL) + 1, &pBuffer[i + 1], 1);
 
         //unsigned short int iSampleLUnsigned = static_cast<unsigned short int> (iSampleL + USHRT_MAX / 2.0f);
 
@@ -1977,8 +1868,8 @@ float *AudioService::rawBytesToPCM16_0_1(char *pBuffer, unsigned int iBufferSize
 
         short int iSampleR = 0;
 
-        std::memcpy(reinterpret_cast<char*>(&iSampleR),     &pBuffer[i + 2], 1);
-        std::memcpy(reinterpret_cast<char*>(&iSampleR) + 1, &pBuffer[i + 3], 1);
+        memcpy(reinterpret_cast<char*>(&iSampleR),     &pBuffer[i + 2], 1);
+        memcpy(reinterpret_cast<char*>(&iSampleR) + 1, &pBuffer[i + 3], 1);
 
         //unsigned short int iSampleRUnsigned = static_cast<unsigned short int> (iSampleR + USHRT_MAX / 2.0f);
 
@@ -2057,17 +1948,17 @@ void AudioService::calcBitrate()
     mtxTracksVec .unlock();
 }
 
-void AudioService::threadAddTracks(std::vector<wchar_t*>* paths, size_t iStart, size_t iStop, bool* done, int* allCount, int all)
+void AudioService::threadAddTracks(std::vector<std::wstring> paths, size_t iStart, size_t iStop, bool* done, int* allCount, int all)
 {
     for (size_t i = iStart; i <= iStop; i++)
     {
-        addTrack(paths->operator[](i));
+        addTrack(paths[i]);
 
 
         mtxLoadThreadDone.lock();
 
         *allCount += 1;
-        if (paths ->size() >= MIN_TRACKS_TO_SHOW_LOADING)
+        if (paths.size() >= MIN_TRACKS_TO_SHOW_LOADING)
         {
             pMainWindow->setProgress( *allCount *  100 / all);
         }

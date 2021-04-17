@@ -19,21 +19,8 @@ Controller::Controller(MainWindow* pMainWindow)
     bRandomTrack = false;
 }
 
-void Controller::doNotShowTutorialAgain()
-{
-    pAudioService->doNotShowTutorialAgain();
-}
 
-void Controller::tutorialEnd()
-{
-    pAudioService->tutorialEnd();
-}
-
-
-
-
-
-void Controller::addTracks(std::vector<wchar_t*> paths)
+void Controller::addTracks(const std::vector<std::wstring>& paths)
 {
     // We run this method (AudioService::addTracks) in another thread, because this call is coming from the main thread and
     // the interface will stop updating if you do not create a separate thread here.
@@ -165,6 +152,7 @@ void Controller::setEchoVolume(float fEchoVolume)
     pAudioService->setEchoVolume(fEchoVolume);
 }
 
+#if _WIN32
 void Controller::loadVSTPlugin(wchar_t *pPathToDll)
 {
     pAudioService->loadVSTPlugin(pPathToDll);
@@ -174,6 +162,7 @@ void Controller::unloadVSTPlugin()
 {
     pAudioService->unloadVSTPlugin();
 }
+#endif
 
 void Controller::systemUpdate()
 {

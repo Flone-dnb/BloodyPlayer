@@ -14,7 +14,9 @@
 
 // FMOD
 #include "../ext/FMOD/inc/fmod.hpp"
+#if _WIN32
 #pragma comment(lib, "fmod_vc.lib")
+#endif
 
 
 
@@ -34,12 +36,6 @@ class AudioService
 public:
 
     AudioService(MainWindow* pMainWindow);
-
-
-    // Tutorial
-
-        void   doNotShowTutorialAgain();
-        void   tutorialEnd           ();
 
 
     // Main functions
@@ -86,14 +82,16 @@ public:
         void    setSpeedByTime       (float     fSpeed);
         void    setReverbVolume      (float     fVolume);
         void    setEchoVolume        (float     fEchoVolume);
+#if _WIN32
         void    loadVSTPlugin        (wchar_t*  pPathToDll);
         void    unloadVSTPlugin      ();
+#endif
         void    systemUpdate         ();
 
 
     // Set
 
-        void    addTracks            (std::vector<wchar_t*>  paths);
+        void    addTracks            (std::vector<std::wstring>  paths);
         void    setVolume            (float                  fNewVolume);
         void    setTrackPos          (unsigned int           graphPos);
         void    setRepeatPoint       (unsigned int graphPos);
@@ -125,12 +123,10 @@ private:
     // If this function fails, the application will terminate.
         bool   FMODinit        ();
 
-        void   showTutorial    ();
-
     // Functions for execution in a separete thread
-        void   threadAddTracks (std::vector<wchar_t*>* paths, size_t iStart, size_t iStop, bool* done,  int* allCount,  int all);
-        void   addTrack        (const wchar_t* pFilePath);
-        std::wstring getTrackName  (const wchar_t* pFilePath);
+        void   threadAddTracks (std::vector<std::wstring> paths, size_t iStart, size_t iStop, bool* done,  int* allCount,  int all);
+        bool   addTrack        (const std::wstring& sFilePath);
+        std::wstring getTrackName  (const std::wstring& sFilePath);
 
     // Will switch to next track if one's ended
         void   monitorTrack    ();

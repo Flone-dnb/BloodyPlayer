@@ -8,6 +8,11 @@
 
 #include <QCloseEvent>
 #include <QFileDialog>
+#include <QMessageBox>
+
+#if _WIN32
+using std::memcpy;
+#endif
 
 FXWindow::FXWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -181,6 +186,7 @@ void FXWindow::on_pushButton_delay_clicked()
 
 void FXWindow::on_pushButton_vst_clicked()
 {
+#if _WIN32
     if (bVSTLoaded)
     {
         emit signalShowVST();
@@ -193,11 +199,14 @@ void FXWindow::on_pushButton_vst_clicked()
             wchar_t* pPath = new wchar_t[static_cast<size_t>(pathToDll.size() * 2) + 2];
             memset(pPath, 0, static_cast<size_t>(pathToDll.size() * 2) + 2);
 
-            std::memcpy(pPath, pathToDll.toStdWString().c_str(), static_cast<size_t>(pathToDll.size() * 2));
+            memcpy(pPath, pathToDll.toStdWString().c_str(), static_cast<size_t>(pathToDll.size() * 2));
 
             emit signalOpenVST(pPath);
         }
     }
+#else
+    QMessageBox::information(nullptr, "Information", "This feature is not supported on Linux yet!");
+#endif
 }
 
 void FXWindow::slotSetVSTName(QString name)

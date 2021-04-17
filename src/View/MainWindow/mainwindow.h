@@ -65,9 +65,7 @@ signals:
 
 
     // VST
-
         void     signalSetVSTName          (QString name);
-        void     signalResetAll            ();
         void     signalHideVSTWindow       ();
 
 
@@ -85,6 +83,7 @@ signals:
         void     signalSetNumber           (size_t iNumber);
         void     signalSetTrackBitrate     (size_t iNumber, QString sBitrate);
         void     signalClearPlaylist       (std::promise<bool>* pPromiseResult);
+        void     signalResetAll            ();
 
 
 
@@ -101,14 +100,15 @@ public:
 
         void markAnError();
         bool isSystemReady();
-        void showTutorialWindow();
 
 
     // VST
 
+#if _WIN32
         void     setVSTName                (std::string name);
         HWND     getVSTWindowHWND          ();
         void     hideVSTWindow             ();
+#endif
 
 
     // Oscillogram
@@ -192,12 +192,6 @@ public slots:
         void  slotSearchTextSet   (QString keyword);
 
 
-    // Tutorial
-
-        void slotDoNotShowTutorialAgain();
-        void slotTutorialEnd();
-
-
 protected:
 
     void  keyPressEvent           (QKeyEvent* ev);
@@ -208,8 +202,9 @@ protected:
 private slots:
 
     // VST
-
+#if _WIN32
         void  slotHideVSTWindow                    ();
+#endif
 
 
     // WaitWindow
@@ -238,9 +233,11 @@ private slots:
         void  slotSetSpeedByTime                   (float     fSpeed);
         void  slotSetReverbVolume                  (float     fVolume);
         void  slotSetEchoVolume                    (float     fEchoVolume);
+#if _WIN32
         void  slotLoadVST                          (wchar_t*  pPath);
         void  slotShowVST                          ();
         void  slotUnloadVST                        ();
+#endif
         void  slotUpdate                           ();
 
 
