@@ -16,5 +16,5 @@ Features:<br>
 # Build
 Install FMOD libs then build using Qt.<br>
 Debian:<br>
-1. Follow https://wiki.debian.org/FMOD and istall FMOD libs to /usr/local/lib.
+1. Follow https://wiki.debian.org/FMOD and install FMOD libs to /usr/local/lib.
 2. Build using Qt.
