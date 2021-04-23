@@ -20,7 +20,7 @@ AboutWindow::AboutWindow(QString sBloodyVersion, QWidget *parent) : QMainWindow(
 
     ui ->label_appIcon    ->setPixmap ( QPixmap(":/bloodyLogo2.png").scaled (128, 128, Qt::KeepAspectRatio) );
     ui ->label_version    ->setText   ( "Bloody Player. Version: " + sBloodyVersion + "." );
-    ui ->label_copyright  ->setText   ( "Copyright (c) 2019-2020.\nAleksandr \"Flone\" Tretyakov." );
+    ui ->label_copyright  ->setText   ( "Copyright (c) 2019-2021.\nAleksandr \"Flone\" Tretyakov." );
 }
 
 
