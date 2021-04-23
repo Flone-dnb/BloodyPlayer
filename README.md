@@ -14,7 +14,6 @@ Features:<br>
 - <b>"Repeat Track" / "Random Track"</b>. Use buttons under the volume slider to set "Repeat Track" / "Random Track" functions.<br>
 
 # Build
-Install FMOD libs then build using Qt.<br>
-Debian:<br>
-1. Follow https://wiki.debian.org/FMOD and install FMOD libs to /usr/local/lib.
-2. Build using Qt.
+1. Install FMOD from www.fmod.com/download (FMOD Engine, should include the FMOD Studio API and FMOD Core API).
+2. Copy everything from api/core/lib/x86_x64/ to /usr/local/lib.
+3. Build .pro file in the 'ide' folder using Qt.
