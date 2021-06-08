@@ -1,8 +1,6 @@
 # Bloody Player
 Bloody Player is an audio player created using Qt and FMOD.<br>
-<p align="center">
-  <img width="650" height="400" src="screenshot.png">
-</p>
+![](screenshot.png?raw=true)
 Features:<br>
 - <b>Drag'n'Drop</b>. Drag'n'Drop tracks right to the Bloody Player window to add tracks to the tracklist. You can also drag'n'drop folders to add tracks from it.<br>
 - <b>Tracklists</b>. Save the current tracklist and open it later.<br>
@@ -15,6 +13,15 @@ Features:<br>
 
 # Build
 Install FMOD libs then build using Qt.<br>
-Debian:<br>
+Ubuntu/Debian:<br>
 1. Follow https://wiki.debian.org/FMOD and install FMOD libs to /usr/local/lib.
 2. Build using Qt.
+For Ubuntu users it may be worth to disable tray icon as it's not displaying at all. To do so comment out the contents of the function hideEvent() in src/View/MainWindow/mainwindow.cpp like this:<br>
+<pre>
+void MainWindow::hideEvent(QHideEvent *ev)
+{
+   //hide();
+   //pTrayIcon->show();
+   //ev->ignore();
+}
+</pre>
