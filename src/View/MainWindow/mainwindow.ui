@@ -14,8 +14,7 @@
    <string>Bloody Player</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(1,1,1,255), stop:1 rgba(22,22,22,255));
-
+   <string notr="true">background-color: rgb(25, 25, 25);
 color: white;</string>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -1714,7 +1713,7 @@ QPushButton:pressed
     <item>
      <widget class="TrackList" name="scrollArea">
       <property name="styleSheet">
-       <string notr="true">background-color: rgb(14, 14, 14);
+       <string notr="true">background-color: rgb(25, 25, 25);
 border: 1px solid rgb(160, 0, 0);
 border-radius: 25px;</string>
       </property>
@@ -1787,7 +1786,7 @@ border-radius: 25px;</string>
 
 QMenuBar::item
 {
-	background-color: rgba(20, 20, 20, 255);
+	background-color: rgb(25, 25, 25);
 }
 
 QMenuBar::item:selected

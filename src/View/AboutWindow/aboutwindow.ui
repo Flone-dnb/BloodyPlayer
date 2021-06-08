@@ -14,8 +14,7 @@
    <string>About</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 rgba(1,1,1,255), stop:1 rgba(22,22,22,255));
-
+   <string notr="true">background-color: rgb(25, 25, 25);
 color: white;</string>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -172,7 +171,7 @@ QPushButton:pressed
      <x>0</x>
      <y>0</y>
      <width>310</width>
-     <height>30</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
