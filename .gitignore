@@ -1,2 +1,4 @@
 *.user
 *.pro.user
+build-BloodyPlayer-Desktop-Release
+build-BloodyPlayer-Desktop-Debug
