@@ -36,7 +36,7 @@ color: white;</string>
            <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
           </property>
           <property name="text">
-           <string>Track Name</string>
+           <string/>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
@@ -55,7 +55,7 @@ color: white;</string>
            <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
           </property>
           <property name="text">
-           <string>Track Info</string>
+           <string/>
           </property>
          </widget>
         </item>
@@ -63,6 +63,15 @@ color: white;</string>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>10</number>
+        </property>
         <item>
          <widget class="QPushButton" name="pushButton_prev">
           <property name="sizePolicy">
@@ -341,23 +350,29 @@ color: white;</string>
 {
 	border: none;
 	width: 25px;
-	height: 25px;
+	height: 30px;
 	background-color: rgba(255, 255, 255, 0);
-	border-image: url(&quot;:prev.png&quot;);
+	border-image: url(&quot;:button_prev.png&quot;);
 }
 
 QPushButton:hover
 {
-	border-image: url(&quot;:prev_hover.png&quot;);
+	border-image: url(&quot;:button_prev_hover.png&quot;);
 }
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:prev.png&quot;);
+	border-image: url(&quot;:button_prev.png&quot;);
 }</string>
           </property>
           <property name="text">
            <string/>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>32</width>
+            <height>32</height>
+           </size>
           </property>
          </widget>
         </item>
@@ -581,20 +596,20 @@ QPushButton:pressed
            <string notr="true">QPushButton
 {
 	border: none;
-	width: 20px;
-	height: 35px;
+	width: 15px;
+	height: 30px;
 	background-color: rgba(255, 255, 255, 0);
-	border-image: url(&quot;:stop.png&quot;);
+	border-image: url(&quot;:button_stop.png&quot;);
 }
 
 QPushButton:hover
 {
-	border-image: url(&quot;:stop_hover.png&quot;);
+	border-image: url(&quot;:button_stop_hover.png&quot;);
 }
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:stop.png&quot;);
+	border-image: url(&quot;:button_stop.png&quot;);
 }</string>
           </property>
           <property name="text">
@@ -833,17 +848,17 @@ QPushButton:pressed
 	width: 40px;
 	height: 40px;
 	background-color: rgba(255, 255, 255, 0);
-	border-image: url(&quot;:play.png&quot;);
+	border-image: url(&quot;:button_play.png&quot;);
 }
 
 QPushButton:hover
 {
-	border-image: url(&quot;:play_hover.png&quot;);
+	border-image: url(&quot;:button_play_hover.png&quot;);
 }
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:play.png&quot;);
+	border-image: url(&quot;:button_play.png&quot;);
 }</string>
           </property>
           <property name="text">
@@ -1083,17 +1098,17 @@ QPushButton:pressed
 	width: 20px;
 	height: 35px;
 	background-color: rgba(255, 255, 255, 0);
-	border-image: url(&quot;:pause.png&quot;);
+	border-image: url(&quot;:button_pause.png&quot;);
 }
 
 QPushButton:hover
 {
-	border-image: url(&quot;:pause_hover.png&quot;);
+	border-image: url(&quot;:button_pause_hover.png&quot;);
 }
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:pause.png&quot;);
+	border-image: url(&quot;:button_pause.png&quot;);
 }</string>
           </property>
           <property name="text">
@@ -1322,19 +1337,19 @@ QPushButton:pressed
 {
 	border: none;
 	width: 25px;
-	height: 25px;
+	height: 30px;
 	background-color: rgba(255, 255, 255, 0);
-	border-image: url(&quot;:next.png&quot;);
+	border-image: url(&quot;:button_next.png&quot;);
 }
 
 QPushButton:hover
 {
-	border-image: url(&quot;:next_hover.png&quot;);
+	border-image: url(&quot;:button_next_hover.png&quot;);
 }
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:next.png&quot;);
+	border-image: url(&quot;:button_next.png&quot;);
 }</string>
           </property>
           <property name="text">
@@ -1345,9 +1360,15 @@ QPushButton:pressed
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="10,40,50">
+       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="5,25,70">
         <item>
          <widget class="QLabel" name="label_volume">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="font">
            <font>
             <family>Segoe UI</family>
@@ -1366,11 +1387,26 @@ QPushButton:pressed
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="styleSheet">
-           <string notr="true">QSlider::handle
+           <string notr="true">QSlider::groove:horizontal {
+    border: 1px solid black;
+    height: 8px;
+    background: black;
+	margin: 3px 0;
+}
+
+QSlider::handle
 {
 	background-color: black;
 	border: 1px solid rgb(160, 0, 0);
+	width: 18px;
+	margin: -4px 0;
 }
 
 QSlider::add-page {
@@ -1410,6 +1446,9 @@ QSlider::sub-page:disabled
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="10,20,20,0,20,10">
+          <property name="spacing">
+           <number>10</number>
+          </property>
           <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
@@ -1447,25 +1486,25 @@ QSlider::sub-page:disabled
              <string notr="true">QPushButton
 {
 	border: none;
-	width: 40px;
-	height: 40px;
+	width: 30px;
+	height: 35px;
 	background-color: rgba(255, 255, 255, 0);
-	border-image: url(&quot;:repeat.png&quot;);
+	border-image: url(&quot;:button_repeat.png&quot;);
 }
 
 QPushButton:hover
 {
-	border-image: url(&quot;:repeat_hover.png&quot;);
+	border-image: url(&quot;:button_repeat_hover.png&quot;);
 }
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:repeat.png&quot;);
+	border-image: url(&quot;:button_repeat.png&quot;);
 }
 
 QPushButton:checked
 {
-	border-image: url(&quot;:repeat_active.png&quot;);
+	border-image: url(&quot;:button_repeat_active.png&quot;);
 }</string>
             </property>
             <property name="text">
@@ -1497,25 +1536,25 @@ QPushButton:checked
              <string notr="true">QPushButton
 {
 	border: none;
-	width: 30px;
-	height: 35px;
+	width: 20px;
+	height: 30px;
 	background-color: rgba(255, 255, 255, 0);
-	border-image: url(&quot;:random.png&quot;);
+	border-image: url(&quot;:button_random.png&quot;);
 }
 
 QPushButton:hover
 {
-	border-image: url(&quot;:random_hover.png&quot;);
+	border-image: url(&quot;:button_random_hover.png&quot;);
 }
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:random.png&quot;);
+	border-image: url(&quot;:button_random.png&quot;);
 }
 
 QPushButton:checked
 {
-	border-image: url(&quot;:random_active.png&quot;);
+	border-image: url(&quot;:button_random_active.png&quot;);
 }</string>
             </property>
             <property name="text">
@@ -1547,20 +1586,20 @@ QPushButton:checked
              <string notr="true">QPushButton
 {
 	border: none;
-	width: 45px;
-	height: 45px;
+	width: 35px;
+	height: 35px;
 	background-color: rgba(255, 255, 255, 0);
-	border-image: url(&quot;:fx.png&quot;);
+	border-image: url(&quot;:button_fx.png&quot;);
 }
 
 QPushButton:hover
 {
-	border-image: url(&quot;:fx_hover.png&quot;);
+	border-image: url(&quot;:button_fx_hover.png&quot;);
 }
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:fx.png&quot;);
+	border-image: url(&quot;:button_fx.png&quot;);
 }</string>
             </property>
             <property name="text">
@@ -1598,17 +1637,17 @@ QPushButton:pressed
 	width: 35px;
 	height: 35px;
 	background-color: rgba(255, 255, 255, 0);
-	border-image: url(&quot;:clear.png&quot;);
+	border-image: url(&quot;:button_clear.png&quot;);
 }
 
 QPushButton:hover
 {
-	border-image: url(&quot;:clear_hover.png&quot;);
+	border-image: url(&quot;:button_clear_hover.png&quot;);
 }
 
 QPushButton:pressed
 {
-	border-image: url(&quot;:clear.png&quot;);
+	border-image: url(&quot;:button_clear.png&quot;);
 }</string>
             </property>
             <property name="text">
@@ -1691,7 +1730,7 @@ border-radius: 25px;</string>
          <x>0</x>
          <y>0</y>
          <width>1165</width>
-         <height>449</height>
+         <height>447</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -1732,12 +1771,12 @@ border-radius: 25px;</string>
      <x>0</x>
      <y>0</y>
      <width>1185</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>12</pointsize>
     </font>
    </property>
    <property name="styleSheet">

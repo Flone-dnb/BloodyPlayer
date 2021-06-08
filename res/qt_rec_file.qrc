@@ -1,26 +1,26 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 	<file>bloodyLogo2.png</file>
-    <file>play.png</file>
-	<file>play_hover.png</file>
-	<file>next.png</file>
-	<file>next_hover.png</file>
-	<file>prev.png</file>
-	<file>prev_hover.png</file>
-	<file>stop.png</file>
-	<file>stop_hover.png</file>
-	<file>pause.png</file>
-	<file>pause_hover.png</file>
-	<file>clear.png</file>
-	<file>clear_hover.png</file>
-	<file>repeat.png</file>
-	<file>repeat_hover.png</file>
-	<file>repeat_active.png</file>
-	<file>random.png</file>
-	<file>random_hover.png</file>
-	<file>random_active.png</file>
-	<file>fx.png</file>
-	<file>fx_hover.png</file>
+	<file>button_prev.png</file>
+	<file>button_next.png</file>
+	<file>button_play.png</file>
+	<file>button_pause.png</file>
+	<file>button_stop.png</file>
+	<file>button_repeat.png</file>
+	<file>button_random.png</file>
+	<file>button_clear.png</file>
+	<file>button_fx.png</file>
+	<file>button_prev_hover.png</file>
+	<file>button_next_hover.png</file>
+	<file>button_play_hover.png</file>
+	<file>button_pause_hover.png</file>
+	<file>button_stop_hover.png</file>
+	<file>button_repeat_hover.png</file>
+	<file>button_random_hover.png</file>
+	<file>button_clear_hover.png</file>
+	<file>button_fx_hover.png</file>
+	<file>button_repeat_active.png</file>
+	<file>button_random_active.png</file>
 	<file>GitHub-Mark-Light-Hover.png</file>
 	<file>GitHub-Mark-Light.png</file>
 </qresource>
