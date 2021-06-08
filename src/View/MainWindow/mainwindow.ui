@@ -1377,7 +1377,7 @@ QPushButton:pressed
            <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
           </property>
           <property name="text">
-           <string>Volume: 75%</string>
+           <string>Volume: 80%</string>
           </property>
          </widget>
         </item>
@@ -1433,10 +1433,10 @@ QSlider::sub-page:disabled
 }</string>
           </property>
           <property name="maximum">
-           <number>100</number>
+           <number>125</number>
           </property>
           <property name="value">
-           <number>75</number>
+           <number>80</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
