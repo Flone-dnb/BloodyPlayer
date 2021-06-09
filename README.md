@@ -12,12 +12,7 @@ Features:<br>
 - <b>"Repeat Track" / "Random Track"</b>. Use buttons under the volume slider to set "Repeat Track" / "Random Track" functions.<br>
 
 # Build
-<b>Windows:</b> build .pro file in the 'ide' folder using Qt.
-<br><br>
-<b>Linux:</b>
-1. Install FMOD from www.fmod.com/download (FMOD Engine, should include the FMOD Studio API and FMOD Core API).
-2. Copy everything from api/core/lib/x86_x64/ to /usr/local/lib.
-3. Build .pro file in the 'ide' folder using Qt.
+Build BloodyPlayer.pro file in the 'ide' folder using Qt.<br><br>
 For Ubuntu users it may be worth to disable tray icon as it's not displaying at all. To do so comment out the contents of the function hideEvent() in src/View/MainWindow/mainwindow.cpp like this:<br>
 <pre>
 void MainWindow::hideEvent(QHideEvent *ev)

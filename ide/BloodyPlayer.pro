@@ -65,8 +65,7 @@ FORMS += \
         ../src/View/VSTWindow/vstwindow.ui \
         ../src/View/WaitWindow/waitwindow.ui
 
-unix: LIBS += -L/usr/local/lib -lfmod
-
+unix: LIBS += -L"$$_PRO_FILE_PWD_/../ext/FMOD/lib/x64_linux" -lfmod
 
 win32:
 {
