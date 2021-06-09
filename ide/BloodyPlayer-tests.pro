@@ -12,8 +12,12 @@ SOURCES += \
     ../tests/main.cpp \
     ../tests/ModelTests/TrackTests/TrackTests.cpp
 
-LIBS += -L"$$_PRO_FILE_PWD_/../ext/FMOD/lib/x64"
 LIBS += -L"$$_PRO_FILE_PWD_/../tests" -lBloodyPlayer
+win32:
+{
+    LIBS += -L"$$_PRO_FILE_PWD_/../ext/FMOD/lib/x64"
+}
+unix: LIBS += -L/usr/local/lib -lfmod
 
 INCLUDEPATH += "../src"
 INCLUDEPATH += "../tests"

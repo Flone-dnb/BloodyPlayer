@@ -8,12 +8,14 @@
 #include <iostream>
 #include "../ext/Catch2/catch.hpp"
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
+int main(int argc, char* argv[]) {
+	QApplication a(argc, argv);
 
-    const int res = Catch::Session().run(argc, argv);
-    std::system("pause");
+	const int res = Catch::Session().run(argc, argv);
+    
+#if _WIN32
+	std::system("pause");
+#endif
 
-    return (res < 0xff ? res : 0xff);
+	return (res < 0xff ? res : 0xff);
 }
