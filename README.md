@@ -11,14 +11,11 @@ Features:<br>
 - <b>Search</b>. Use Ctrl + F to open the search window to search for the desired track in the tracklist.<br>
 - <b>"Repeat Track" / "Random Track"</b>. Use buttons under the volume slider to set "Repeat Track" / "Random Track" functions.<br>
 
-# Build
-Build BloodyPlayer.pro file in the 'ide' folder using Qt.<br><br>
-For Ubuntu users it may be worth to disable tray icon as it's not displaying at all. To do so comment out the contents of the function hideEvent() in src/View/MainWindow/mainwindow.cpp like this:<br>
+# Build (Linux)
 <pre>
-void MainWindow::hideEvent(QHideEvent *ev)
-{
-   //hide();
-   //pTrayIcon->show();
-   //ev->ignore();
-}
+chmod +x build.sh
+./build.sh
 </pre>
+Resulting binary is /build/BloodyPlayer.<br>
+You also need to copy FMOD libs. From the project root folder:
+<pre>sudo cp -Prv ext/FMOD/lib/x64_linux/* /usr/lib/</pre>
