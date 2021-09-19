@@ -531,9 +531,9 @@ void MainWindow::keyPressEvent(QKeyEvent *ev)
 
 void MainWindow::hideEvent(QHideEvent *ev)
 {
-    hide();
-    pTrayIcon->show();
-    ev->ignore();
+    //hide();
+    //pTrayIcon->show();
+    //ev->ignore();
 }
 
 void MainWindow::slotShowMessageBox(bool errorBox, QString text)
