@@ -16,6 +16,9 @@ Features:<br>
 chmod +x build.sh
 ./build.sh
 </pre>
-Resulting binary is /build/BloodyPlayer.<br>
-You also need to copy FMOD libs. From the project root folder:
-<pre>sudo cp -Prv ext/FMOD/lib/x64_linux/* /usr/lib/</pre>
+Optionally, to install, you can:
+<pre>
+chmod +x install.sh
+./install.sh
+</pre>
+to install with .desktop entry in /usr/local/... (review the script first).
