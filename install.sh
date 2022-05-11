@@ -34,4 +34,7 @@ fi
 sudo ldconfig
 
 # Create desktop entry.
+if [ ! -d "~/.local/share/applications/" ]; then
+    mkdir ~/.local/share/applications/
+fi
 cp BloodyPlayer.desktop ~/.local/share/applications/
